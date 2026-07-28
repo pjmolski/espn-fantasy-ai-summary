@@ -410,7 +410,7 @@ async function runEspnWeekly(
 		swid: SWID,
 		espn_s2: ESPN_S2
 	};
-	const leagueId = '39720439';
+	const leagueId = '1279367121';
 
 	let attempts = 0;
 	let leagueData: LeagueData,
