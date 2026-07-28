@@ -1,11 +1,12 @@
 // import { SWID, ESPN_S2, OWNER_DICT, ANTHROPIC_API_KEY,  OVERALL_SUMMARY_PROMPT, MATCHUP_SUMMARY_PROMPT  } from '$root/config.json'; // use for local, no web deployment
 import {
-	SWID,
-	ESPN_S2,
-	OWNER_DICT,
-	ANTHROPIC_API_KEY,
-	OVERALL_SUMMARY_PROMPT,
-	MATCHUP_SUMMARY_PROMPT
+    SWID,
+    ESPN_S2,
+    OWNER_DICT,
+    ANTHROPIC_API_KEY,
+    OVERALL_SUMMARY_PROMPT,
+    MATCHUP_SUMMARY_PROMPT,
+    CLAUDE_MODEL
 } from '$env/static/private'; // using envs for web deployment
 
 import fetch from 'node-fetch';
