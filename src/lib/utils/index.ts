@@ -555,9 +555,9 @@ async function getClaudeSummary(prompt: string, systemMessage: string): Promise<
 async function runWeeklyESPN(week: number, season: number | null = null): Promise<any> {
 	try {
 		week = week || getNFLWeek();
+		const resolvedSeason = season ?? getNFLSeason();
 		const { standingsDf, matchupDf, hpOwner, hpPlayer, hpScore, htOwner, htScore } =
-			await runEspnWeekly(week);
-
+		    await runEspnWeekly(week, resolvedSeason);
 		const summary = await generateSummary(week, matchupDf);
 
 		return {
