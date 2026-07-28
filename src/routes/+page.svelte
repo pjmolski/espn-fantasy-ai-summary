@@ -1,7 +1,11 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import type { WeekEntry } from '$lib/fantasyDataService';
+
 	export let data: {
 		weeklyData?: {
 			week: number;
+			season: number;
 			summary: {
 				overallSummary: string;
 				matchupSummaries: {
@@ -30,10 +34,37 @@
 				[key: string]: string | number;
 			}[];
 		};
+		availableWeeks?: WeekEntry[];
 		error?: string;
 	};
 
-	const { weeklyData, error } = data;
+	const { weeklyData, error, availableWeeks = [] } = data;
+
+	// Group available weeks by season for display
+	const seasons = availableWeeks.reduce(
+		(acc, entry) => {
+			if (!acc[entry.season]) acc[entry.season] = [];
+			acc[entry.season].push(entry.week);
+			return acc;
+		},
+		{} as Record<number, number[]>
+	);
+
+	const sortedSeasons = Object.keys(seasons)
+		.map(Number)
+		.sort((a, b) => b - a);
+
+	function onWeekChange(event: Event) {
+		const val = (event.target as HTMLSelectElement).value;
+		if (!val) return;
+		const [season, week] = val.split('-');
+		goto(`?season=${season}&week=${week}`);
+	}
+
+	function currentValue() {
+		if (!weeklyData) return '';
+		return `${weeklyData.season}-${weeklyData.week}`;
+	}
 </script>
 
 {#if error}
@@ -46,7 +77,30 @@
 	</div>
 {:else if weeklyData}
 	<div class="container mx-auto px-4 py-8 bg-gray-900 text-gray-100">
-		<h1 class="text-4xl font-bold mb-6">Week {weeklyData.week} Fantasy Football Summary</h1>
+		<div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+			<h1 class="text-4xl font-bold">
+				{weeklyData.season} · Week {weeklyData.week} Fantasy Football Summary
+			</h1>
+			{#if availableWeeks.length > 1}
+				<div class="flex items-center gap-2">
+					<label for="week-select" class="text-gray-400 text-sm">View week:</label>
+					<select
+						id="week-select"
+						class="bg-gray-800 text-gray-100 border border-gray-600 rounded px-3 py-1.5 text-sm cursor-pointer"
+						value={currentValue()}
+						on:change={onWeekChange}
+					>
+						{#each sortedSeasons as season}
+							<optgroup label={String(season)}>
+								{#each seasons[season] as week}
+									<option value={`${season}-${week}`}>{season} · Week {week}</option>
+								{/each}
+							</optgroup>
+						{/each}
+					</select>
+				</div>
+			{/if}
+		</div>
 
 		<div class="bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
 			<h2 class="text-2xl font-semibold mb-4">Weekly Summary</h2>
@@ -61,13 +115,6 @@
 					<span class="font-bold">{weeklyData.highestScoringPlayer.score.toFixed(2)} points</span>
 				</p>
 			</div>
-			<!-- <div class="bg-green-900 rounded-lg p-4">
-				<h3 class="text-xl font-semibold mb-2">Highest Scoring Team</h3>
-				<p class="text-green-300">
-					{weeklyData.highestScoringTeam.owner}:
-					<span class="font-bold">{weeklyData.highestScoringTeam.score.toFixed(2)} points</span>
-				</p>
-			</div> -->
 		</div>
 
 		<div class="mb-8">
