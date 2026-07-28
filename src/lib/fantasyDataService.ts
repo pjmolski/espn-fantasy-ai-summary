@@ -1,7 +1,6 @@
 import { MongoClient, ServerApiVersion } from 'mongodb';
-import { runWeeklyESPN, getNFLWeek } from '$lib/utils';
-// import { MONGODB_URI, DB_NAME, COLLECTION_NAME } from '$root/config.json'; // use for local, no web deployment
-import { MONGODB_URI, DB_NAME, COLLECTION_NAME, CRON_SECRET } from '$env/static/private'; // using envs for web deployment
+import { runWeeklyESPN, getNFLWeek, getNFLSeason } from '$lib/utils';
+import { MONGODB_URI, DB_NAME, COLLECTION_NAME, CRON_SECRET } from '$env/static/private';
 
 const client = new MongoClient(MONGODB_URI, {
 	serverApi: {
@@ -13,6 +12,7 @@ const client = new MongoClient(MONGODB_URI, {
 
 interface WeeklyData {
 	week: number;
+	season: number;
 	summary: {
 		overallSummary: string;
 		matchupSummaries: {
@@ -46,44 +46,83 @@ interface WeeklyDataWithId extends WeeklyData {
 	_id: string;
 }
 
+export interface WeekEntry {
+	season: number;
+	week: number;
+}
+
 export async function getLatestFantasyData(): Promise<WeeklyDataWithId | null> {
 	try {
 		await client.connect();
 		const db = client.db(DB_NAME);
 		const collection = db.collection(COLLECTION_NAME);
 
-		// Find the latest record by sorting in descending order of week and limiting to 1
 		const latestData = await collection
 			.find<WeeklyDataWithId>({})
-			.sort({ week: -1 })
+			.sort({ season: -1, week: -1 })
 			.limit(1)
 			.toArray();
 
 		if (latestData.length === 0) {
-			console.log('No data found in the weekly-summaries table');
+			console.log('No data found in the weekly-summaries collection');
 			return null;
 		}
 
 		const data = latestData[0];
-		return {
-			...data,
-			_id: data._id.toString()
-		};
+		return { ...data, _id: data._id.toString() };
 	} finally {
 		await client.close();
 	}
 }
 
-// Legacy function, for wanting to update data
-export async function updateFantasyData(): Promise<WeeklyDataWithId | null> {
+export async function getFantasyDataByWeek(
+	week: number,
+	season: number
+): Promise<WeeklyDataWithId | null> {
 	try {
 		await client.connect();
 		const db = client.db(DB_NAME);
 		const collection = db.collection(COLLECTION_NAME);
-		const currentWeek = getNFLWeek();
 
-		console.log('Generating new data for week', currentWeek);
-		const weeklyData = await runWeeklyESPN(currentWeek);
+		const data = await collection.findOne<WeeklyDataWithId>({ week, season });
+		if (!data) return null;
+		return { ...data, _id: data._id.toString() };
+	} finally {
+		await client.close();
+	}
+}
+
+export async function getAllWeeks(): Promise<WeekEntry[]> {
+	try {
+		await client.connect();
+		const db = client.db(DB_NAME);
+		const collection = db.collection(COLLECTION_NAME);
+
+		const docs = await collection
+			.find<WeeklyDataWithId>({}, { projection: { week: 1, season: 1 } })
+			.sort({ season: -1, week: -1 })
+			.toArray();
+
+		return docs.map((d) => ({ season: d.season ?? 0, week: d.week }));
+	} finally {
+		await client.close();
+	}
+}
+
+export async function updateFantasyData(
+	week?: number,
+	season?: number
+): Promise<WeeklyDataWithId | null> {
+	try {
+		await client.connect();
+		const db = client.db(DB_NAME);
+		const collection = db.collection(COLLECTION_NAME);
+
+		const resolvedWeek = week ?? getNFLWeek();
+		const resolvedSeason = season ?? getNFLSeason();
+
+		console.log(`Generating new data for ${resolvedSeason} season, week ${resolvedWeek}`);
+		const weeklyData = await runWeeklyESPN(resolvedWeek, resolvedSeason);
 		const result = await collection.insertOne(weeklyData);
 		console.log('New data saved to MongoDB');
 
@@ -93,7 +132,6 @@ export async function updateFantasyData(): Promise<WeeklyDataWithId | null> {
 	}
 }
 
-// Function to call the cron API
 export async function callCronUpdateFantasyData(fetch: typeof globalThis.fetch): Promise<void> {
 	const response = await fetch('/api/cron/update-fantasy-data', {
 		method: 'GET',
