@@ -112,7 +112,7 @@
 				<h3 class="text-xl font-semibold mb-2">Highest Scoring Player</h3>
 				<p class="text-blue-300">
 					{weeklyData.highestScoringPlayer.player} ({weeklyData.highestScoringPlayer.owner}):
-					<span class="font-bold">{weeklyData.highestScoringPlayer.score.toFixed(2)} points</span>
+					<span class="font-bold">{(weeklyData.highestScoringPlayer.score ?? 0).toFixed(2)} points</span>
 				</p>
 			</div>
 		</div>
@@ -126,7 +126,7 @@
 						<p class="text-gray-300 mb-2">{matchup.summary}</p>
 						{#each weeklyData.matchups.filter((m) => m.matchupId === matchup.matchupId) as team}
 							<p class="text-sm">
-								{team.teamName}: {team.totalPoints.toFixed(2)} points
+								{team.teamName}: {(team.totalPoints ?? 0).toFixed(2)} points
 								<span class={team.result === 'Win' ? 'text-green-400' : 'text-red-400'}>
 									({team.result})
 								</span>
@@ -153,7 +153,7 @@
 							<tr class={i % 2 === 0 ? 'bg-gray-700' : 'bg-gray-800'}>
 								{#each Object.values(team) as value}
 									<td class="text-left py-3 px-4">
-										{typeof value === 'number' ? value.toFixed(2) : value}
+										{typeof value === 'number' ? value.toFixed(2) : (value ?? '—')}
 									</td>
 								{/each}
 							</tr>
