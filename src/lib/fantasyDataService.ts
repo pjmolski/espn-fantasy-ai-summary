@@ -2,13 +2,22 @@ import { MongoClient, ServerApiVersion } from 'mongodb';
 import { runWeeklyESPN, getNFLWeek, getNFLSeason } from '$lib/utils';
 import { MONGODB_URI, DB_NAME, COLLECTION_NAME, CRON_SECRET } from '$env/static/private';
 
-const client = new MongoClient(MONGODB_URI, {
-	serverApi: {
-		version: ServerApiVersion.v1,
-		strict: true,
-		deprecationErrors: true
+let cachedClient: MongoClient | null = null;
+
+async function getClient(): Promise<MongoClient> {
+	if (cachedClient) {
+		return cachedClient;
 	}
-});
+	cachedClient = new MongoClient(MONGODB_URI, {
+		serverApi: {
+			version: ServerApiVersion.v1,
+			strict: true,
+			deprecationErrors: true
+		}
+	});
+	await cachedClient.connect();
+	return cachedClient;
+}
 
 interface WeeklyData {
 	week: number;
@@ -52,84 +61,68 @@ export interface WeekEntry {
 }
 
 export async function getLatestFantasyData(): Promise<WeeklyDataWithId | null> {
-	try {
-		await client.connect();
-		const db = client.db(DB_NAME);
-		const collection = db.collection(COLLECTION_NAME);
+	const client = await getClient();
+	const db = client.db(DB_NAME);
+	const collection = db.collection(COLLECTION_NAME);
 
-		const latestData = await collection
-			.find<WeeklyDataWithId>({})
-			.sort({ season: -1, week: -1 })
-			.limit(1)
-			.toArray();
+	const latestData = await collection
+		.find<WeeklyDataWithId>({})
+		.sort({ season: -1, week: -1 })
+		.limit(1)
+		.toArray();
 
-		if (latestData.length === 0) {
-			console.log('No data found in the weekly-summaries collection');
-			return null;
-		}
-
-		const data = latestData[0];
-		return { ...data, _id: data._id.toString() };
-	} finally {
-		await client.close();
+	if (latestData.length === 0) {
+		console.log('No data found in the weekly-summaries collection');
+		return null;
 	}
+
+	const data = latestData[0];
+	return { ...data, _id: data._id.toString() };
 }
 
 export async function getFantasyDataByWeek(
 	week: number,
 	season: number
 ): Promise<WeeklyDataWithId | null> {
-	try {
-		await client.connect();
-		const db = client.db(DB_NAME);
-		const collection = db.collection(COLLECTION_NAME);
+	const client = await getClient();
+	const db = client.db(DB_NAME);
+	const collection = db.collection(COLLECTION_NAME);
 
-		const data = await collection.findOne<WeeklyDataWithId>({ week, season });
-		if (!data) return null;
-		return { ...data, _id: data._id.toString() };
-	} finally {
-		await client.close();
-	}
+	const data = await collection.findOne<WeeklyDataWithId>({ week, season });
+	if (!data) return null;
+	return { ...data, _id: data._id.toString() };
 }
 
 export async function getAllWeeks(): Promise<WeekEntry[]> {
-	try {
-		await client.connect();
-		const db = client.db(DB_NAME);
-		const collection = db.collection(COLLECTION_NAME);
+	const client = await getClient();
+	const db = client.db(DB_NAME);
+	const collection = db.collection(COLLECTION_NAME);
 
-		const docs = await collection
-			.find<WeeklyDataWithId>({}, { projection: { week: 1, season: 1 } })
-			.sort({ season: -1, week: -1 })
-			.toArray();
+	const docs = await collection
+		.find<WeeklyDataWithId>({}, { projection: { week: 1, season: 1 } })
+		.sort({ season: -1, week: -1 })
+		.toArray();
 
-		return docs.map((d) => ({ season: d.season ?? 0, week: d.week }));
-	} finally {
-		await client.close();
-	}
+	return docs.map((d) => ({ season: d.season ?? 0, week: d.week }));
 }
 
 export async function updateFantasyData(
 	week?: number,
 	season?: number
 ): Promise<WeeklyDataWithId | null> {
-	try {
-		await client.connect();
-		const db = client.db(DB_NAME);
-		const collection = db.collection(COLLECTION_NAME);
+	const client = await getClient();
+	const db = client.db(DB_NAME);
+	const collection = db.collection(COLLECTION_NAME);
 
-		const resolvedWeek = week ?? getNFLWeek();
-		const resolvedSeason = season ?? getNFLSeason();
+	const resolvedWeek = week ?? getNFLWeek();
+	const resolvedSeason = season ?? getNFLSeason();
 
-		console.log(`Generating new data for ${resolvedSeason} season, week ${resolvedWeek}`);
-		const weeklyData = await runWeeklyESPN(resolvedWeek, resolvedSeason);
-		const result = await collection.insertOne(weeklyData);
-		console.log('New data saved to MongoDB');
+	console.log(`Generating new data for ${resolvedSeason} season, week ${resolvedWeek}`);
+	const weeklyData = await runWeeklyESPN(resolvedWeek, resolvedSeason);
+	const result = await collection.insertOne(weeklyData);
+	console.log('New data saved to MongoDB');
 
-		return { ...weeklyData, _id: result.insertedId.toString() };
-	} finally {
-		await client.close();
-	}
+	return { ...weeklyData, _id: result.insertedId.toString() };
 }
 
 export async function callCronUpdateFantasyData(fetch: typeof globalThis.fetch): Promise<void> {
