@@ -100,7 +100,7 @@ const eligiblePositions: EligiblePositions = {
 
 function getNFLWeek(): number {
 	const today = new Date();
-	const kickoff = new Date(2024, 8, 6); // Note: month is 0-indexed in JavaScript
+    const kickoff = new Date(2026, 8, 4); // Note: month is 0-indexed in JavaScript
 
 	const daysSinceKickoff = Math.floor(
 		(today.getTime() - kickoff.getTime()) / (1000 * 60 * 60 * 24)
