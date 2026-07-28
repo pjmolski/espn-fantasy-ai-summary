@@ -536,7 +536,7 @@ async function getClaudeSummary(prompt: string, systemMessage: string): Promise<
 			'anthropic-version': '2023-06-01'
 		},
 		body: JSON.stringify({
-			model: 'claude-3-5-haiku-20241022',
+			model: CLAUDE_MODEL,
 			system: systemMessage,
 			messages: [{ role: 'user', content: prompt }],
 			max_tokens: 500
