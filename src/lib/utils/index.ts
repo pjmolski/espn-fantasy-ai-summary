@@ -562,6 +562,7 @@ async function runWeeklyESPN(week: number, season: number | null = null): Promis
 
 		return {
 			week,
+	    	season: resolvedSeason,
 			summary,
 			standings: standingsDf,
 			matchups: matchupDf,
