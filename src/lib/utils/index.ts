@@ -552,7 +552,7 @@ async function getClaudeSummary(prompt: string, systemMessage: string): Promise<
 	return data.content[0].text;
 }
 
-async function runWeeklyESPN(week: number): Promise<any> {
+async function runWeeklyESPN(week: number, season: number | null = null): Promise<any> {
 	try {
 		week = week || getNFLWeek();
 		const { standingsDf, matchupDf, hpOwner, hpPlayer, hpScore, htOwner, htScore } =
