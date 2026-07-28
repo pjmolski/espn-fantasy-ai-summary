@@ -1,15 +1,24 @@
-import { getLatestFantasyData, callCronUpdateFantasyData } from '$lib/fantasyDataService';
+import { getLatestFantasyData, getFantasyDataByWeek, getAllWeeks } from '$lib/fantasyDataService';
 
-export async function load({ fetch }) {
+export async function load({ url }) {
 	try {
-		// const weeklyData = await callCronUpdateFantasyData(fetch); // for manual running
-		const weeklyData = await getLatestFantasyData();
+		const weekParam = url.searchParams.get('week');
+		const seasonParam = url.searchParams.get('season');
+		const availableWeeks = await getAllWeeks();
 
-		return { weeklyData };
+		let weeklyData;
+		if (weekParam && seasonParam) {
+			weeklyData = await getFantasyDataByWeek(parseInt(weekParam), parseInt(seasonParam));
+		} else {
+			weeklyData = await getLatestFantasyData();
+		}
+
+		return { weeklyData, availableWeeks };
 	} catch (error) {
 		console.error('Error loading fantasy data:', error);
 		return {
-			error: error instanceof Error ? error.message : 'Failed to load fantasy football data'
+			error: error instanceof Error ? error.message : 'Failed to load fantasy football data',
+			availableWeeks: []
 		};
 	}
 }
