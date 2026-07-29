@@ -97,7 +97,7 @@ export function parseSeasonData(
 
 	const teams = (raw.teams ?? []).map((t: any) => ({
 		teamId: t.id,
-		name: `${t.location ?? ''} ${t.nickname ?? ''}`.trim(),
+		name: t.name?.trim() ?? '',
 		abbreviation: t.abbrev ?? '',
 		owners: (t.owners ?? []).map((id: string) => memberMap.get(id) ?? id),
 		logoUrl: t.logo ?? undefined
