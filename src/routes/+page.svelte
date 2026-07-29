@@ -64,6 +64,18 @@
 	}
 
 	$: seasons = [...(weeksBySeason?.keys() ?? [])].sort((a, b) => b - a);
+
+	function optimalWouldWin(team: ProcessedTeam, matchup: ProcessedMatchup): boolean {
+		const opponentScore = team === matchup.home
+			? (matchup.away?.totalPoints ?? 0)
+			: matchup.home.totalPoints;
+		return team.optimalPoints > opponentScore;
+	}
+
+	function teamActuallyWon(team: ProcessedTeam, matchup: ProcessedMatchup): boolean {
+		return (team === matchup.home && matchup.winner === 'home') ||
+			   (team === matchup.away && matchup.winner === 'away');
+	}
 </script>
 
 <svelte:head>
@@ -279,11 +291,9 @@
 												{/each}
 											</div>
 
-											{@const optWinner = t.optimalPoints > (t === matchup.home ? (matchup.away?.totalPoints ?? 0) : matchup.home.totalPoints)}
-											{@const actualWon = (t === matchup.home && matchup.winner === 'home') || (t === matchup.away && matchup.winner === 'away')}
-											{#if optWinner !== actualWon}
-												<div class="mt-2 text-xs {optWinner ? 'text-green-400' : 'text-red-400'}">
-													{optWinner ? '✓ Would have won with optimal lineup' : '✗ Would have lost even with optimal lineup'}
+											{#if optimalWouldWin(t, matchup) !== teamActuallyWon(t, matchup)}
+												<div class="mt-2 text-xs {optimalWouldWin(t, matchup) ? 'text-green-400' : 'text-red-400'}">
+													{optimalWouldWin(t, matchup) ? '✓ Would have won with optimal lineup' : '✗ Would have lost even with optimal lineup'}
 												</div>
 											{/if}
 										</div>
