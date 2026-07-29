@@ -1,13 +1,15 @@
 import { MongoClient, ServerApiVersion } from 'mongodb';
 import { runWeeklyESPN, getNFLWeek, getNFLSeason } from '$lib/utils';
 import { MONGODB_URI, DB_NAME, COLLECTION_NAME, CRON_SECRET } from '$env/static/private';
+import { fetchLeagueSeason, fetchWeeklyMatchups, parseSeasonData, parseWeeklyData } from '$lib/espnApi';
+import type { SeasonDoc, WeeklyMatchupDoc } from '$lib/schema';
+
+// ─── MongoDB client ───────────────────────────────────────────────────────────
 
 let cachedClient: MongoClient | null = null;
 
 async function getClient(): Promise<MongoClient> {
-	if (cachedClient) {
-		return cachedClient;
-	}
+	if (cachedClient) return cachedClient;
 	cachedClient = new MongoClient(MONGODB_URI, {
 		serverApi: {
 			version: ServerApiVersion.v1,
@@ -18,6 +20,17 @@ async function getClient(): Promise<MongoClient> {
 	await cachedClient.connect();
 	return cachedClient;
 }
+
+async function getDb() {
+	const client = await getClient();
+	return client.db(DB_NAME);
+}
+
+// Collection name constants — not sensitive, no need for env vars
+const SEASONS_COLLECTION = 'seasons';
+const WEEKLY_MATCHUPS_COLLECTION = 'weeklyMatchups';
+
+// ─── Legacy types (kept for backwards compatibility) ─────────────────────────
 
 interface WeeklyData {
 	week: number;
@@ -60,9 +73,10 @@ export interface WeekEntry {
 	week: number;
 }
 
+// ─── Legacy read functions (AI summary collection) ───────────────────────────
+
 export async function getLatestFantasyData(): Promise<WeeklyDataWithId | null> {
-	const client = await getClient();
-	const db = client.db(DB_NAME);
+	const db = await getDb();
 	const collection = db.collection(COLLECTION_NAME);
 
 	const latestData = await collection
@@ -84,8 +98,7 @@ export async function getFantasyDataByWeek(
 	week: number,
 	season: number
 ): Promise<WeeklyDataWithId | null> {
-	const client = await getClient();
-	const db = client.db(DB_NAME);
+	const db = await getDb();
 	const collection = db.collection(COLLECTION_NAME);
 
 	const data = await collection.findOne<WeeklyDataWithId>({ week, season });
@@ -94,8 +107,7 @@ export async function getFantasyDataByWeek(
 }
 
 export async function getAllWeeks(): Promise<WeekEntry[]> {
-	const client = await getClient();
-	const db = client.db(DB_NAME);
+	const db = await getDb();
 	const collection = db.collection(COLLECTION_NAME);
 
 	const docs = await collection
@@ -107,44 +119,49 @@ export async function getAllWeeks(): Promise<WeekEntry[]> {
 }
 
 export async function getRecentSummaries(limit: number = 3): Promise<string> {
-  const client = await getClient();
-  const db = client.db(DB_NAME);
-  const collection = db.collection(COLLECTION_NAME);
+	const db = await getDb();
+	const collection = db.collection(COLLECTION_NAME);
 
-  const docs = await collection
-    .find<WeeklyDataWithId>({}, { projection: { week: 1, season: 1, 'summary.overallSummary': 1 } })
-    .sort({ season: -1, week: -1 })
-    .limit(limit)
-    .toArray();
+	const docs = await collection
+		.find<WeeklyDataWithId>(
+			{},
+			{ projection: { week: 1, season: 1, 'summary.overallSummary': 1 } }
+		)
+		.sort({ season: -1, week: -1 })
+		.limit(limit)
+		.toArray();
 
-  if (docs.length === 0) return '';
+	if (docs.length === 0) return '';
 
-  return docs
-    .map(d => `Season ${d.season}, Week ${d.week}:\n${d.summary?.overallSummary ?? '(no summary)'}`)
-    .join('\n\n---\n\n');
+	return docs
+		.map((d) => `Season ${d.season}, Week ${d.week}:\n${d.summary?.overallSummary ?? '(no summary)'}`)
+		.join('\n\n---\n\n');
 }
 
 export async function updateFantasyData(
-  week?: number,
-  season?: number
+	week?: number,
+	season?: number
 ): Promise<WeeklyDataWithId | null> {
-  const client = await getClient();
-  const db = client.db(DB_NAME);
-  const collection = db.collection(COLLECTION_NAME);
-  const resolvedWeek = week ?? getNFLWeek();
-  const resolvedSeason = season ?? getNFLSeason();
-  const priorContext = await getRecentSummaries(3);
-  console.log(`Generating new data for ${resolvedSeason} season, week ${resolvedWeek}`);
-  const weeklyData = await runWeeklyESPN(resolvedWeek, resolvedSeason, priorContext);
-  await collection.replaceOne(
-    { week: resolvedWeek, season: resolvedSeason },
-    weeklyData,
-    { upsert: true }
-  );
-  console.log('New data saved to MongoDB');
-  const saved = await collection.findOne<WeeklyDataWithId>({ week: resolvedWeek, season: resolvedSeason });
-  return saved ? { ...saved, _id: saved._id.toString() } : null;
+	const db = await getDb();
+	const collection = db.collection(COLLECTION_NAME);
+	const resolvedWeek = week ?? getNFLWeek();
+	const resolvedSeason = season ?? getNFLSeason();
+	const priorContext = await getRecentSummaries(3);
+	console.log(`Generating new data for ${resolvedSeason} season, week ${resolvedWeek}`);
+	const weeklyData = await runWeeklyESPN(resolvedWeek, resolvedSeason, priorContext);
+	await collection.replaceOne(
+		{ week: resolvedWeek, season: resolvedSeason },
+		weeklyData,
+		{ upsert: true }
+	);
+	console.log('New data saved to MongoDB');
+	const saved = await collection.findOne<WeeklyDataWithId>({
+		week: resolvedWeek,
+		season: resolvedSeason
+	});
+	return saved ? { ...saved, _id: saved._id.toString() } : null;
 }
+
 export async function callCronUpdateFantasyData(fetch: typeof globalThis.fetch): Promise<void> {
 	const response = await fetch('/api/cron/update-fantasy-data', {
 		method: 'GET',
@@ -158,4 +175,202 @@ export async function callCronUpdateFantasyData(fetch: typeof globalThis.fetch):
 	}
 
 	console.log('Fantasy data updated successfully via cron API');
+}
+
+// ─── New ingestion functions (rich player-level data) ────────────────────────
+
+/** Store season-level data (settings, teams, draft picks) for one year. */
+export async function ingestSeasonData(leagueId: string, year: number): Promise<SeasonDoc> {
+	console.log(`  Fetching season data for ${year}...`);
+	const raw = await fetchLeagueSeason(leagueId, year);
+	const parsed = parseSeasonData(raw, leagueId, year);
+	const doc: SeasonDoc = { ...parsed, capturedAt: new Date() };
+
+	const db = await getDb();
+	await db
+		.collection<SeasonDoc>(SEASONS_COLLECTION)
+		.replaceOne({ leagueId, seasonId: year }, doc, { upsert: true });
+
+	console.log(`  Season ${year} stored (${doc.teams.length} teams, ${doc.draft.picks.length} draft picks)`);
+	return doc;
+}
+
+/** Store one week's matchup data with full player-level rosters. */
+export async function ingestWeeklyData(
+	leagueId: string,
+	year: number,
+	week: number,
+	regularSeasonWeeks: number = 14
+): Promise<WeeklyMatchupDoc | null> {
+	const raw = await fetchWeeklyMatchups(leagueId, year, week);
+	const parsed = parseWeeklyData(raw, leagueId, year, week, regularSeasonWeeks);
+
+	// Skip if ESPN returned no matchups for this week (future weeks, off-season, etc.)
+	if (parsed.matchups.length === 0) {
+		console.log(`    Week ${week}: no matchups found, skipping`);
+		return null;
+	}
+
+	const doc: WeeklyMatchupDoc = { ...parsed, capturedAt: new Date() };
+
+	const db = await getDb();
+	await db
+		.collection<WeeklyMatchupDoc>(WEEKLY_MATCHUPS_COLLECTION)
+		.replaceOne({ leagueId, seasonId: year, scoringPeriodId: week }, doc, { upsert: true });
+
+	const totalPlayers = doc.matchups.reduce(
+		(sum, m) => sum + m.home.roster.length + (m.away?.roster.length ?? 0),
+		0
+	);
+	console.log(`    Week ${week}: ${doc.matchups.length} matchups, ${totalPlayers} player entries`);
+	return doc;
+}
+
+const DELAY_MS_BETWEEN_WEEKS = 250;
+const DELAY_MS_BETWEEN_SEASONS = 750;
+
+function sleep(ms: number) {
+	return new Promise((r) => setTimeout(r, ms));
+}
+
+/**
+ * Backfill all historical data for a league.
+ *
+ * Fetches every season ESPN has on record (via `previousSeasons` in the API
+ * response) plus the current season, then fetches every week of each season.
+ *
+ * Options:
+ *   startYear  — only ingest seasons >= this year (useful for re-runs)
+ *   weeksOnly  — skip season docs, only ingest weekly matchup data
+ *   dryRun     — log what would be done without writing to MongoDB
+ */
+export async function backfillLeague(
+	leagueId: string,
+	options: { startYear?: number; weeksOnly?: boolean; dryRun?: boolean } = {}
+): Promise<{ seasons: number[]; weeksFetched: number; weeksSkipped: number }> {
+	const { startYear, weeksOnly = false, dryRun = false } = options;
+
+	// Fetch current season first to discover the full season list
+	const currentYear = getNFLSeason();
+	console.log(`Backfill starting. Current season: ${currentYear}`);
+	const currentRaw = await fetchLeagueSeason(leagueId, currentYear);
+	const previousSeasons: number[] = currentRaw.status?.previousSeasons ?? [];
+	const allSeasons = [...new Set([...previousSeasons, currentYear])].sort();
+	const seasonsToProcess = startYear ? allSeasons.filter((y) => y >= startYear) : allSeasons;
+	console.log(`Seasons to process: ${seasonsToProcess.join(', ')}`);
+
+	let weeksFetched = 0;
+	let weeksSkipped = 0;
+
+	for (const year of seasonsToProcess) {
+		console.log(`\n── Season ${year} ──`);
+
+		// Fetch/store season doc (also gives us regularSeasonWeeks for this year)
+		let regularSeasonWeeks = 14;
+		if (!weeksOnly) {
+			if (dryRun) {
+				console.log(`  [dry-run] Would ingest season ${year}`);
+			} else {
+				// For the current year we already have the raw response
+				let seasonDoc: SeasonDoc;
+				if (year === currentYear) {
+					const parsed = parseSeasonData(currentRaw, leagueId, year);
+					seasonDoc = { ...parsed, capturedAt: new Date() };
+					const db = await getDb();
+					await db
+						.collection<SeasonDoc>(SEASONS_COLLECTION)
+						.replaceOne({ leagueId, seasonId: year }, seasonDoc, { upsert: true });
+					console.log(`  Season ${year} stored (reused existing fetch)`);
+				} else {
+					seasonDoc = await ingestSeasonData(leagueId, year);
+				}
+				regularSeasonWeeks = seasonDoc.settings.regularSeasonWeeks;
+			}
+		}
+
+		// Determine how many weeks to attempt for this season.
+		// For the current season: only up to the API's scoringPeriodId (current week).
+		// For past seasons: try all 17 (ESPN will return empty for unplayed weeks).
+		const maxWeek = year === currentYear
+			? (currentRaw.scoringPeriodId ?? getNFLWeek())
+			: 17;
+
+		for (let week = 1; week <= maxWeek; week++) {
+			if (dryRun) {
+				console.log(`  [dry-run] Would ingest ${year} week ${week}`);
+				weeksFetched++;
+				continue;
+			}
+
+			try {
+				const result = await ingestWeeklyData(leagueId, year, week, regularSeasonWeeks);
+				if (result) {
+					weeksFetched++;
+				} else {
+					weeksSkipped++;
+				}
+			} catch (err) {
+				console.error(`    Error on ${year} week ${week}:`, err);
+				weeksSkipped++;
+			}
+
+			await sleep(DELAY_MS_BETWEEN_WEEKS);
+		}
+
+		await sleep(DELAY_MS_BETWEEN_SEASONS);
+	}
+
+	console.log(`\nBackfill complete. ${weeksFetched} weeks stored, ${weeksSkipped} skipped.`);
+	return { seasons: seasonsToProcess, weeksFetched, weeksSkipped };
+}
+
+// ─── New read functions (rich data) ──────────────────────────────────────────
+
+export async function getSeasonDoc(leagueId: string, year: number): Promise<SeasonDoc | null> {
+	const db = await getDb();
+	return db
+		.collection<SeasonDoc>(SEASONS_COLLECTION)
+		.findOne({ leagueId, seasonId: year });
+}
+
+export async function getWeeklyMatchupDoc(
+	leagueId: string,
+	year: number,
+	week: number
+): Promise<WeeklyMatchupDoc | null> {
+	const db = await getDb();
+	return db
+		.collection<WeeklyMatchupDoc>(WEEKLY_MATCHUPS_COLLECTION)
+		.findOne({ leagueId, seasonId: year, scoringPeriodId: week });
+}
+
+/** Returns all (season, week) pairs we have data for, newest first. */
+export async function getAvailableWeeks(
+	leagueId: string
+): Promise<Array<{ seasonId: number; scoringPeriodId: number; isPlayoff: boolean }>> {
+	const db = await getDb();
+	const docs = await db
+		.collection<WeeklyMatchupDoc>(WEEKLY_MATCHUPS_COLLECTION)
+		.find(
+			{ leagueId },
+			{ projection: { seasonId: 1, scoringPeriodId: 1, isPlayoff: 1 } }
+		)
+		.sort({ seasonId: -1, scoringPeriodId: -1 })
+		.toArray();
+
+	return docs.map((d) => ({
+		seasonId: d.seasonId,
+		scoringPeriodId: d.scoringPeriodId,
+		isPlayoff: d.isPlayoff
+	}));
+}
+
+/** Returns all season docs for a league, newest first. */
+export async function getAllSeasons(leagueId: string): Promise<SeasonDoc[]> {
+	const db = await getDb();
+	return db
+		.collection<SeasonDoc>(SEASONS_COLLECTION)
+		.find({ leagueId })
+		.sort({ seasonId: -1 })
+		.toArray();
 }
