@@ -10,6 +10,8 @@ import {
 	LEAGUE_ID
 } from '$env/static/private'; // using envs for web deployment
 
+import styleGuide from '$lib/FANTASY_FOOTBALL_RECAP_STYLE_GUIDE.txt?raw';
+
 import fetch from 'node-fetch';
 
 const OWNER_DICT_PARSED = JSON.parse(OWNER_DICT || '{}');
@@ -494,8 +496,10 @@ async function generateSummary(week: number, matchupDf: any[], priorContext: str
 		? `\n\nPRIOR WEEKS FOR CONTEXT — use for callbacks and season-long narrative only. Do not re-summarize them:\n\n${priorContext}`
 		: '';
 
-	const overallSummary = await getClaudeSummary(overallPrompt, OVERALL_SUMMARY_PROMPT + contextBlock);
-
+	const overallSummary = await getClaudeSummary(
+	    overallPrompt,
+	    styleGuide + '\n\n' + OVERALL_SUMMARY_PROMPT + contextBlock
+	);
 	const matchupSummaries = await Promise.all(
 		matchups.map(async (matchup) => {
 			const [team1, team2] = matchup.teams;
@@ -517,7 +521,12 @@ async function generateSummary(week: number, matchupDf: any[], priorContext: str
 							`${key}: ${(value as { player: string; points: number }).player} (${(value as { points: number }).points.toFixed(2)})`
 					)
 					.join('\n');
-			const summary = await getClaudeSummary(matchupPrompt, MATCHUP_SUMMARY_PROMPT);
+			
+			const summary = await getClaudeSummary(
+			    matchupPrompt,
+			    styleGuide + '\n\n' + MATCHUP_SUMMARY_PROMPT
+			);
+			
 			return {
 				matchupId: matchup.matchupId,
 				team1: team1.teamName,
