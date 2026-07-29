@@ -83,6 +83,28 @@
 	}
 
 	const SLOT_ORDER = ['QB', 'RB', 'WR', 'TE', 'FLEX', 'D/ST', 'K'];
+	const OPT_POS_ORDER = ['QB', 'RB', 'WR', 'TE', 'D/ST', 'K'];
+	function sortOptimalPlayers(players: ProcessedPlayer[]) {
+		return [...players].sort((a, b) => {
+			const ai = OPT_POS_ORDER.indexOf(a.position);
+			const bi = OPT_POS_ORDER.indexOf(b.position);
+			if (ai !== bi) return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+			return b.actualScore - a.actualScore;
+		});
+	}
+
+	// Muscle 💪 = highest scorer across all starters this week
+	// Poop 💩 = lowest scorer (DST excluded) across all starters this week
+	$: allWeekStarters = weekData?.matchups.flatMap(m =>
+		([m.home, m.away].filter(Boolean) as ProcessedTeam[]).flatMap(t => t.starters)
+	) ?? [];
+	$: muscleScore = allWeekStarters.length ? Math.max(...allWeekStarters.map(p => p.actualScore)) : -Infinity;
+	$: poopScore = (() => {
+		const nonDST = allWeekStarters.filter(p => p.position !== 'D/ST');
+		return nonDST.length ? Math.min(...nonDST.map(p => p.actualScore)) : Infinity;
+	})();
+	$: muscleIds = new Set(allWeekStarters.filter(p => p.actualScore === muscleScore).map(p => p.playerId));
+	$: poopIds   = new Set(allWeekStarters.filter(p => p.position !== 'D/ST' && p.actualScore === poopScore).map(p => p.playerId));
 	function sortPlayers(players: ProcessedPlayer[]) {
 		return [...players].sort((a, b) => SLOT_ORDER.indexOf(a.slotName) - SLOT_ORDER.indexOf(b.slotName));
 	}
@@ -203,7 +225,7 @@
 	.team-name.loser  { color: rgba(255,255,255,0.45); }
 	.score {
 		font-size: 20px;
-		font-weight: 100;
+		font-weight: 200;
 		letter-spacing: -0.5px;
 	}
 	.score.winner { color: #00d26d; }
@@ -225,13 +247,9 @@
 		justify-content: center;
 		transition: border-color .18s, background .18s, box-shadow .18s;
 		flex-shrink: 0;
-		filter: grayscale(1);
-		opacity: 0.5;
 	}
 	.genie-btn:hover {
 		border-color: rgba(255,255,255,0.35);
-		opacity: 0.75;
-		filter: grayscale(0.4);
 	}
 	.genie-btn.active {
 		border-color: #00d26d;
@@ -326,6 +344,24 @@
 	.lucky-tag { color: #00d26d; }
 
 	/* Bench toggle */
+	.total-row {
+		display: flex;
+		justify-content: space-between;
+		padding: 6px 6px 4px;
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 1px;
+		text-transform: uppercase;
+		color: rgba(255,255,255,0.45);
+		border-top: 1px solid rgba(255,255,255,0.1);
+		margin-top: 2px;
+	}
+	.award-emoji-inline {
+		font-size: 12px;
+		line-height: 1;
+		flex-shrink: 0;
+	}
+
 	.bench-toggle {
 		display: flex;
 		align-items: center;
@@ -353,6 +389,9 @@
 		color: rgba(255,255,255,0.35);
 	}
 	.bench-row:nth-child(odd) { background: rgba(255,255,255,0.02); }
+
+	.matchup-card.optimal-mode { background: rgba(255,180,200,0.07); border-color: rgba(255,150,180,0.25); }
+	.matchup-card.optimal-mode .matchup-header { background: rgba(80,20,40,0.6); }
 
 	/* Optimal highlight */
 	.was-benched { background: rgba(255,200,50,0.07) !important; }
@@ -436,9 +475,9 @@
 			<!-- Matchups -->
 			{#each weekData.matchups as matchup}
 				{@const isOptimal = showOptimal[matchup.matchupId] ?? false}
-				{@const isBenchOpen = benchOpen[matchup.matchupId] ?? false}
+				{@const isBenchOpen = benchOpen[matchup.matchupId] ?? true}
 
-				<div class="matchup-card">
+				<div class="matchup-card {isOptimal ? 'optimal-mode' : ''}">
 					<div class="matchup-header">
 						<div class="score-line">
 							<!-- Home -->
@@ -460,8 +499,8 @@
 						<button
 							class="genie-btn {isOptimal ? 'active' : ''}"
 							on:click={() => toggleOptimal(matchup.matchupId)}
-							title="Optimal lineup genie"
-							aria-label="Optimal lineup genie"
+							title="Optimal Lineup Genie"
+							aria-label="Optimal Lineup Genie"
 						>🧞</button>
 					</div>
 
@@ -479,11 +518,13 @@
 										</span>
 									</div>
 
-									{#each sortPlayers(t.starters) as p, i}
+									{#each sortPlayers(t.starters) as p}
 										<div class="player-row">
 											<div class="player-left">
 												<span class="slot-label">{p.slotName}</span>
 												<span class="player-name">{p.fullName}</span>
+												{#if muscleIds.has(p.playerId)}<span class="award-emoji-inline">💪</span>{/if}
+												{#if poopIds.has(p.playerId)}<span class="award-emoji-inline">💩</span>{/if}
 												{#if p.nflTeam}<span class="nfl-team">{p.nflTeam}</span>{/if}
 												{#if p.injuryStatus === 'OUT' || p.injuryStatus === 'DOUBTFUL'}
 													<span class="injury-badge out">{p.injuryStatus[0]}</span>
@@ -497,6 +538,10 @@
 											</div>
 										</div>
 									{/each}
+									<div class="total-row">
+										<span>TOTAL</span>
+										<span>{t.totalPoints.toFixed(2)}</span>
+									</div>
 
 									<!-- Bench toggle (shared across both teams via matchupId) -->
 									{#if t.bench.filter(p => p.slotName !== 'IR').length > 0}
@@ -534,18 +579,44 @@
 										<span class="col-meta">{t.totalPoints.toFixed(2)} → <span style="color:#00d26d">{t.optimalPoints.toFixed(2)}</span></span>
 									</div>
 
-									{#each sortPlayers(t.optimalStarters) as p}
+									{#each sortOptimalPlayers(t.optimalStarters) as p}
 										{@const wasStarted = t.starters.some(s => s.playerId === p.playerId)}
 										<div class="player-row {!wasStarted ? 'was-benched' : ''}">
 											<div class="player-left">
 												<span class="slot-label">{p.position}</span>
 												<span class="player-name">{p.fullName}</span>
+												{#if muscleIds.has(p.playerId)}<span class="award-emoji-inline">💪</span>{/if}
+												{#if poopIds.has(p.playerId)}<span class="award-emoji-inline">💩</span>{/if}
 												{#if p.nflTeam}<span class="nfl-team">{p.nflTeam}</span>{/if}
 												{#if !wasStarted}<span class="benched-tag">BENCHED</span>{/if}
 											</div>
-											<span class="actual over">{p.actualScore.toFixed(2)}</span>
+											<div class="player-right">
+												<span class="proj">{p.projectedScore.toFixed(1)}</span>
+												<span class="actual over">{p.actualScore.toFixed(2)}</span>
+											</div>
 										</div>
 									{/each}
+									<div class="total-row">
+										<span>TOTAL</span>
+										<span style="color:#00d26d">{t.optimalPoints.toFixed(2)}</span>
+									</div>
+
+									<!-- Bench toggle (shared with results view) -->
+									{#if t.bench.filter(p => p.slotName !== 'IR').length > 0}
+										<button class="bench-toggle" on:click={() => toggleBench(matchup.matchupId)}>
+											<span>{isBenchOpen ? '▴' : '▾'}</span> Bench
+										</button>
+										{#if isBenchOpen}
+											<div class="bench-section">
+												{#each t.bench.filter(p => p.slotName !== 'IR') as p}
+													<div class="bench-row">
+														<span>{p.fullName} {#if p.nflTeam}<span class="nfl-team" style="margin-left:6px">{p.nflTeam}</span>{/if}</span>
+														<span>{p.actualScore.toFixed(2)}</span>
+													</div>
+												{/each}
+											</div>
+										{/if}
+									{/if}
 
 									{#if optimalWouldWin(t, matchup) !== teamActuallyWon(t, matchup)}
 										<div class="opt-outcome {optimalWouldWin(t, matchup) ? 'would-win' : 'would-lose'}">
