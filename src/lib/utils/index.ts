@@ -469,7 +469,7 @@ async function runEspnWeekly(
 	return { standingsDf, matchupDf, hpOwner, hpPlayer, hpScore, htOwner, htScore };
 }
 
-async function generateSummary(week: number, matchupDf: any[]): Promise<Summary> {
+async function generateSummary(week: number, matchupDf: any[], priorContext: string = ''): Promise<Summary> {
 	const matchups = matchupDf.reduce((acc, team) => {
 		const matchup = acc.find((m) => m.matchupId === team.matchupId);
 		if (matchup) {
@@ -490,12 +490,15 @@ async function generateSummary(week: number, matchupDf: any[]): Promise<Summary>
 			)
 			.join('\n');
 
-	const overallSummary = await getClaudeSummary(overallPrompt, OVERALL_SUMMARY_PROMPT);
+	const contextBlock = priorContext
+		? `\n\nPRIOR WEEKS FOR CONTEXT — use for callbacks and season-long narrative only. Do not re-summarize them:\n\n${priorContext}`
+		: '';
+
+	const overallSummary = await getClaudeSummary(overallPrompt, OVERALL_SUMMARY_PROMPT + contextBlock);
 
 	const matchupSummaries = await Promise.all(
 		matchups.map(async (matchup) => {
 			const [team1, team2] = matchup.teams;
-
 			const matchupPrompt =
 				`Matchup: ${team1.teamName} (${team1.totalPoints.toFixed(2)}) vs ${team2.teamName} (${team2.totalPoints.toFixed(2)})\n\n` +
 				`${team1.teamName} top performers:\n` +
@@ -514,9 +517,7 @@ async function generateSummary(week: number, matchupDf: any[]): Promise<Summary>
 							`${key}: ${(value as { player: string; points: number }).player} (${(value as { points: number }).points.toFixed(2)})`
 					)
 					.join('\n');
-
 			const summary = await getClaudeSummary(matchupPrompt, MATCHUP_SUMMARY_PROMPT);
-
 			return {
 				matchupId: matchup.matchupId,
 				team1: team1.teamName,
@@ -525,7 +526,6 @@ async function generateSummary(week: number, matchupDf: any[]): Promise<Summary>
 			};
 		})
 	);
-
 	return { overallSummary, matchupSummaries };
 }
 
@@ -554,14 +554,14 @@ async function getClaudeSummary(prompt: string, systemMessage: string): Promise<
 	return data.content[0].text;
 }
 
-async function runWeeklyESPN(week: number, season: number | null = null): Promise<any> {
+async function runWeeklyESPN(week: number, season: number | null = null, priorContext: string = ''): Promise<any> {
 	try {
 		week = week || getNFLWeek();
 		const resolvedSeason = season ?? getNFLSeason();
 		const { standingsDf, matchupDf, hpOwner, hpPlayer, hpScore, htOwner, htScore } =
 		    await runEspnWeekly(week, resolvedSeason);
-		const summary = await generateSummary(week, matchupDf);
-
+		const summary = await generateSummary(week, matchupDf, priorContext);
+		
 		return {
 			week,
 	    	season: resolvedSeason,
@@ -580,7 +580,7 @@ async function runWeeklyESPN(week: number, season: number | null = null): Promis
 		};
 	} catch (error) {
 		console.error('Error in runWeeklyESPN:', error);
-		throw error; // Re-throw the error so it can be handled by the calling function
+		throw error;
 	}
 }
 
