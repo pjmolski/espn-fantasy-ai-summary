@@ -106,25 +106,44 @@ export async function getAllWeeks(): Promise<WeekEntry[]> {
 	return docs.map((d) => ({ season: d.season ?? 0, week: d.week }));
 }
 
-export async function updateFantasyData(
-	week?: number,
-	season?: number
-): Promise<WeeklyDataWithId | null> {
-	const client = await getClient();
-	const db = client.db(DB_NAME);
-	const collection = db.collection(COLLECTION_NAME);
+export async function getRecentSummaries(limit: number = 3): Promise<string> {
+  const client = await getClient();
+  const db = client.db(DB_NAME);
+  const collection = db.collection(COLLECTION_NAME);
 
-	const resolvedWeek = week ?? getNFLWeek();
-	const resolvedSeason = season ?? getNFLSeason();
+  const docs = await collection
+    .find<WeeklyDataWithId>({}, { projection: { week: 1, season: 1, 'summary.overallSummary': 1 } })
+    .sort({ season: -1, week: -1 })
+    .limit(limit)
+    .toArray();
 
-	console.log(`Generating new data for ${resolvedSeason} season, week ${resolvedWeek}`);
-	const weeklyData = await runWeeklyESPN(resolvedWeek, resolvedSeason);
-	const result = await collection.insertOne(weeklyData);
-	console.log('New data saved to MongoDB');
+  if (docs.length === 0) return '';
 
-	return { ...weeklyData, _id: result.insertedId.toString() };
+  return docs
+    .map(d => `Season ${d.season}, Week ${d.week}:\n${d.summary?.overallSummary ?? '(no summary)'}`)
+    .join('\n\n---\n\n');
 }
 
+export async function updateFantasyData(
+  week?: number,
+  season?: number
+): Promise<WeeklyDataWithId | null> {
+  const client = await getClient();
+  const db = client.db(DB_NAME);
+  const collection = db.collection(COLLECTION_NAME);
+
+  const resolvedWeek = week ?? getNFLWeek();
+  const resolvedSeason = season ?? getNFLSeason();
+
+  const priorContext = await getRecentSummaries(3);  // ← NEW
+
+  console.log(`Generating new data for ${resolvedSeason} season, week ${resolvedWeek}`);
+  const weeklyData = await runWeeklyESPN(resolvedWeek, resolvedSeason, priorContext);  // ← priorContext added
+  const result = await collection.insertOne(weeklyData);
+  console.log('New data saved to MongoDB');
+
+  return { ...weeklyData, _id: result.insertedId.toString() };
+}
 export async function callCronUpdateFantasyData(fetch: typeof globalThis.fetch): Promise<void> {
 	const response = await fetch('/api/cron/update-fantasy-data', {
 		method: 'GET',
