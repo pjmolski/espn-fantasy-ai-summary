@@ -55,6 +55,7 @@ export interface PlayerEntry {
 	actualScore: number;
 	projectedScore: number;
 	projectedCeiling: number;
+	proTeamId: number; // ESPN NFL team ID (0 = free agent/D/ST)
 	injuryStatus: string; // "ACTIVE" | "QUESTIONABLE" | "OUT" | "DOUBTFUL"
 	acquisitionType: string; // "DRAFT" | "FREEAGENT" | "WAIVERS"
 	acquisitionDate?: number; // epoch ms

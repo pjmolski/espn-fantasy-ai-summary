@@ -1,16 +1,12 @@
 import { getAvailableWeeks, getWeeklyMatchupDoc, getSeasonDoc } from '$lib/fantasyDataService';
 import { processWeek } from '$lib/weekProcessor';
-import { LEAGUE_ID } from '$env/static/private';
+import { LEAGUE_ID, OWNER_DICT } from '$env/static/private';
 
 export async function load({ url }) {
 	try {
 		const availableWeeks = await getAvailableWeeks(LEAGUE_ID);
+		if (availableWeeks.length === 0) return { availableWeeks: [], weekData: null };
 
-		if (availableWeeks.length === 0) {
-			return { availableWeeks: [], weekData: null };
-		}
-
-		// Use query params if provided, otherwise default to latest week
 		const seasonParam = url.searchParams.get('season');
 		const weekParam = url.searchParams.get('week');
 
@@ -25,7 +21,8 @@ export async function load({ url }) {
 			getSeasonDoc(LEAGUE_ID, target.seasonId)
 		]);
 
-		const weekData = weekDoc && seasonDoc ? processWeek(weekDoc, seasonDoc) : null;
+		const ownerDict: Record<string, string> = JSON.parse(OWNER_DICT || '{}');
+		const weekData = weekDoc && seasonDoc ? processWeek(weekDoc, seasonDoc, ownerDict) : null;
 
 		return { availableWeeks, weekData };
 	} catch (error) {

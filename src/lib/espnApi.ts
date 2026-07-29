@@ -65,6 +65,7 @@ function parsePlayerEntry(entry: any, week: number): PlayerEntry {
 		actualScore: poolEntry?.appliedStatTotal ?? actual?.appliedTotal ?? 0,
 		projectedScore: projected?.appliedTotal ?? 0,
 		projectedCeiling: projected?.appliedTotalCeiling ?? 0,
+		proTeamId: player?.proTeamId ?? 0,
 		injuryStatus: player?.injuryStatus ?? 'ACTIVE',
 		acquisitionType: entry.acquisitionType ?? 'UNKNOWN',
 		acquisitionDate: entry.acquisitionDate ?? undefined,

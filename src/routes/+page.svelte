@@ -10,7 +10,6 @@
 	let weekData: ProcessedWeek | null = data.weekData;
 	let loading = false;
 
-	// Plain let vars — bind:value requires writable variables, not $: reactive
 	let selectedSeason: number = data.weekData?.seasonId ?? data.availableWeeks[0]?.seasonId;
 	let selectedWeek: number = data.weekData?.scoringPeriodId ?? data.availableWeeks[0]?.scoringPeriodId;
 
@@ -29,6 +28,8 @@
 
 	async function loadWeek(seasonId: number, week: number) {
 		loading = true;
+		activeTabs = {};
+		benchOpen = {};
 		try {
 			const res = await fetch(`/api/week-data?season=${seasonId}&week=${week}`);
 			weekData = await res.json();
@@ -40,7 +41,6 @@
 	}
 
 	function onSeasonChange() {
-		// When season changes, default to first week of that season
 		const weeks = weeksBySeason.get(selectedSeason) ?? [];
 		if (weeks.length > 0) {
 			selectedWeek = weeks[0].scoringPeriodId;
@@ -52,11 +52,16 @@
 		loadWeek(selectedSeason, selectedWeek);
 	}
 
-	// Per-matchup tab state — plain object, updated by reassignment for reactivity
+	// Tab state per matchup
 	let activeTabs: Record<number, 'results' | 'optimal'> = {};
-
 	function setTab(matchupId: number, tab: 'results' | 'optimal') {
 		activeTabs = { ...activeTabs, [matchupId]: tab };
+	}
+
+	// Bench open/closed per matchup (shared for both teams)
+	let benchOpen: Record<number, boolean> = {};
+	function toggleBench(matchupId: number) {
+		benchOpen = { ...benchOpen, [matchupId]: !benchOpen[matchupId] };
 	}
 
 	function ordinal(n: number) {
@@ -68,274 +73,518 @@
 	function sign(n: number) { return n >= 0 ? '+' : ''; }
 
 	function optimalWouldWin(team: ProcessedTeam, matchup: ProcessedMatchup): boolean {
-		const opponentScore = team === matchup.home
-			? (matchup.away?.totalPoints ?? 0)
-			: matchup.home.totalPoints;
-		return team.optimalPoints > opponentScore;
+		const opp = team === matchup.home ? (matchup.away?.totalPoints ?? 0) : matchup.home.totalPoints;
+		return team.optimalPoints > opp;
 	}
 
 	function teamActuallyWon(team: ProcessedTeam, matchup: ProcessedMatchup): boolean {
 		return (team === matchup.home && matchup.winner === 'home') ||
 			   (team === matchup.away && matchup.winner === 'away');
 	}
+
+	const SLOT_ORDER = ['QB', 'RB', 'WR', 'TE', 'FLEX', 'D/ST', 'K'];
+	function sortPlayers(players: ProcessedPlayer[]) {
+		return [...players].sort((a, b) => SLOT_ORDER.indexOf(a.slotName) - SLOT_ORDER.indexOf(b.slotName));
+	}
 </script>
 
 <svelte:head>
 	<title>Fantasy Football</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+	<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300;400;600;700&display=swap" rel="stylesheet" />
 </svelte:head>
 
-<div class="min-h-screen bg-gray-950 text-gray-100">
+<style>
+	:global(*) { box-sizing: border-box; margin: 0; padding: 0; }
+	:global(body) {
+		font-family: 'Raleway', sans-serif;
+		background: #303030;
+		color: #ffffff;
+		font-size: 15px;
+		line-height: 1.6;
+		-webkit-font-smoothing: antialiased;
+	}
 
-	<!-- Header -->
-	<header class="bg-gray-900 border-b border-gray-800 px-4 py-4">
-		<div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3">
-			<h1 class="text-2xl font-bold text-green-400 tracking-tight">🏈 Fantasy Football</h1>
+	.page { min-height: 100vh; }
 
-			<!-- Week selector -->
-			<div class="flex items-center gap-2 flex-wrap">
-				<select
-					class="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-green-500"
-					bind:value={selectedSeason}
-					on:change={onSeasonChange}
-				>
+	/* Header — always dark */
+	header {
+		background: #1e1e1e;
+		border-bottom: 3px solid #00d26d;
+		padding: 24px 40px;
+	}
+	.header-inner {
+		max-width: 960px;
+		margin: 0 auto;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		flex-wrap: wrap;
+	}
+	.site-badge {
+		font-size: 10px;
+		letter-spacing: 2px;
+		text-transform: uppercase;
+		color: #00d26d;
+		font-weight: 700;
+		margin-bottom: 4px;
+	}
+	h1 {
+		font-size: 32px;
+		font-weight: 100;
+		letter-spacing: -1.5px;
+		line-height: 1;
+	}
+	h1 em { color: #00d26d; font-style: normal; }
+
+	/* Selects */
+	.selects { display: flex; gap: 10px; flex-wrap: wrap; }
+	select {
+		background: #272727;
+		border: 1px solid rgba(255,255,255,0.12);
+		color: #fff;
+		font-family: 'Raleway', sans-serif;
+		font-size: 12px;
+		font-weight: 600;
+		letter-spacing: 0.5px;
+		padding: 6px 12px;
+		border-radius: 2px;
+		outline: none;
+		cursor: pointer;
+		transition: border-color .18s;
+	}
+	select:focus { border-color: #00d26d; }
+
+	/* Main */
+	main {
+		max-width: 960px;
+		margin: 0 auto;
+		padding: 32px 40px 80px;
+	}
+
+	.week-label {
+		font-size: 11px;
+		letter-spacing: 2px;
+		text-transform: uppercase;
+		color: rgba(255,255,255,0.4);
+		margin-bottom: 24px;
+	}
+
+	/* Matchup card */
+	.matchup-card {
+		background: #272727;
+		border: 1px solid rgba(255,255,255,0.08);
+		border-radius: 3px;
+		margin-bottom: 16px;
+		overflow: hidden;
+	}
+
+	.matchup-header {
+		background: #1e1e1e;
+		padding: 14px 20px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		flex-wrap: wrap;
+		border-bottom: 1px solid rgba(255,255,255,0.08);
+	}
+
+	.score-line { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+	.team-score { display: flex; align-items: center; gap: 8px; }
+	.team-name {
+		font-size: 14px;
+		font-weight: 600;
+		letter-spacing: 0.3px;
+	}
+	.team-name.winner { color: #fff; }
+	.team-name.loser  { color: rgba(255,255,255,0.45); }
+	.score {
+		font-size: 20px;
+		font-weight: 100;
+		letter-spacing: -0.5px;
+	}
+	.score.winner { color: #00d26d; }
+	.score.loser  { color: rgba(255,255,255,0.35); }
+	.vs { font-size: 11px; color: rgba(255,255,255,0.25); letter-spacing: 1px; text-transform: uppercase; }
+
+	/* Tab buttons */
+	.tabs { display: flex; gap: 0; border: 1px solid rgba(255,255,255,0.12); border-radius: 2px; overflow: hidden; }
+	.tab-btn {
+		padding: 5px 14px;
+		font-family: 'Raleway', sans-serif;
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 1.5px;
+		text-transform: uppercase;
+		border: none;
+		cursor: pointer;
+		transition: background .15s, color .15s;
+		background: transparent;
+		color: rgba(255,255,255,0.4);
+	}
+	.tab-btn:hover { color: rgba(255,255,255,0.7); }
+	.tab-btn.active { background: #00d26d; color: #1e1e1e; }
+
+	/* Roster grid */
+	.roster-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0;
+	}
+	@media (max-width: 640px) { .roster-grid { grid-template-columns: 1fr; } }
+
+	.team-col { padding: 16px 20px; }
+	.team-col:first-child { border-right: 1px solid rgba(255,255,255,0.06); }
+
+	.col-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		margin-bottom: 10px;
+	}
+	.col-team-name { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: rgba(255,255,255,0.7); }
+	.col-meta { font-size: 11px; color: rgba(255,255,255,0.3); }
+	.col-meta .bench-pts { color: #ffc832; }
+
+	/* Player rows */
+	.player-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 5px 6px;
+		font-size: 13px;
+		border-radius: 2px;
+	}
+	.player-row:nth-child(odd)  { background: rgba(255,255,255,0.03); }
+	.player-row:nth-child(even) { background: transparent; }
+
+	.player-left { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
+	.slot-label {
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 1px;
+		color: rgba(255,255,255,0.3);
+		text-transform: uppercase;
+		width: 36px;
+		flex-shrink: 0;
+	}
+	.player-name { color: rgba(255,255,255,0.9); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.nfl-team {
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 1px;
+		text-transform: uppercase;
+		color: rgba(255,255,255,0.3);
+		flex-shrink: 0;
+	}
+	.injury-badge {
+		font-size: 9px;
+		font-weight: 700;
+		padding: 1px 4px;
+		border-radius: 2px;
+		flex-shrink: 0;
+	}
+	.injury-badge.out  { background: rgba(255,90,70,0.2);  color: #ff5a46; }
+	.injury-badge.q    { background: rgba(255,200,50,0.2); color: #ffc832; }
+
+	.player-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 6px; }
+	.proj { font-size: 11px; color: rgba(255,255,255,0.25); }
+	.actual {
+		font-size: 13px;
+		font-weight: 600;
+		width: 48px;
+		text-align: right;
+	}
+	.actual.over  { color: #00d26d; }
+	.actual.under { color: #ff5a46; }
+	.actual.norm  { color: rgba(255,255,255,0.8); }
+
+	/* Would-have-beaten */
+	.whb {
+		margin-top: 10px;
+		font-size: 11px;
+		color: rgba(255,255,255,0.3);
+		letter-spacing: 0.3px;
+	}
+	.whb strong { color: rgba(255,255,255,0.7); }
+	.lucky-tag { color: #00d26d; }
+
+	/* Bench toggle */
+	.bench-toggle {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		margin-top: 10px;
+		background: none;
+		border: none;
+		color: rgba(255,255,255,0.25);
+		font-family: 'Raleway', sans-serif;
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 1.5px;
+		text-transform: uppercase;
+		cursor: pointer;
+		padding: 0;
+		transition: color .15s;
+	}
+	.bench-toggle:hover { color: rgba(255,255,255,0.5); }
+	.bench-section { margin-top: 4px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 4px; }
+	.bench-row {
+		display: flex;
+		justify-content: space-between;
+		padding: 4px 6px;
+		font-size: 12px;
+		color: rgba(255,255,255,0.35);
+	}
+	.bench-row:nth-child(odd) { background: rgba(255,255,255,0.02); }
+
+	/* Optimal highlight */
+	.was-benched { background: rgba(255,200,50,0.07) !important; }
+	.was-benched .player-name { color: #ffc832; }
+	.benched-tag { font-size: 9px; color: rgba(255,200,50,0.6); font-weight: 700; letter-spacing: 0.5px; }
+
+	/* Optimal outcome line */
+	.opt-outcome {
+		margin-top: 8px;
+		font-size: 11px;
+		font-weight: 600;
+		letter-spacing: 0.3px;
+	}
+	.opt-outcome.would-win { color: #00d26d; }
+	.opt-outcome.would-lose { color: #ff5a46; }
+
+	/* Awards */
+	.awards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 40px; }
+	@media (max-width: 640px) { .awards { grid-template-columns: 1fr; } }
+	.award-card {
+		background: #272727;
+		border: 1px solid rgba(255,255,255,0.08);
+		border-radius: 3px;
+		padding: 18px;
+	}
+	.award-emoji { font-size: 24px; margin-bottom: 6px; }
+	.award-label {
+		font-size: 9px;
+		font-weight: 700;
+		letter-spacing: 2px;
+		text-transform: uppercase;
+		color: rgba(255,255,255,0.3);
+		margin-bottom: 8px;
+	}
+	.award-player { font-size: 15px; font-weight: 600; }
+	.award-meta { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+	.award-score { font-size: 22px; font-weight: 100; letter-spacing: -0.5px; margin-top: 8px; }
+	.award-score.green { color: #00d26d; }
+	.award-score.red   { color: #ff5a46; }
+	.award-delta { font-size: 11px; margin-top: 2px; color: rgba(255,255,255,0.35); }
+	.award-delta .green { color: #00d26d; }
+	.award-delta .red   { color: #ff5a46; }
+
+	.empty { text-align: center; padding: 80px 20px; color: rgba(255,255,255,0.25); font-size: 14px; }
+</style>
+
+<div class="page">
+	<header>
+		<div class="header-inner">
+			<div>
+				<div class="site-badge">Hoboken Diaspora</div>
+				<h1>Fantasy <em>Football</em></h1>
+			</div>
+			<div class="selects">
+				<select bind:value={selectedSeason} on:change={onSeasonChange}>
 					{#each seasons as s}
 						<option value={s}>{s} Season</option>
 					{/each}
 				</select>
-
-				<select
-					class="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-green-500"
-					bind:value={selectedWeek}
-					on:change={onWeekChange}
-				>
+				<select bind:value={selectedWeek} on:change={onWeekChange}>
 					{#each weeksForSeason as w}
-						<option value={w.scoringPeriodId}>
-							{w.isPlayoff ? '🏆' : ''} Week {w.scoringPeriodId}
-						</option>
+						<option value={w.scoringPeriodId}>{w.isPlayoff ? '🏆 ' : ''}Week {w.scoringPeriodId}</option>
 					{/each}
 				</select>
 			</div>
 		</div>
 	</header>
 
-	<main class="max-w-5xl mx-auto px-4 py-6">
-
+	<main>
 		{#if data.error}
-			<div class="bg-red-900/40 border border-red-700 rounded-lg p-4 text-red-300">{data.error}</div>
+			<div class="empty">{data.error}</div>
 
 		{:else if loading}
-			<div class="flex items-center justify-center py-24 text-gray-400">Loading...</div>
+			<div class="empty">Loading...</div>
 
 		{:else if weekData}
-			<!-- Week header -->
-			<div class="mb-6">
-				<h2 class="text-lg text-gray-400">
-					{weekData.seasonId} Season · {weekData.isPlayoffWeek ? '🏆 Playoffs ·' : ''} Week {weekData.scoringPeriodId}
-				</h2>
+			<div class="week-label">
+				{weekData.seasonId} · {weekData.isPlayoffWeek ? '🏆 Playoffs · ' : ''}Week {weekData.scoringPeriodId}
 			</div>
 
 			<!-- Matchups -->
-			<div class="space-y-4 mb-10">
-				{#each weekData.matchups as matchup}
-					{@const currentTab = activeTabs[matchup.matchupId] ?? 'results'}
+			{#each weekData.matchups as matchup}
+				{@const currentTab = activeTabs[matchup.matchupId] ?? 'results'}
+				{@const isBenchOpen = benchOpen[matchup.matchupId] ?? false}
 
-					<div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-
-						<!-- Matchup header -->
-						<div class="px-5 py-4 border-b border-gray-800">
-							<div class="flex flex-wrap items-center justify-between gap-2">
-								<div class="flex items-center gap-3 flex-wrap">
-									<!-- Home team -->
-									<div class="flex items-center gap-1.5">
-										{#if matchup.home.isLuckiest}<span title="Luckiest win">🍀</span>{/if}
-										<span class="font-semibold {matchup.winner === 'home' ? 'text-white' : 'text-gray-400'}">
-											{matchup.home.teamName}
-										</span>
-										<span class="text-xl font-bold {matchup.winner === 'home' ? 'text-green-400' : 'text-gray-500'}">
-											{matchup.home.totalPoints.toFixed(2)}
-										</span>
-									</div>
-
-									<span class="text-gray-600 text-sm">vs</span>
-
-									<!-- Away team -->
-									{#if matchup.away}
-										<div class="flex items-center gap-1.5">
-											<span class="text-xl font-bold {matchup.winner === 'away' ? 'text-green-400' : 'text-gray-500'}">
-												{matchup.away.totalPoints.toFixed(2)}
-											</span>
-											<span class="font-semibold {matchup.winner === 'away' ? 'text-white' : 'text-gray-400'}">
-												{matchup.away.isLuckiest ? '🍀 ' : ''}{matchup.away.teamName}
-											</span>
-										</div>
-									{/if}
-								</div>
-
-								<!-- Tabs -->
-								<div class="flex rounded-lg overflow-hidden border border-gray-700 text-sm">
-									<button
-										class="px-3 py-1 {currentTab === 'results' ? 'bg-green-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'}"
-										on:click={() => setTab(matchup.matchupId, 'results')}
-									>Results</button>
-									<button
-										class="px-3 py-1 {currentTab === 'optimal' ? 'bg-green-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'}"
-										on:click={() => setTab(matchup.matchupId, 'optimal')}
-									>Optimal</button>
-								</div>
+				<div class="matchup-card">
+					<div class="matchup-header">
+						<div class="score-line">
+							<!-- Home -->
+							<div class="team-score">
+								{#if matchup.home.isLuckiest}<span title="Luckiest win">🍀</span>{/if}
+								<span class="team-name {matchup.winner === 'home' ? 'winner' : 'loser'}">{matchup.home.teamName}</span>
+								<span class="score {matchup.winner === 'home' ? 'winner' : 'loser'}">{matchup.home.totalPoints.toFixed(2)}</span>
 							</div>
-						</div>
-
-						<!-- Tab content -->
-						<div class="px-5 py-4">
-							{#if currentTab === 'results'}
-								<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-									{#each [matchup.home, matchup.away].filter(Boolean) as team}
-										{@const t = team as ProcessedTeam}
-										<div>
-											<div class="flex items-center justify-between mb-2">
-												<span class="text-sm font-medium text-gray-300">{t.teamName}</span>
-												<span class="text-xs text-gray-500">
-													Optimal: {t.optimalPoints.toFixed(2)}
-													{#if t.pointsLeftOnBench > 0}
-														<span class="text-amber-500"> (+{t.pointsLeftOnBench.toFixed(1)} left on bench)</span>
-													{/if}
-												</span>
-											</div>
-
-											<div class="space-y-1">
-												{#each t.starters.sort((a, b) => {
-													const order = ['QB','RB','WR','TE','FLEX','D/ST','K'];
-													return order.indexOf(a.slotName) - order.indexOf(b.slotName);
-												}) as p}
-													<div class="flex items-center justify-between text-sm py-0.5">
-														<div class="flex items-center gap-2 min-w-0">
-															<span class="text-xs text-gray-500 w-10 shrink-0">{p.slotName}</span>
-															<span class="text-gray-200 truncate">{p.fullName}</span>
-															{#if p.injuryStatus !== 'ACTIVE'}
-																<span class="text-xs px-1 rounded {p.injuryStatus === 'OUT' ? 'bg-red-900 text-red-300' : 'bg-yellow-900 text-yellow-300'}">{p.injuryStatus[0]}</span>
-															{/if}
-														</div>
-														<div class="flex items-center gap-2 shrink-0 ml-2">
-															<span class="text-gray-400 text-xs">proj {p.projectedScore.toFixed(1)}</span>
-															<span class="font-medium w-12 text-right {p.actualScore > p.projectedScore ? 'text-green-400' : p.actualScore < p.projectedScore * 0.7 ? 'text-red-400' : 'text-gray-200'}">
-																{p.actualScore.toFixed(2)}
-															</span>
-														</div>
-													</div>
-												{/each}
-											</div>
-
-											{#if t.bench.filter(p => p.slotName !== 'IR').length > 0}
-												<details class="mt-2">
-													<summary class="text-xs text-gray-600 cursor-pointer hover:text-gray-400 select-none">Bench</summary>
-													<div class="mt-1 space-y-0.5 pl-2 border-l border-gray-800">
-														{#each t.bench.filter(p => p.slotName !== 'IR') as p}
-															<div class="flex items-center justify-between text-xs text-gray-500 py-0.5">
-																<span class="truncate">{p.fullName}</span>
-																<span class="ml-2">{p.actualScore.toFixed(2)}</span>
-															</div>
-														{/each}
-													</div>
-												</details>
-											{/if}
-
-											<div class="mt-3 text-xs text-gray-500">
-												Would've beaten <span class="text-gray-300 font-medium">{t.wouldHaveBeaten}/{t.totalTeams - 1}</span> teams this week
-												{#if t.isLuckiest}<span class="text-green-400"> · 🍀 luckiest win</span>{/if}
-											</div>
-										</div>
-									{/each}
-								</div>
-
-							{:else}
-								<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-									{#each [matchup.home, matchup.away].filter(Boolean) as team}
-										{@const t = team as ProcessedTeam}
-										<div>
-											<div class="flex items-center justify-between mb-2">
-												<span class="text-sm font-medium text-gray-300">{t.teamName}</span>
-												<div class="text-xs">
-													<span class="text-gray-500">Actual: {t.totalPoints.toFixed(2)}</span>
-													<span class="mx-1 text-gray-700">→</span>
-													<span class="text-green-400 font-medium">Optimal: {t.optimalPoints.toFixed(2)}</span>
-												</div>
-											</div>
-											<div class="space-y-1">
-												{#each t.optimalStarters.sort((a, b) => {
-													const order = ['QB','RB','WR','TE','FLEX','D/ST','K'];
-													return order.indexOf(a.slotName) - order.indexOf(b.slotName);
-												}) as p}
-													{@const wasStarted = t.starters.some(s => s.playerId === p.playerId)}
-													<div class="flex items-center justify-between text-sm py-0.5 {!wasStarted ? 'bg-amber-900/20 -mx-1 px-1 rounded' : ''}">
-														<div class="flex items-center gap-2 min-w-0">
-															<span class="text-xs text-gray-500 w-10 shrink-0">{p.position}</span>
-															<span class="truncate {!wasStarted ? 'text-amber-300' : 'text-gray-200'}">{p.fullName}</span>
-															{#if !wasStarted}<span class="text-xs text-amber-600">benched</span>{/if}
-														</div>
-														<span class="font-medium w-12 text-right text-green-400 shrink-0 ml-2">{p.actualScore.toFixed(2)}</span>
-													</div>
-												{/each}
-											</div>
-
-											{#if optimalWouldWin(t, matchup) !== teamActuallyWon(t, matchup)}
-												<div class="mt-2 text-xs {optimalWouldWin(t, matchup) ? 'text-green-400' : 'text-red-400'}">
-													{optimalWouldWin(t, matchup) ? '✓ Would have won with optimal lineup' : '✗ Would have lost even with optimal lineup'}
-												</div>
-											{/if}
-										</div>
-									{/each}
+							<span class="vs">vs</span>
+							<!-- Away -->
+							{#if matchup.away}
+								<div class="team-score">
+									<span class="score {matchup.winner === 'away' ? 'winner' : 'loser'}">{matchup.away.totalPoints.toFixed(2)}</span>
+									<span class="team-name {matchup.winner === 'away' ? 'winner' : 'loser'}">{matchup.away.isLuckiest ? '🍀 ' : ''}{matchup.away.teamName}</span>
 								</div>
 							{/if}
 						</div>
+
+						<div class="tabs">
+							<button class="tab-btn {currentTab === 'results' ? 'active' : ''}" on:click={() => setTab(matchup.matchupId, 'results')}>Results</button>
+							<button class="tab-btn {currentTab === 'optimal' ? 'active' : ''}" on:click={() => setTab(matchup.matchupId, 'optimal')}>Optimal</button>
+						</div>
 					</div>
-				{/each}
-			</div>
 
-			<!-- League awards -->
-			<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+					<!-- Results tab -->
+					{#if currentTab === 'results'}
+						<div class="roster-grid">
+							{#each [matchup.home, matchup.away].filter(Boolean) as team}
+								{@const t = team as ProcessedTeam}
+								<div class="team-col">
+									<div class="col-header">
+										<span class="col-team-name">{t.teamName}</span>
+										<span class="col-meta">
+											opt {t.optimalPoints.toFixed(2)}
+											{#if t.pointsLeftOnBench > 0}<span class="bench-pts"> +{t.pointsLeftOnBench.toFixed(1)} on bench</span>{/if}
+										</span>
+									</div>
 
+									{#each sortPlayers(t.starters) as p, i}
+										<div class="player-row">
+											<div class="player-left">
+												<span class="slot-label">{p.slotName}</span>
+												<span class="player-name">{p.fullName}</span>
+												{#if p.nflTeam}<span class="nfl-team">{p.nflTeam}</span>{/if}
+												{#if p.injuryStatus === 'OUT' || p.injuryStatus === 'DOUBTFUL'}
+													<span class="injury-badge out">{p.injuryStatus[0]}</span>
+												{:else if p.injuryStatus === 'QUESTIONABLE'}
+													<span class="injury-badge q">Q</span>
+												{/if}
+											</div>
+											<div class="player-right">
+												<span class="proj">{p.projectedScore.toFixed(1)}</span>
+												<span class="actual {p.actualScore > p.projectedScore ? 'over' : p.actualScore < p.projectedScore * 0.7 ? 'under' : 'norm'}">{p.actualScore.toFixed(2)}</span>
+											</div>
+										</div>
+									{/each}
+
+									<!-- Bench toggle (shared across both teams via matchupId) -->
+									{#if t.bench.filter(p => p.slotName !== 'IR').length > 0}
+										<button class="bench-toggle" on:click={() => toggleBench(matchup.matchupId)}>
+											<span>{isBenchOpen ? '▴' : '▾'}</span> Bench
+										</button>
+										{#if isBenchOpen}
+											<div class="bench-section">
+												{#each t.bench.filter(p => p.slotName !== 'IR') as p}
+													<div class="bench-row">
+														<span>{p.fullName} {#if p.nflTeam}<span class="nfl-team" style="margin-left:6px">{p.nflTeam}</span>{/if}</span>
+														<span>{p.actualScore.toFixed(2)}</span>
+													</div>
+												{/each}
+											</div>
+										{/if}
+									{/if}
+
+									<div class="whb">
+										Would've beaten <strong>{t.wouldHaveBeaten}/{t.totalTeams - 1}</strong> teams this week
+										{#if t.isLuckiest}<span class="lucky-tag"> · 🍀 luckiest win</span>{/if}
+									</div>
+								</div>
+							{/each}
+						</div>
+
+					<!-- Optimal tab -->
+					{:else}
+						<div class="roster-grid">
+							{#each [matchup.home, matchup.away].filter(Boolean) as team}
+								{@const t = team as ProcessedTeam}
+								<div class="team-col">
+									<div class="col-header">
+										<span class="col-team-name">{t.teamName}</span>
+										<span class="col-meta">{t.totalPoints.toFixed(2)} → <span style="color:#00d26d">{t.optimalPoints.toFixed(2)}</span></span>
+									</div>
+
+									{#each sortPlayers(t.optimalStarters) as p}
+										{@const wasStarted = t.starters.some(s => s.playerId === p.playerId)}
+										<div class="player-row {!wasStarted ? 'was-benched' : ''}">
+											<div class="player-left">
+												<span class="slot-label">{p.position}</span>
+												<span class="player-name">{p.fullName}</span>
+												{#if p.nflTeam}<span class="nfl-team">{p.nflTeam}</span>{/if}
+												{#if !wasStarted}<span class="benched-tag">BENCHED</span>{/if}
+											</div>
+											<span class="actual over">{p.actualScore.toFixed(2)}</span>
+										</div>
+									{/each}
+
+									{#if optimalWouldWin(t, matchup) !== teamActuallyWon(t, matchup)}
+										<div class="opt-outcome {optimalWouldWin(t, matchup) ? 'would-win' : 'would-lose'}">
+											{optimalWouldWin(t, matchup) ? '✓ Would have won' : '✗ Would have lost anyway'}
+										</div>
+									{/if}
+								</div>
+							{/each}
+						</div>
+					{/if}
+				</div>
+			{/each}
+
+			<!-- Awards -->
+			<div class="awards">
 				{#if weekData.goldenApple}
 					{@const g = weekData.goldenApple}
-					<div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
-						<div class="text-2xl mb-1">🍎</div>
-						<div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Golden Apple</div>
-						<div class="font-semibold text-white">{g.playerName}</div>
-						<div class="text-xs text-gray-400">{g.position} · {g.teamName}</div>
-						<div class="mt-2 text-green-400 font-bold text-lg">{g.actualScore.toFixed(2)}</div>
-						<div class="text-xs text-gray-500">proj {g.projectedScore.toFixed(1)} · <span class="text-green-400">{sign(g.delta)}{g.delta.toFixed(1)}</span></div>
+					<div class="award-card">
+						<div class="award-emoji">🍎</div>
+						<div class="award-label">Golden Apple</div>
+						<div class="award-player">{g.playerName}</div>
+						<div class="award-meta">{g.position}{g.nflTeam ? ' · ' + g.nflTeam : ''} · {g.teamName}</div>
+						<div class="award-score green">{g.actualScore.toFixed(2)}</div>
+						<div class="award-delta">proj {g.projectedScore.toFixed(1)} · <span class="green">{sign(g.delta)}{g.delta.toFixed(1)}</span></div>
 					</div>
 				{/if}
 
 				{#if weekData.brownBanana}
 					{@const b = weekData.brownBanana}
-					<div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
-						<div class="text-2xl mb-1">🍌</div>
-						<div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Brown Banana</div>
-						<div class="font-semibold text-white">{b.playerName}</div>
-						<div class="text-xs text-gray-400">{b.position} · {b.teamName}</div>
-						<div class="mt-2 text-red-400 font-bold text-lg">{b.actualScore.toFixed(2)}</div>
-						<div class="text-xs text-gray-500">proj {b.projectedScore.toFixed(1)} · <span class="text-red-400">{sign(b.delta)}{b.delta.toFixed(1)}</span></div>
+					<div class="award-card">
+						<div class="award-emoji">🍌</div>
+						<div class="award-label">Brown Banana</div>
+						<div class="award-player">{b.playerName}</div>
+						<div class="award-meta">{b.position}{b.nflTeam ? ' · ' + b.nflTeam : ''} · {b.teamName}</div>
+						<div class="award-score red">{b.actualScore.toFixed(2)}</div>
+						<div class="award-delta">proj {b.projectedScore.toFixed(1)} · <span class="red">{sign(b.delta)}{b.delta.toFixed(1)}</span></div>
 					</div>
 				{/if}
 
 				{#if weekData.lamentStud}
 					{@const l = weekData.lamentStud}
-					<div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
-						<div class="text-2xl mb-1">🤡</div>
-						<div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Lamest Stud</div>
-						<div class="font-semibold text-white">{l.playerName}</div>
-						<div class="text-xs text-gray-400">{l.position} · {l.teamName}</div>
-						<div class="mt-2 text-red-400 font-bold text-lg">{l.actualScore.toFixed(2)}</div>
-						<div class="text-xs text-gray-500">{ordinal(l.overallPick)} overall pick (Rd {l.draftRound})</div>
+					<div class="award-card">
+						<div class="award-emoji">🤡</div>
+						<div class="award-label">Lamest Stud</div>
+						<div class="award-player">{l.playerName}</div>
+						<div class="award-meta">{l.position}{l.nflTeam ? ' · ' + l.nflTeam : ''} · {l.teamName}</div>
+						<div class="award-score red">{l.actualScore.toFixed(2)}</div>
+						<div class="award-delta">{ordinal(l.overallPick)} overall · Round {l.draftRound}</div>
 					</div>
 				{/if}
-
 			</div>
 
 		{:else}
-			<div class="text-center py-24 text-gray-500">
-				No data found. Run the backfill to populate historical data.
-			</div>
+			<div class="empty">No data found. Run the backfill to populate historical data.</div>
 		{/if}
 	</main>
 </div>

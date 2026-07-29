@@ -12,6 +12,21 @@ const SLOT_NAMES: Record<number, string> = {
 	0: 'QB', 2: 'RB', 4: 'WR', 6: 'TE', 16: 'D/ST', 17: 'K', 23: 'FLEX', 20: 'Bench', 21: 'IR'
 };
 
+// ESPN proTeamId → NFL abbreviation
+const PRO_TEAM_ABBR: Record<number, string> = {
+	0: '',    // free agent
+	1: 'ATL', 2: 'BUF', 3: 'CHI', 4: 'CIN', 5: 'CLE',
+	6: 'DAL', 7: 'DEN', 8: 'DET', 9: 'GB',  10: 'TEN',
+	11: 'IND', 12: 'KC', 13: 'LV', 14: 'LAR', 15: 'MIA',
+	16: 'MIN', 17: 'NE', 18: 'NO', 19: 'NYG', 20: 'NYJ',
+	21: 'PHI', 22: 'ARI', 23: 'PIT', 24: 'LAC', 25: 'SF',
+	26: 'SEA', 27: 'TB',  28: 'WAS', 29: 'CAR', 30: 'JAX',
+	33: 'BAL', 34: 'HOU'
+};
+
+// Injury statuses that mean a player was genuinely unavailable
+const INJURED_OUT = new Set(['OUT', 'DOUBTFUL', 'IR', 'SUSPENSION']);
+
 // ─── Output types ─────────────────────────────────────────────────────────────
 
 export interface ProcessedPlayer {
@@ -19,10 +34,11 @@ export interface ProcessedPlayer {
 	fullName: string;
 	position: string;
 	slotName: string;
+	nflTeam: string;   // e.g. "KC", "LAR" — empty string for D/ST
 	actualScore: number;
 	projectedScore: number;
 	projectedCeiling: number;
-	scoreDelta: number; // actual - projected
+	scoreDelta: number;
 	injuryStatus: string;
 }
 
@@ -35,10 +51,10 @@ export interface ProcessedTeam {
 	starters: ProcessedPlayer[];
 	bench: ProcessedPlayer[];
 	optimalStarters: ProcessedPlayer[];
-	pointsLeftOnBench: number; // optimalPoints - totalPoints
-	wouldHaveBeaten: number; // out of all N teams this week
+	pointsLeftOnBench: number;
+	wouldHaveBeaten: number;
 	totalTeams: number;
-	isLuckiest: boolean; // 🍀 won despite lowest wouldHaveBeaten among winners
+	isLuckiest: boolean;
 }
 
 export interface ProcessedMatchup {
@@ -53,6 +69,7 @@ export interface ProcessedMatchup {
 export interface LeagueAward {
 	playerName: string;
 	teamName: string;
+	nflTeam: string;
 	actualScore: number;
 	projectedScore: number;
 	delta: number;
@@ -62,6 +79,7 @@ export interface LeagueAward {
 export interface LamestStud {
 	playerName: string;
 	teamName: string;
+	nflTeam: string;
 	actualScore: number;
 	draftRound: number;
 	overallPick: number;
@@ -85,38 +103,32 @@ function computeOptimalLineup(
 	roster: PlayerEntry[],
 	slotCounts: Record<string, number>
 ): PlayerEntry[] {
-	// Exclude IR — they can't be moved into the lineup
 	const available = roster.filter((p) => p.lineupSlotId !== 21);
 
-	// Group by defaultPositionId, sorted by actual score desc
 	const byPos: Record<number, PlayerEntry[]> = {};
 	for (const p of available) {
-		const pos = p.defaultPositionId;
-		if (!byPos[pos]) byPos[pos] = [];
-		byPos[pos].push(p);
+		if (!byPos[p.defaultPositionId]) byPos[p.defaultPositionId] = [];
+		byPos[p.defaultPositionId].push(p);
 	}
-	for (const pos in byPos) {
-		byPos[pos].sort((a, b) => b.actualScore - a.actualScore);
-	}
+	for (const pos in byPos) byPos[pos].sort((a, b) => b.actualScore - a.actualScore);
 
-	const qbCount = slotCounts['0'] ?? 1;
-	const rbCount = slotCounts['2'] ?? 2;
-	const wrCount = slotCounts['4'] ?? 3;
-	const teCount = slotCounts['6'] ?? 1;
-	const kCount = slotCounts['17'] ?? 1;
+	const qbCount  = slotCounts['0']  ?? 1;
+	const rbCount  = slotCounts['2']  ?? 2;
+	const wrCount  = slotCounts['4']  ?? 3;
+	const teCount  = slotCounts['6']  ?? 1;
+	const kCount   = slotCounts['17'] ?? 1;
 	const dstCount = slotCounts['16'] ?? 1;
 	const flexCount = slotCounts['23'] ?? 1;
 
 	const starters: PlayerEntry[] = [
-		...(byPos[1] ?? []).slice(0, qbCount), // QB
-		...(byPos[2] ?? []).slice(0, rbCount), // RB
-		...(byPos[3] ?? []).slice(0, wrCount), // WR
-		...(byPos[4] ?? []).slice(0, teCount), // TE
-		...(byPos[5] ?? []).slice(0, kCount), // K
-		...(byPos[16] ?? []).slice(0, dstCount) // D/ST
+		...(byPos[1]  ?? []).slice(0, qbCount),
+		...(byPos[2]  ?? []).slice(0, rbCount),
+		...(byPos[3]  ?? []).slice(0, wrCount),
+		...(byPos[4]  ?? []).slice(0, teCount),
+		...(byPos[5]  ?? []).slice(0, kCount),
+		...(byPos[16] ?? []).slice(0, dstCount)
 	];
 
-	// FLEX: best remaining RB/WR/TE
 	const usedIds = new Set(starters.map((p) => p.playerId));
 	const flexCandidates = [
 		...(byPos[2] ?? []).filter((p) => !usedIds.has(p.playerId)),
@@ -130,7 +142,11 @@ function computeOptimalLineup(
 
 // ─── Main processor ───────────────────────────────────────────────────────────
 
-export function processWeek(weekDoc: WeeklyMatchupDoc, seasonDoc: SeasonDoc): ProcessedWeek {
+export function processWeek(
+	weekDoc: WeeklyMatchupDoc,
+	seasonDoc: SeasonDoc,
+	ownerDict: Record<string, string> = {}
+): ProcessedWeek {
 	const teamMap = new Map(seasonDoc.teams.map((t) => [t.teamId, t]));
 	const draftMap = new Map(seasonDoc.draft.picks.map((p) => [p.playerId, p]));
 	const slotCounts = seasonDoc.settings.lineupSlotCounts;
@@ -138,58 +154,58 @@ export function processWeek(weekDoc: WeeklyMatchupDoc, seasonDoc: SeasonDoc): Pr
 		seasonDoc.draft.picks.filter((p) => p.round <= 3).map((p) => p.playerId)
 	);
 
+	// Resolve team display name: ESPN name → OWNER_DICT fallback → "Team N"
+	function resolveTeamName(teamId: number): { teamName: string; ownerName: string } {
+		const info = teamMap.get(teamId);
+		const espnName = info?.name?.trim();
+		const ownerNames = info?.owners ?? [];
+		const teamName = espnName || ownerDict[String(teamId)] || `Team ${teamId}`;
+		const ownerName = ownerNames[0] || ownerDict[String(teamId)] || teamName;
+		return { teamName, ownerName };
+	}
+
 	// Collect all team scores for cross-matchup comparisons
 	const allTeamScores: Array<{ teamId: number; score: number; didWin: boolean }> = [];
 	for (const m of weekDoc.matchups) {
-		const homeWon = m.winner === 'HOME';
-		const awayWon = m.winner === 'AWAY';
-		allTeamScores.push({ teamId: m.home.teamId, score: m.home.totalPoints, didWin: homeWon });
-		if (m.away) {
-			allTeamScores.push({ teamId: m.away.teamId, score: m.away.totalPoints, didWin: awayWon });
-		}
+		allTeamScores.push({ teamId: m.home.teamId, score: m.home.totalPoints, didWin: m.winner === 'HOME' });
+		if (m.away) allTeamScores.push({ teamId: m.away.teamId, score: m.away.totalPoints, didWin: m.winner === 'AWAY' });
 	}
 	const totalTeams = allTeamScores.length;
 
-	// wouldHaveBeaten: how many other teams' scores this team beats
 	const wouldHaveBeatenMap = new Map<number, number>();
 	for (const team of allTeamScores) {
-		const count = allTeamScores.filter(
-			(other) => other.teamId !== team.teamId && team.score > other.score
-		).length;
+		const count = allTeamScores.filter((o) => o.teamId !== team.teamId && team.score > o.score).length;
 		wouldHaveBeatenMap.set(team.teamId, count);
 	}
 
-	// Luckiest: winning team with the lowest wouldHaveBeaten count
 	const winners = allTeamScores.filter((t) => t.didWin);
 	let luckiestTeamId: number | null = null;
 	if (winners.length > 0) {
 		const luckiest = winners.reduce((min, t) =>
-			(wouldHaveBeatenMap.get(t.teamId) ?? 0) < (wouldHaveBeatenMap.get(min.teamId) ?? 0)
-				? t
-				: min
+			(wouldHaveBeatenMap.get(t.teamId) ?? 0) < (wouldHaveBeatenMap.get(min.teamId) ?? 0) ? t : min
 		);
 		luckiestTeamId = luckiest.teamId;
 	}
 
-	// Collect all starters for league awards
 	const allStartersByTeam: Array<{ player: ProcessedPlayer; teamId: number }> = [];
 
-	function processTeamSide(side: (typeof weekDoc.matchups)[0]['home']): ProcessedTeam {
-		const info = teamMap.get(side.teamId);
-		const teamName = info?.name || `Team ${side.teamId}`;
-		const ownerName = info?.owners[0] ?? teamName;
-
-		const toProcessed = (p: PlayerEntry): ProcessedPlayer => ({
+	function toProcessed(p: PlayerEntry): ProcessedPlayer {
+		return {
 			playerId: p.playerId,
 			fullName: p.fullName,
 			position: POSITION_NAMES[p.defaultPositionId] ?? '?',
 			slotName: SLOT_NAMES[p.lineupSlotId] ?? '?',
+			nflTeam: PRO_TEAM_ABBR[p.proTeamId] ?? '',
 			actualScore: p.actualScore,
 			projectedScore: p.projectedScore,
 			projectedCeiling: p.projectedCeiling,
 			scoreDelta: Math.round((p.actualScore - p.projectedScore) * 100) / 100,
 			injuryStatus: p.injuryStatus
-		});
+		};
+	}
+
+	function processTeamSide(side: (typeof weekDoc.matchups)[0]['home']): ProcessedTeam {
+		const { teamName, ownerName } = resolveTeamName(side.teamId);
 
 		const starters = side.roster
 			.filter((p) => STARTER_SLOT_IDS.has(p.lineupSlotId) && p.lineupSlotId !== 21)
@@ -201,14 +217,10 @@ export function processWeek(weekDoc: WeeklyMatchupDoc, seasonDoc: SeasonDoc): Pr
 
 		const optimalRaw = computeOptimalLineup(side.roster, slotCounts);
 		const optimalStarters = optimalRaw.map(toProcessed);
-		const optimalPoints =
-			Math.round(optimalRaw.reduce((s, p) => s + p.actualScore, 0) * 100) / 100;
-		const pointsLeftOnBench =
-			Math.round((optimalPoints - side.totalPoints) * 100) / 100;
+		const optimalPoints = Math.round(optimalRaw.reduce((s, p) => s + p.actualScore, 0) * 100) / 100;
+		const pointsLeftOnBench = Math.max(0, Math.round((optimalPoints - side.totalPoints) * 100) / 100);
 
-		for (const p of starters) {
-			allStartersByTeam.push({ player: p, teamId: side.teamId });
-		}
+		for (const p of starters) allStartersByTeam.push({ player: p, teamId: side.teamId });
 
 		return {
 			teamId: side.teamId,
@@ -216,7 +228,7 @@ export function processWeek(weekDoc: WeeklyMatchupDoc, seasonDoc: SeasonDoc): Pr
 			ownerName,
 			totalPoints: side.totalPoints,
 			optimalPoints,
-			pointsLeftOnBench: Math.max(0, pointsLeftOnBench),
+			pointsLeftOnBench,
 			starters,
 			bench,
 			optimalStarters,
@@ -230,20 +242,12 @@ export function processWeek(weekDoc: WeeklyMatchupDoc, seasonDoc: SeasonDoc): Pr
 		matchupId: m.matchupId,
 		isPlayoff: weekDoc.isPlayoff,
 		playoffTierType: m.playoffTierType,
-		winner:
-			m.winner === 'HOME'
-				? 'home'
-				: m.winner === 'AWAY'
-					? 'away'
-					: m.winner === 'TIE'
-						? 'tie'
-						: 'undecided',
+		winner: m.winner === 'HOME' ? 'home' : m.winner === 'AWAY' ? 'away' : m.winner === 'TIE' ? 'tie' : 'undecided',
 		home: processTeamSide(m.home),
 		away: m.away ? processTeamSide(m.away) : undefined
 	}));
 
 	// ── Golden Apple / Brown Banana ───────────────────────────────────────────
-	// Only starters with a meaningful projection (avoids 0-projection skew)
 	const qualifiedStarters = allStartersByTeam.filter((s) => s.player.projectedScore > 1);
 	let goldenApple: LeagueAward | null = null;
 	let brownBanana: LeagueAward | null = null;
@@ -253,35 +257,34 @@ export function processWeek(weekDoc: WeeklyMatchupDoc, seasonDoc: SeasonDoc): Pr
 		const best = sorted[0];
 		const worst = sorted[sorted.length - 1];
 
-		goldenApple = {
-			playerName: best.player.fullName,
-			teamName: teamMap.get(best.teamId)?.name ?? `Team ${best.teamId}`,
-			actualScore: best.player.actualScore,
-			projectedScore: best.player.projectedScore,
-			delta: best.player.scoreDelta,
-			position: best.player.position
-		};
-		brownBanana = {
-			playerName: worst.player.fullName,
-			teamName: teamMap.get(worst.teamId)?.name ?? `Team ${worst.teamId}`,
-			actualScore: worst.player.actualScore,
-			projectedScore: worst.player.projectedScore,
-			delta: worst.player.scoreDelta,
-			position: worst.player.position
-		};
+		const toAward = (s: typeof sorted[0]): LeagueAward => ({
+			playerName: s.player.fullName,
+			teamName: resolveTeamName(s.teamId).teamName,
+			nflTeam: s.player.nflTeam,
+			actualScore: s.player.actualScore,
+			projectedScore: s.player.projectedScore,
+			delta: s.player.scoreDelta,
+			position: s.player.position
+		});
+
+		goldenApple = toAward(best);
+		brownBanana = toAward(worst);
 	}
 
 	// ── Lamest Stud ───────────────────────────────────────────────────────────
+	// Worst-scoring starter drafted in rounds 1–3, excluding players who were
+	// injured/out (not their fault)
 	let lamentStud: LamestStud | null = null;
-	const studs = allStartersByTeam.filter((s) => earlyPickIds.has(s.player.playerId));
+	const studs = allStartersByTeam.filter(
+		(s) => earlyPickIds.has(s.player.playerId) && !INJURED_OUT.has(s.player.injuryStatus)
+	);
 	if (studs.length > 0) {
-		const lament = studs.reduce((min, s) =>
-			s.player.actualScore < min.player.actualScore ? s : min
-		);
+		const lament = studs.reduce((min, s) => s.player.actualScore < min.player.actualScore ? s : min);
 		const pick = draftMap.get(lament.player.playerId);
 		lamentStud = {
 			playerName: lament.player.fullName,
-			teamName: teamMap.get(lament.teamId)?.name ?? `Team ${lament.teamId}`,
+			teamName: resolveTeamName(lament.teamId).teamName,
+			nflTeam: lament.player.nflTeam,
 			actualScore: lament.player.actualScore,
 			draftRound: pick?.round ?? 1,
 			overallPick: pick?.overallPick ?? 0,
