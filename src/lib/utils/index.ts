@@ -1,7 +1,5 @@
 // import { SWID, ESPN_S2, OWNER_DICT, ANTHROPIC_API_KEY,  OVERALL_SUMMARY_PROMPT, MATCHUP_SUMMARY_PROMPT  } from '$root/config.json'; // use for local, no web deployment
 import {
-    SWID,
-    ESPN_S2,
     OWNER_DICT,
     ANTHROPIC_API_KEY,
     OVERALL_SUMMARY_PROMPT,
@@ -124,16 +122,12 @@ function getNFLSeason(): number {
 }
 
 async function fetchEspnData(url: string, params: any, cookies: Cookies): Promise<any> {
-	const response = await fetch(url, {
-		headers: {
-			...headers,
-			Cookie: Object.entries(cookies)
-				.map(([key, value]) => `${key}=${value}`)
-				.join('; ')
-		}
-	});
-
-	return await response.json();
+    const response = await fetch(url, {
+        headers: {
+            ...headers
+        }
+    });
+    return await response.json();
 }
 
 async function loadLeague(
@@ -405,16 +399,12 @@ function rankPlayoffSeeds(standingsDf: any[]): any[] {
 }
 
 async function runEspnWeekly(
-	week: number | null = null,
-	year: number | null = null,
-	maxAttempts: number = 1
+    week: number | null = null,
+    year: number | null = null,
+    maxAttempts: number = 1
 ): Promise<any> {
-	year = year || getNFLSeason();
-	const espnCookies: Cookies = {
-		swid: SWID,
-		espn_s2: ESPN_S2
-	};
-	const leagueId = LEAGUE_ID;
+    year = year || getNFLSeason();
+    const leagueId = LEAGUE_ID;
 
 	let attempts = 0;
 	let leagueData: LeagueData,
