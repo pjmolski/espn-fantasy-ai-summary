@@ -52,6 +52,25 @@ export async function GET({ request, url }) {
 			return json({ ok: true, mode: 'single-season', year, teams: result.teams.length });
 		}
 
+		// Seasons-only re-ingest (refresh team names etc without touching weekly data)
+		const seasonsOnly = url.searchParams.get('seasonsOnly') === 'true';
+		if (seasonsOnly) {
+			const { getAllSeasons } = await import('$lib/fantasyDataService');
+			const seasonDocs = await getAllSeasons(leagueId);
+			const years = seasonDocs.map(d => d.seasonId).sort((a, b) => a - b);
+			const filtered = startYear ? years.filter(y => y >= startYear) : years;
+			const results = [];
+			for (const year of filtered) {
+				if (!dryRun) {
+					const doc = await ingestSeasonData(leagueId, year);
+					results.push({ year, teams: doc.teams.length });
+				} else {
+					results.push({ year, dryRun: true });
+				}
+			}
+			return json({ ok: true, mode: 'seasons-only', seasons: results });
+		}
+
 		// Full backfill
 		const result = await backfillLeague(leagueId, { startYear, weeksOnly, dryRun });
 		return json({ ok: true, mode: dryRun ? 'dry-run' : 'backfill', ...result });
