@@ -146,8 +146,8 @@ async function loadWeeklyStats(
 	week: number
 ): Promise<WeeklyStats[]> {
 	const ownerDict = OWNER_DICT_PARSED;
-	const url = `https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${year}/segments/0/leagues/${leagueId}?view=mMatchup&view=mMatchupScore`;
-	const espnRawData = await fetchEspnData(url, { scoringPeriodId: week });
+	const url = `https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${year}/segments/0/leagues/${leagueId}?view=mMatchup&view=mMatchupScore&scoringPeriodId=${week}`;
+	const espnRawData = await fetchEspnData(url, {});
 	const projectionData = espnRawData.teams.flatMap((team: any) =>
 		team.roster.entries.map((player: any) => {
 			const stats = player.playerPoolEntry.player.stats;
