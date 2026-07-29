@@ -131,18 +131,19 @@ export async function updateFantasyData(
   const client = await getClient();
   const db = client.db(DB_NAME);
   const collection = db.collection(COLLECTION_NAME);
-
   const resolvedWeek = week ?? getNFLWeek();
   const resolvedSeason = season ?? getNFLSeason();
-
-  const priorContext = await getRecentSummaries(3);  // ← NEW
-
+  const priorContext = await getRecentSummaries(3);
   console.log(`Generating new data for ${resolvedSeason} season, week ${resolvedWeek}`);
-  const weeklyData = await runWeeklyESPN(resolvedWeek, resolvedSeason, priorContext);  // ← priorContext added
-  const result = await collection.insertOne(weeklyData);
+  const weeklyData = await runWeeklyESPN(resolvedWeek, resolvedSeason, priorContext);
+  await collection.replaceOne(
+    { week: resolvedWeek, season: resolvedSeason },
+    weeklyData,
+    { upsert: true }
+  );
   console.log('New data saved to MongoDB');
-
-  return { ...weeklyData, _id: result.insertedId.toString() };
+  const saved = await collection.findOne<WeeklyDataWithId>({ week: resolvedWeek, season: resolvedSeason });
+  return saved ? { ...saved, _id: saved._id.toString() } : null;
 }
 export async function callCronUpdateFantasyData(fetch: typeof globalThis.fetch): Promise<void> {
 	const response = await fetch('/api/cron/update-fantasy-data', {
