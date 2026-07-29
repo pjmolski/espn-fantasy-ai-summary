@@ -6,7 +6,8 @@ import {
     ANTHROPIC_API_KEY,
     OVERALL_SUMMARY_PROMPT,
     MATCHUP_SUMMARY_PROMPT,
-    CLAUDE_MODEL
+    CLAUDE_MODEL,
+	LEAGUE_ID
 } from '$env/static/private'; // using envs for web deployment
 
 import fetch from 'node-fetch';
@@ -411,7 +412,7 @@ async function runEspnWeekly(
 		swid: SWID,
 		espn_s2: ESPN_S2
 	};
-	const leagueId = '1279367121';
+	const leagueId = LEAGUE_ID;
 
 	let attempts = 0;
 	let leagueData: LeagueData,
