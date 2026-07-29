@@ -83,11 +83,11 @@
 	}
 
 	const SLOT_ORDER = ['QB', 'RB', 'WR', 'TE', 'FLEX', 'D/ST', 'K'];
-	const OPT_POS_ORDER = ['QB', 'RB', 'WR', 'TE', 'D/ST', 'K'];
+	const OPT_POS_ORDER = ['QB', 'RB', 'WR', 'TE', 'FLEX', 'D/ST', 'K'];
 	function sortOptimalPlayers(players: ProcessedPlayer[]) {
 		return [...players].sort((a, b) => {
-			const ai = OPT_POS_ORDER.indexOf(a.position);
-			const bi = OPT_POS_ORDER.indexOf(b.position);
+			const ai = OPT_POS_ORDER.indexOf(a.slotName);
+			const bi = OPT_POS_ORDER.indexOf(b.slotName);
 			if (ai !== bi) return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
 			return b.actualScore - a.actualScore;
 		});
