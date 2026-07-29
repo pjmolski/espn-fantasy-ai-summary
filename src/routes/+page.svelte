@@ -234,9 +234,8 @@
 
 	/* Tab buttons */
 	.genie-btn {
-		width: 36px;
 		height: 36px;
-		border-radius: 50%;
+		border-radius: 18px;
 		border: 2px solid rgba(255,255,255,0.15);
 		background: rgba(255,255,255,0.06);
 		font-size: 18px;
@@ -245,18 +244,32 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		transition: border-color .18s, background .18s, box-shadow .18s;
+		gap: 6px;
+		padding: 0 10px;
+		transition: border-color .18s, background .18s, box-shadow .18s, padding .18s;
 		flex-shrink: 0;
 	}
 	.genie-btn:hover {
 		border-color: rgba(255,255,255,0.35);
 	}
+	.genie-btn .genie-label {
+		display: none;
+		font-family: 'Raleway', sans-serif;
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 1px;
+		text-transform: uppercase;
+		color: #00ccff;
+		white-space: nowrap;
+	}
 	.genie-btn.active {
-		border-color: #00d26d;
-		background: rgba(0,210,109,0.15);
-		box-shadow: 0 0 0 3px rgba(0,210,109,0.18);
-		filter: grayscale(0);
-		opacity: 1;
+		border-color: #00ccff;
+		background: rgba(0,204,255,0.12);
+		box-shadow: 0 0 0 3px rgba(0,204,255,0.15);
+		padding: 0 14px;
+	}
+	.genie-btn.active .genie-label {
+		display: inline;
 	}
 
 	/* Roster grid */
@@ -390,8 +403,8 @@
 	}
 	.bench-row:nth-child(odd) { background: rgba(255,255,255,0.02); }
 
-	.matchup-card.optimal-mode { background: rgba(255,180,200,0.07); border-color: rgba(255,150,180,0.25); }
-	.matchup-card.optimal-mode .matchup-header { background: rgba(80,20,40,0.6); }
+	.matchup-card.optimal-mode { background: rgba(0,204,255,0.05); border-color: rgba(0,204,255,0.3); }
+	.matchup-card.optimal-mode .matchup-header { background: rgba(0,60,80,0.7); border-bottom-color: rgba(0,204,255,0.2); }
 
 	/* Optimal highlight */
 	.was-benched { background: rgba(255,200,50,0.07) !important; }
@@ -482,7 +495,7 @@
 						<div class="score-line">
 							<!-- Home -->
 							<div class="team-score">
-								{#if matchup.home.isLuckiest}<span title="Luckiest win">🍀</span>{/if}
+								{#if matchup.home.isLuckiest}<span title="Luckiest win — won with a score that would have lost most other matchups this week">🍀</span>{/if}
 								<span class="team-name {matchup.winner === 'home' ? 'winner' : 'loser'}">{matchup.home.teamName}</span>
 								<span class="score {matchup.winner === 'home' ? 'winner' : 'loser'}">{matchup.home.totalPoints.toFixed(2)}</span>
 							</div>
@@ -491,7 +504,7 @@
 							{#if matchup.away}
 								<div class="team-score">
 									<span class="score {matchup.winner === 'away' ? 'winner' : 'loser'}">{matchup.away.totalPoints.toFixed(2)}</span>
-									<span class="team-name {matchup.winner === 'away' ? 'winner' : 'loser'}">{matchup.away.isLuckiest ? '🍀 ' : ''}{matchup.away.teamName}</span>
+									<span class="team-name {matchup.winner === 'away' ? 'winner' : 'loser'}">{#if matchup.away.isLuckiest}<span title="Luckiest win — won with a score that would have lost most other matchups this week">🍀</span> {/if}{matchup.away.teamName}</span>
 								</div>
 							{/if}
 						</div>
@@ -501,7 +514,7 @@
 							on:click={() => toggleOptimal(matchup.matchupId)}
 							title="Optimal Lineup Genie"
 							aria-label="Optimal Lineup Genie"
-						>🧞</button>
+						>🧞<span class="genie-label">Optimal Lineup</span></button>
 					</div>
 
 					<!-- Results / Optimal view -->
@@ -523,8 +536,8 @@
 											<div class="player-left">
 												<span class="slot-label">{p.slotName}</span>
 												<span class="player-name">{p.fullName}</span>
-												{#if muscleIds.has(p.playerId)}<span class="award-emoji-inline">💪</span>{/if}
-												{#if poopIds.has(p.playerId)}<span class="award-emoji-inline">💩</span>{/if}
+												{#if muscleIds.has(p.playerId)}<span class="award-emoji-inline" title="Top Weekly Scorer">💪</span>{/if}
+												{#if poopIds.has(p.playerId)}<span class="award-emoji-inline" title="Bottom Weekly Scorer">💩</span>{/if}
 												{#if p.nflTeam}<span class="nfl-team">{p.nflTeam}</span>{/if}
 												{#if p.injuryStatus === 'OUT' || p.injuryStatus === 'DOUBTFUL'}
 													<span class="injury-badge out">{p.injuryStatus[0]}</span>
@@ -583,10 +596,10 @@
 										{@const wasStarted = t.starters.some(s => s.playerId === p.playerId)}
 										<div class="player-row {!wasStarted ? 'was-benched' : ''}">
 											<div class="player-left">
-												<span class="slot-label">{p.position}</span>
+												<span class="slot-label">{p.slotName}</span>
 												<span class="player-name">{p.fullName}</span>
-												{#if muscleIds.has(p.playerId)}<span class="award-emoji-inline">💪</span>{/if}
-												{#if poopIds.has(p.playerId)}<span class="award-emoji-inline">💩</span>{/if}
+												{#if muscleIds.has(p.playerId)}<span class="award-emoji-inline" title="Top Weekly Scorer">💪</span>{/if}
+												{#if poopIds.has(p.playerId)}<span class="award-emoji-inline" title="Bottom Weekly Scorer">💩</span>{/if}
 												{#if p.nflTeam}<span class="nfl-team">{p.nflTeam}</span>{/if}
 												{#if !wasStarted}<span class="benched-tag">BENCHED</span>{/if}
 											</div>

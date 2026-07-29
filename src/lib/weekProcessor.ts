@@ -99,10 +99,12 @@ export interface ProcessedWeek {
 
 // ─── Optimal lineup ───────────────────────────────────────────────────────────
 
+interface SlottedPlayer { player: PlayerEntry; slot: string; }
+
 function computeOptimalLineup(
 	roster: PlayerEntry[],
 	slotCounts: Record<string, number>
-): PlayerEntry[] {
+): SlottedPlayer[] {
 	const available = roster.filter((p) => p.lineupSlotId !== 21);
 
 	const byPos: Record<number, PlayerEntry[]> = {};
@@ -120,24 +122,24 @@ function computeOptimalLineup(
 	const dstCount = slotCounts['16'] ?? 1;
 	const flexCount = slotCounts['23'] ?? 1;
 
-	const starters: PlayerEntry[] = [
-		...(byPos[1]  ?? []).slice(0, qbCount),
-		...(byPos[2]  ?? []).slice(0, rbCount),
-		...(byPos[3]  ?? []).slice(0, wrCount),
-		...(byPos[4]  ?? []).slice(0, teCount),
-		...(byPos[5]  ?? []).slice(0, kCount),
-		...(byPos[16] ?? []).slice(0, dstCount)
+	const slotted: SlottedPlayer[] = [
+		...(byPos[1]  ?? []).slice(0, qbCount).map(p  => ({ player: p, slot: 'QB' })),
+		...(byPos[2]  ?? []).slice(0, rbCount).map(p  => ({ player: p, slot: 'RB' })),
+		...(byPos[3]  ?? []).slice(0, wrCount).map(p  => ({ player: p, slot: 'WR' })),
+		...(byPos[4]  ?? []).slice(0, teCount).map(p  => ({ player: p, slot: 'TE' })),
+		...(byPos[5]  ?? []).slice(0, kCount).map(p   => ({ player: p, slot: 'K' })),
+		...(byPos[16] ?? []).slice(0, dstCount).map(p => ({ player: p, slot: 'D/ST' })),
 	];
 
-	const usedIds = new Set(starters.map((p) => p.playerId));
+	const usedIds = new Set(slotted.map((s) => s.player.playerId));
 	const flexCandidates = [
 		...(byPos[2] ?? []).filter((p) => !usedIds.has(p.playerId)),
 		...(byPos[3] ?? []).filter((p) => !usedIds.has(p.playerId)),
 		...(byPos[4] ?? []).filter((p) => !usedIds.has(p.playerId))
 	].sort((a, b) => b.actualScore - a.actualScore);
 
-	starters.push(...flexCandidates.slice(0, flexCount));
-	return starters;
+	slotted.push(...flexCandidates.slice(0, flexCount).map(p => ({ player: p, slot: 'FLEX' })));
+	return slotted;
 }
 
 // ─── Main processor ───────────────────────────────────────────────────────────
@@ -215,9 +217,12 @@ export function processWeek(
 			.filter((p) => !STARTER_SLOT_IDS.has(p.lineupSlotId) || p.lineupSlotId === 21)
 			.map(toProcessed);
 
-		const optimalRaw = computeOptimalLineup(side.roster, slotCounts);
-		const optimalStarters = optimalRaw.map(toProcessed);
-		const optimalPoints = Math.round(optimalRaw.reduce((s, p) => s + p.actualScore, 0) * 100) / 100;
+		const optimalSlotted = computeOptimalLineup(side.roster, slotCounts);
+		const optimalStarters = optimalSlotted.map(({ player, slot }) => ({
+			...toProcessed(player),
+			slotName: slot   // correct slot (QB/RB/WR/TE/FLEX/D/ST/K)
+		}));
+		const optimalPoints = Math.round(optimalSlotted.reduce((s, { player }) => s + player.actualScore, 0) * 100) / 100;
 		const pointsLeftOnBench = Math.max(0, Math.round((optimalPoints - side.totalPoints) * 100) / 100);
 
 		for (const p of starters) allStartersByTeam.push({ player: p, teamId: side.teamId });
