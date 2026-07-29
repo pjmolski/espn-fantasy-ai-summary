@@ -28,7 +28,7 @@
 
 	async function loadWeek(seasonId: number, week: number) {
 		loading = true;
-		activeTabs = {};
+		showOptimal = {};
 		benchOpen = {};
 		try {
 			const res = await fetch(`/api/week-data?season=${seasonId}&week=${week}`);
@@ -52,10 +52,10 @@
 		loadWeek(selectedSeason, selectedWeek);
 	}
 
-	// Tab state per matchup
-	let activeTabs: Record<number, 'results' | 'optimal'> = {};
-	function setTab(matchupId: number, tab: 'results' | 'optimal') {
-		activeTabs = { ...activeTabs, [matchupId]: tab };
+	// Genie toggle state per matchup
+	let showOptimal: Record<number, boolean> = {};
+	function toggleOptimal(matchupId: number) {
+		showOptimal = { ...showOptimal, [matchupId]: !showOptimal[matchupId] };
 	}
 
 	// Bench open/closed per matchup (shared for both teams)
@@ -211,22 +211,35 @@
 	.vs { font-size: 11px; color: rgba(255,255,255,0.25); letter-spacing: 1px; text-transform: uppercase; }
 
 	/* Tab buttons */
-	.tabs { display: flex; gap: 0; border: 1px solid rgba(255,255,255,0.12); border-radius: 2px; overflow: hidden; }
-	.tab-btn {
-		padding: 5px 14px;
-		font-family: 'Raleway', sans-serif;
-		font-size: 10px;
-		font-weight: 700;
-		letter-spacing: 1.5px;
-		text-transform: uppercase;
-		border: none;
+	.genie-btn {
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		border: 2px solid rgba(255,255,255,0.15);
+		background: rgba(255,255,255,0.06);
+		font-size: 18px;
+		line-height: 1;
 		cursor: pointer;
-		transition: background .15s, color .15s;
-		background: transparent;
-		color: rgba(255,255,255,0.4);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: border-color .18s, background .18s, box-shadow .18s;
+		flex-shrink: 0;
+		filter: grayscale(1);
+		opacity: 0.5;
 	}
-	.tab-btn:hover { color: rgba(255,255,255,0.7); }
-	.tab-btn.active { background: #00d26d; color: #1e1e1e; }
+	.genie-btn:hover {
+		border-color: rgba(255,255,255,0.35);
+		opacity: 0.75;
+		filter: grayscale(0.4);
+	}
+	.genie-btn.active {
+		border-color: #00d26d;
+		background: rgba(0,210,109,0.15);
+		box-shadow: 0 0 0 3px rgba(0,210,109,0.18);
+		filter: grayscale(0);
+		opacity: 1;
+	}
 
 	/* Roster grid */
 	.roster-grid {
@@ -422,7 +435,7 @@
 
 			<!-- Matchups -->
 			{#each weekData.matchups as matchup}
-				{@const currentTab = activeTabs[matchup.matchupId] ?? 'results'}
+				{@const isOptimal = showOptimal[matchup.matchupId] ?? false}
 				{@const isBenchOpen = benchOpen[matchup.matchupId] ?? false}
 
 				<div class="matchup-card">
@@ -444,14 +457,16 @@
 							{/if}
 						</div>
 
-						<div class="tabs">
-							<button class="tab-btn {currentTab === 'results' ? 'active' : ''}" on:click={() => setTab(matchup.matchupId, 'results')}>Results</button>
-							<button class="tab-btn {currentTab === 'optimal' ? 'active' : ''}" on:click={() => setTab(matchup.matchupId, 'optimal')}>Optimal</button>
-						</div>
+						<button
+							class="genie-btn {isOptimal ? 'active' : ''}"
+							on:click={() => toggleOptimal(matchup.matchupId)}
+							title="Optimal lineup genie"
+							aria-label="Optimal lineup genie"
+						>🧞</button>
 					</div>
 
-					<!-- Results tab -->
-					{#if currentTab === 'results'}
+					<!-- Results / Optimal view -->
+					{#if !isOptimal}
 						<div class="roster-grid">
 							{#each [matchup.home, matchup.away].filter(Boolean) as team}
 								{@const t = team as ProcessedTeam}
@@ -508,7 +523,7 @@
 							{/each}
 						</div>
 
-					<!-- Optimal tab -->
+					<!-- Optimal view -->
 					{:else}
 						<div class="roster-grid">
 							{#each [matchup.home, matchup.away].filter(Boolean) as team}
