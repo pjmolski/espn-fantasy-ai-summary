@@ -10,10 +10,13 @@
 	let weekData: ProcessedWeek | null = data.weekData;
 	let loading = false;
 
-	// Week selector state
-	$: currentSeason = weekData?.seasonId ?? data.availableWeeks[0]?.seasonId;
-	$: currentWeek = weekData?.scoringPeriodId ?? data.availableWeeks[0]?.scoringPeriodId;
+	// Plain let vars — bind:value requires writable variables, not $: reactive
+	let selectedSeason: number = data.weekData?.seasonId ?? data.availableWeeks[0]?.seasonId;
+	let selectedWeek: number = data.weekData?.scoringPeriodId ?? data.availableWeeks[0]?.scoringPeriodId;
+
 	$: weeksBySeason = groupWeeksBySeason(data.availableWeeks);
+	$: seasons = [...(weeksBySeason?.keys() ?? [])].sort((a, b) => b - a);
+	$: weeksForSeason = (weeksBySeason.get(selectedSeason) ?? []).slice().reverse();
 
 	function groupWeeksBySeason(weeks: typeof data.availableWeeks) {
 		const map = new Map<number, typeof data.availableWeeks>();
@@ -25,7 +28,6 @@
 	}
 
 	async function loadWeek(seasonId: number, week: number) {
-		if (seasonId === currentSeason && week === currentWeek) return;
 		loading = true;
 		try {
 			const res = await fetch(`/api/week-data?season=${seasonId}&week=${week}`);
@@ -37,33 +39,33 @@
 		}
 	}
 
-	// Per-matchup tab state (results vs optimal)
+	function onSeasonChange() {
+		// When season changes, default to first week of that season
+		const weeks = weeksBySeason.get(selectedSeason) ?? [];
+		if (weeks.length > 0) {
+			selectedWeek = weeks[0].scoringPeriodId;
+			loadWeek(selectedSeason, selectedWeek);
+		}
+	}
+
+	function onWeekChange() {
+		loadWeek(selectedSeason, selectedWeek);
+	}
+
+	// Per-matchup tab state — plain object, updated by reassignment for reactivity
 	let activeTabs: Record<number, 'results' | 'optimal'> = {};
-	function getTab(matchupId: number) { return activeTabs[matchupId] ?? 'results'; }
+
 	function setTab(matchupId: number, tab: 'results' | 'optimal') {
 		activeTabs = { ...activeTabs, [matchupId]: tab };
 	}
 
 	function ordinal(n: number) {
-		const s = ['th','st','nd','rd'];
+		const s = ['th', 'st', 'nd', 'rd'];
 		const v = n % 100;
 		return n + (s[(v - 20) % 10] || s[v] || s[0]);
 	}
 
 	function sign(n: number) { return n >= 0 ? '+' : ''; }
-
-	function winnerOf(m: ProcessedMatchup): ProcessedTeam | null {
-		if (m.winner === 'home') return m.home;
-		if (m.winner === 'away') return m.away ?? null;
-		return null;
-	}
-	function loserOf(m: ProcessedMatchup): ProcessedTeam | null {
-		if (m.winner === 'home') return m.away ?? null;
-		if (m.winner === 'away') return m.home;
-		return null;
-	}
-
-	$: seasons = [...(weeksBySeason?.keys() ?? [])].sort((a, b) => b - a);
 
 	function optimalWouldWin(team: ProcessedTeam, matchup: ProcessedMatchup): boolean {
 		const opponentScore = team === matchup.home
@@ -79,7 +81,7 @@
 </script>
 
 <svelte:head>
-	<title>MANDEM! 🏈</title>
+	<title>Fantasy Football</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-950 text-gray-100">
@@ -87,17 +89,14 @@
 	<!-- Header -->
 	<header class="bg-gray-900 border-b border-gray-800 px-4 py-4">
 		<div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3">
-			<h1 class="text-2xl font-bold text-green-400 tracking-tight">MANDEM! 🏈</h1>
+			<h1 class="text-2xl font-bold text-green-400 tracking-tight">🏈 Fantasy Football</h1>
 
 			<!-- Week selector -->
 			<div class="flex items-center gap-2 flex-wrap">
 				<select
 					class="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-green-500"
-					bind:value={currentSeason}
-					on:change={() => {
-						const weeks = weeksBySeason.get(currentSeason) ?? [];
-						if (weeks.length > 0) loadWeek(currentSeason, weeks[0].scoringPeriodId);
-					}}
+					bind:value={selectedSeason}
+					on:change={onSeasonChange}
 				>
 					{#each seasons as s}
 						<option value={s}>{s} Season</option>
@@ -106,10 +105,10 @@
 
 				<select
 					class="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-green-500"
-					bind:value={currentWeek}
-					on:change={() => loadWeek(currentSeason, currentWeek)}
+					bind:value={selectedWeek}
+					on:change={onWeekChange}
 				>
-					{#each (weeksBySeason.get(currentSeason) ?? []).slice().reverse() as w}
+					{#each weeksForSeason as w}
 						<option value={w.scoringPeriodId}>
 							{w.isPlayoff ? '🏆' : ''} Week {w.scoringPeriodId}
 						</option>
@@ -138,9 +137,7 @@
 			<!-- Matchups -->
 			<div class="space-y-4 mb-10">
 				{#each weekData.matchups as matchup}
-					{@const winner = winnerOf(matchup)}
-					{@const loser = loserOf(matchup)}
-					{@const tab = getTab(matchup.matchupId)}
+					{@const currentTab = activeTabs[matchup.matchupId] ?? 'results'}
 
 					<div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
 
@@ -150,9 +147,7 @@
 								<div class="flex items-center gap-3 flex-wrap">
 									<!-- Home team -->
 									<div class="flex items-center gap-1.5">
-										{#if matchup.home.isLuckiest}
-											<span title="Luckiest win">🍀</span>
-										{/if}
+										{#if matchup.home.isLuckiest}<span title="Luckiest win">🍀</span>{/if}
 										<span class="font-semibold {matchup.winner === 'home' ? 'text-white' : 'text-gray-400'}">
 											{matchup.home.teamName}
 										</span>
@@ -179,11 +174,11 @@
 								<!-- Tabs -->
 								<div class="flex rounded-lg overflow-hidden border border-gray-700 text-sm">
 									<button
-										class="px-3 py-1 {tab === 'results' ? 'bg-green-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'}"
+										class="px-3 py-1 {currentTab === 'results' ? 'bg-green-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'}"
 										on:click={() => setTab(matchup.matchupId, 'results')}
 									>Results</button>
 									<button
-										class="px-3 py-1 {tab === 'optimal' ? 'bg-green-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'}"
+										class="px-3 py-1 {currentTab === 'optimal' ? 'bg-green-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'}"
 										on:click={() => setTab(matchup.matchupId, 'optimal')}
 									>Optimal</button>
 								</div>
@@ -192,8 +187,7 @@
 
 						<!-- Tab content -->
 						<div class="px-5 py-4">
-							{#if tab === 'results'}
-								<!-- Results: side-by-side rosters -->
+							{#if currentTab === 'results'}
 								<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 									{#each [matchup.home, matchup.away].filter(Boolean) as team}
 										{@const t = team as ProcessedTeam}
@@ -208,7 +202,6 @@
 												</span>
 											</div>
 
-											<!-- Starters -->
 											<div class="space-y-1">
 												{#each t.starters.sort((a, b) => {
 													const order = ['QB','RB','WR','TE','FLEX','D/ST','K'];
@@ -232,7 +225,6 @@
 												{/each}
 											</div>
 
-											<!-- Bench (collapsed) -->
 											{#if t.bench.filter(p => p.slotName !== 'IR').length > 0}
 												<details class="mt-2">
 													<summary class="text-xs text-gray-600 cursor-pointer hover:text-gray-400 select-none">Bench</summary>
@@ -247,19 +239,15 @@
 												</details>
 											{/if}
 
-											<!-- Would have beaten -->
 											<div class="mt-3 text-xs text-gray-500">
 												Would've beaten <span class="text-gray-300 font-medium">{t.wouldHaveBeaten}/{t.totalTeams - 1}</span> teams this week
-												{#if t.isLuckiest}
-													<span class="text-green-400"> · 🍀 luckiest win</span>
-												{/if}
+												{#if t.isLuckiest}<span class="text-green-400"> · 🍀 luckiest win</span>{/if}
 											</div>
 										</div>
 									{/each}
 								</div>
 
 							{:else}
-								<!-- Optimal lineup comparison -->
 								<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 									{#each [matchup.home, matchup.away].filter(Boolean) as team}
 										{@const t = team as ProcessedTeam}
@@ -277,14 +265,12 @@
 													const order = ['QB','RB','WR','TE','FLEX','D/ST','K'];
 													return order.indexOf(a.slotName) - order.indexOf(b.slotName);
 												}) as p}
-													{@const wasActuallyStarted = t.starters.some(s => s.playerId === p.playerId)}
-													<div class="flex items-center justify-between text-sm py-0.5 {!wasActuallyStarted ? 'bg-amber-900/20 -mx-1 px-1 rounded' : ''}">
+													{@const wasStarted = t.starters.some(s => s.playerId === p.playerId)}
+													<div class="flex items-center justify-between text-sm py-0.5 {!wasStarted ? 'bg-amber-900/20 -mx-1 px-1 rounded' : ''}">
 														<div class="flex items-center gap-2 min-w-0">
 															<span class="text-xs text-gray-500 w-10 shrink-0">{p.position}</span>
-															<span class="truncate {!wasActuallyStarted ? 'text-amber-300' : 'text-gray-200'}">{p.fullName}</span>
-															{#if !wasActuallyStarted}
-																<span class="text-xs text-amber-600">benched</span>
-															{/if}
+															<span class="truncate {!wasStarted ? 'text-amber-300' : 'text-gray-200'}">{p.fullName}</span>
+															{#if !wasStarted}<span class="text-xs text-amber-600">benched</span>{/if}
 														</div>
 														<span class="font-medium w-12 text-right text-green-400 shrink-0 ml-2">{p.actualScore.toFixed(2)}</span>
 													</div>
@@ -308,7 +294,6 @@
 			<!-- League awards -->
 			<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
 
-				<!-- Golden Apple -->
 				{#if weekData.goldenApple}
 					{@const g = weekData.goldenApple}
 					<div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
@@ -321,7 +306,6 @@
 					</div>
 				{/if}
 
-				<!-- Brown Banana -->
 				{#if weekData.brownBanana}
 					{@const b = weekData.brownBanana}
 					<div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
@@ -334,7 +318,6 @@
 					</div>
 				{/if}
 
-				<!-- Lamest Stud -->
 				{#if weekData.lamentStud}
 					{@const l = weekData.lamentStud}
 					<div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
