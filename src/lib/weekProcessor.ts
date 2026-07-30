@@ -159,6 +159,12 @@ export interface StudEntry {
 	playerId: number;
 }
 
+export interface StreakAward {
+	teamId: number;
+	teamName: string;
+	streak: number;
+}
+
 export interface ProcessedWeek {
 	leagueId: string;
 	seasonId: number;
@@ -178,7 +184,16 @@ export interface ProcessedWeek {
 	wrongMan: WrongManAward | null;
 	luckyDevil: LuckyDevilAward | null;
 	mrMonopoly: MrMonopolyAward | null;
+	hotRod: StreakAward | null;
+	snowMan: StreakAward | null;
+	brassNuts: ChampionshipAward | null;
+	toiletBowl: ChampionshipAward | null;
 	topStuds: StudEntry[];
+}
+
+export interface ChampionshipAward {
+	teamId: number;
+	teamName: string;
 }
 
 // ─── Optimal lineup ───────────────────────────────────────────────────────────
@@ -232,7 +247,8 @@ export function processWeek(
 	weekDoc: WeeklyMatchupDoc,
 	seasonDoc: SeasonDoc,
 	ownerDict: Record<string, string> = {},
-	prevCumulativeScores: Map<number, number> = new Map()
+	prevCumulativeScores: Map<number, number> = new Map(),
+	streaks: Map<number, { type: 'W' | 'L'; count: number }> = new Map()
 ): ProcessedWeek {
 	const teamMap = new Map(seasonDoc.teams.map((t) => [t.teamId, t]));
 	const draftMap = new Map(seasonDoc.draft.picks.map((p) => [p.playerId, p]));
@@ -672,6 +688,34 @@ export function processWeek(
 	allStarterEntries.sort((a, b) => b.score - a.score);
 	const topStuds: StudEntry[] = allStarterEntries.slice(0, 10).map((s, i) => ({ ...s, rank: i + 1 }));
 
+	// ── Hot Rod 🏎️: highest win streak >= 3, unique ──────────────────────────────
+	let hotRod: StreakAward | null = null;
+	// ── Snow Man ⛄: highest loss streak >= 3, unique ─────────────────────────────
+	let snowMan: StreakAward | null = null;
+	{
+		let maxWin = 0, maxLoss = 0;
+		let winTeams: { teamId: number; teamName: string; count: number }[] = [];
+		let lossTeams: { teamId: number; teamName: string; count: number }[] = [];
+
+		for (const m of matchups) {
+			for (const t of [m.home, m.away].filter(Boolean) as ProcessedTeam[]) {
+				const s = streaks.get(t.teamId);
+				if (!s) continue;
+				if (s.type === 'W') {
+					if (s.count > maxWin) { maxWin = s.count; winTeams = [{ teamId: t.teamId, teamName: t.teamName, count: s.count }]; }
+					else if (s.count === maxWin) winTeams.push({ teamId: t.teamId, teamName: t.teamName, count: s.count });
+				} else {
+					if (s.count > maxLoss) { maxLoss = s.count; lossTeams = [{ teamId: t.teamId, teamName: t.teamName, count: s.count }]; }
+					else if (s.count === maxLoss) lossTeams.push({ teamId: t.teamId, teamName: t.teamName, count: s.count });
+				}
+			}
+		}
+		if (maxWin >= 3 && winTeams.length === 1)
+			hotRod = { teamId: winTeams[0].teamId, teamName: winTeams[0].teamName, streak: maxWin };
+		if (maxLoss >= 3 && lossTeams.length === 1)
+			snowMan = { teamId: lossTeams[0].teamId, teamName: lossTeams[0].teamName, streak: maxLoss };
+	}
+
 	return {
 		leagueId: weekDoc.leagueId,
 		seasonId: weekDoc.seasonId,
@@ -690,6 +734,10 @@ export function processWeek(
 		wrongMan,
 		luckyDevil,
 		mrMonopoly,
+		hotRod,
+		snowMan,
+		brassNuts: null,
+		toiletBowl: null,
 		topStuds
 	};
 }

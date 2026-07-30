@@ -1,6 +1,6 @@
 import { getAvailableWeeks, getWeeklyMatchupDoc, getSeasonDoc, getCumulativeScoresByWeek, getAllWeeklyDocs } from '$lib/fantasyDataService';
 import { processWeek } from '$lib/weekProcessor';
-import { computeStandingsHistory } from '$lib/standingsHistory';
+import { computeStandingsHistory, computeStreaks } from '$lib/standingsHistory';
 import { LEAGUE_ID, OWNER_DICT } from '$env/static/private';
 
 export async function load({ url }) {
@@ -25,8 +25,18 @@ export async function load({ url }) {
 		]);
 
 		const ownerDict: Record<string, string> = JSON.parse(OWNER_DICT || '{}');
-		const weekData = weekDoc && seasonDoc ? processWeek(weekDoc, seasonDoc, ownerDict, prevScores) : null;
+		const streaks = computeStreaks(allDocs);
+		const weekData = weekDoc && seasonDoc ? processWeek(weekDoc, seasonDoc, ownerDict, prevScores, streaks) : null;
 		const standingsHistory = seasonDoc ? computeStandingsHistory(allDocs, seasonDoc) : [];
+
+		// Inject championship awards: only when final ranks are fully resolved (lo===hi)
+		if (weekData?.isPlayoffWeek) {
+			for (const entry of standingsHistory) {
+				const lastRank = entry.weeklyRanks[entry.weeklyRanks.length - 1]?.rank;
+				if (lastRank === 1) weekData.brassNuts = { teamId: entry.teamId, teamName: entry.teamName };
+				if (lastRank === 7) weekData.toiletBowl = { teamId: entry.teamId, teamName: entry.teamName };
+			}
+		}
 
 		return { availableWeeks, weekData, standingsHistory };
 	} catch (error) {

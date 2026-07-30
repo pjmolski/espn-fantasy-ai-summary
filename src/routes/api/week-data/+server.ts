@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import { LEAGUE_ID } from '$env/static/private';
 import { getWeeklyMatchupDoc, getSeasonDoc, getCumulativeScoresByWeek, getAllWeeklyDocs } from '$lib/fantasyDataService';
 import { processWeek } from '$lib/weekProcessor';
-import { computeStandingsHistory } from '$lib/standingsHistory';
+import { computeStandingsHistory, computeStreaks } from '$lib/standingsHistory';
 
 export async function GET({ url }) {
 	const season = url.searchParams.get('season');
@@ -25,8 +25,17 @@ export async function GET({ url }) {
 	if (!weekDoc) return json({ error: `No data for season ${seasonId} week ${weekId}` }, { status: 404 });
 	if (!seasonDoc) return json({ error: `No season doc for ${seasonId}` }, { status: 404 });
 
-	const processed = processWeek(weekDoc, seasonDoc, {}, prevScores);
+	const streaks = computeStreaks(allDocs);
+	const processed = processWeek(weekDoc, seasonDoc, {}, prevScores, streaks);
 	const standingsHistory = computeStandingsHistory(allDocs, seasonDoc);
+
+	if (processed.isPlayoffWeek) {
+		for (const entry of standingsHistory) {
+			const lastRank = entry.weeklyRanks[entry.weeklyRanks.length - 1]?.rank;
+			if (lastRank === 1) processed.brassNuts = { teamId: entry.teamId, teamName: entry.teamName };
+			if (lastRank === 7) processed.toiletBowl = { teamId: entry.teamId, teamName: entry.teamName };
+		}
+	}
 
 	return json({ weekData: processed, standingsHistory });
 }

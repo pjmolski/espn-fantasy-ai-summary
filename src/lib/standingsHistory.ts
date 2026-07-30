@@ -57,21 +57,42 @@ export function computeStandingsHistory(
 
 	// ── Playoffs ───────────────────────────────────────────────────────────────
 	if (playoffDocs.length > 0) {
-		// Seeds from final regular season ranking
+		// Use playoffTierType from the first playoff week to assign brackets correctly.
+		// This avoids relying on our computed regular-season rank which may differ from ESPN's seeding.
+		const winnersBracketTeams = new Set<number>();
+		const losersBracketTeams = new Set<number>();
+		const firstPlayoffDoc = playoffDocs[0];
+		for (const m of firstPlayoffDoc.matchups) {
+			const isWinners = m.playoffTierType === 'WINNERS_BRACKET';
+			const isLosers = !isWinners && m.playoffTierType !== 'NONE';
+			if (isWinners) {
+				winnersBracketTeams.add(m.home.teamId);
+				if (m.away) winnersBracketTeams.add(m.away.teamId);
+			} else if (isLosers) {
+				losersBracketTeams.add(m.home.teamId);
+				if (m.away) losersBracketTeams.add(m.away.teamId);
+			}
+		}
+		// Any team not yet classified must have a bye — fall back to computed seed
 		const seeds = new Map<number, number>();
 		for (const id of teamIds) {
 			const ranks = weeklyRanks.get(id)!;
 			seeds.set(id, ranks[ranks.length - 1]);
 		}
+		for (const id of teamIds) {
+			if (!winnersBracketTeams.has(id) && !losersBracketTeams.has(id)) {
+				const seed = seeds.get(id) ?? 1;
+				if (seed <= 6) winnersBracketTeams.add(id);
+				else losersBracketTeams.add(id);
+			}
+		}
 
 		// Possible final rank range [lo, hi] for each team.
-		// Seeds 1-6 compete for places 1-6; seeds 7-12 for 7-12.
 		const lo = new Map<number, number>();
 		const hi = new Map<number, number>();
 		for (const id of teamIds) {
-			const seed = seeds.get(id) ?? 1;
-			lo.set(id, seed <= 6 ? 1 : 7);
-			hi.set(id, seed <= 6 ? 6 : 12);
+			lo.set(id, winnersBracketTeams.has(id) ? 1 : 7);
+			hi.set(id, winnersBracketTeams.has(id) ? 6 : 12);
 		}
 
 		for (const doc of playoffDocs) {
@@ -174,4 +195,37 @@ function narrowRange(
 		else { lo.set(id, 10); hi.set(id, 10); }
 	}
 	// If range is already a single value (determined), do nothing
+}
+
+/** Compute each team's current win/loss streak from all docs in the season. */
+export function computeStreaks(
+	docs: WeeklyMatchupDoc[]
+): Map<number, { type: 'W' | 'L'; count: number }> {
+	const sorted = [...docs]
+		.filter((d) => !d.isPlayoff)
+		.sort((a, b) => a.scoringPeriodId - b.scoringPeriodId);
+
+	const history = new Map<number, Array<'W' | 'L'>>();
+
+	for (const doc of sorted) {
+		for (const m of doc.matchups) {
+			if (m.winner !== 'HOME' && m.winner !== 'AWAY') continue;
+			if (!m.away) continue;
+			const homeWon = m.winner === 'HOME';
+			for (const [id, won] of [[m.home.teamId, homeWon], [m.away.teamId, !homeWon]] as [number, boolean][]) {
+				if (!history.has(id)) history.set(id, []);
+				history.get(id)!.push(won ? 'W' : 'L');
+			}
+		}
+	}
+
+	const streaks = new Map<number, { type: 'W' | 'L'; count: number }>();
+	for (const [id, results] of history.entries()) {
+		if (!results.length) continue;
+		const last = results[results.length - 1];
+		let count = 0;
+		for (let i = results.length - 1; i >= 0 && results[i] === last; i--) count++;
+		streaks.set(id, { type: last, count });
+	}
+	return streaks;
 }

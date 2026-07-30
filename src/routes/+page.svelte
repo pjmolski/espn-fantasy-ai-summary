@@ -135,6 +135,8 @@
 		if (weekData.mrMonopoly) add(weekData.mrMonopoly.teamId, '🎩');
 		if (weekData.hotRod) add(weekData.hotRod.teamId, '🏎️');
 		if (weekData.snowMan) add(weekData.snowMan.teamId, '⛄');
+		if (weekData.brassNuts) add(weekData.brassNuts.teamId, '🔩');
+		if (weekData.toiletBowl) add(weekData.toiletBowl.teamId, '🪠');
 		return map;
 	})();
 
@@ -1000,6 +1002,40 @@
 						</div>
 					</div>
 				{/if}
+
+				{#if weekData.brassNuts}
+					{@const bn = weekData.brassNuts}
+					<div class="award-card good">
+						<div class="award-band">
+							<div class="award-emoji">🔩</div>
+							<div class="award-label">Brass Nuts</div>
+						</div>
+						<div class="award-card-inner">
+							{#if teamLogoMap.get(bn.teamId)}<img class="award-img" src={teamLogoMap.get(bn.teamId)} alt={bn.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							<div class="award-body">
+								<div class="award-player">{bn.teamName}</div>
+								<div class="award-meta">League Champion 🏆</div>
+							</div>
+						</div>
+					</div>
+				{/if}
+
+				{#if weekData.toiletBowl}
+					{@const tb = weekData.toiletBowl}
+					<div class="award-card bad">
+						<div class="award-band">
+							<div class="award-emoji">🪠</div>
+							<div class="award-label">Toilet Bowl</div>
+						</div>
+						<div class="award-card-inner">
+							{#if teamLogoMap.get(tb.teamId)}<img class="award-img" src={teamLogoMap.get(tb.teamId)} alt={tb.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							<div class="award-body">
+								<div class="award-player">{tb.teamName}</div>
+								<div class="award-meta">Chumpionship Winner 🚽</div>
+							</div>
+						</div>
+					</div>
+				{/if}
 			</div>
 
 			<details class="legend-card" bind:open={legendOpen}>
@@ -1019,6 +1055,8 @@
 					<span>💩</span><span><strong>Poop Man</strong> — bottom scorer in starting lineups this week (non-DST, non-K)</span>
 					<span>🏎️</span><span><strong>Hot Rod</strong> — current highest win streak (solo leader, ≥ 3 wins)</span>
 					<span>⛄</span><span><strong>Snow Man</strong> — current highest losing streak (solo leader, ≥ 3 losses)</span>
+					<span>🔩</span><span><strong>Brass Nuts</strong> — League Champion (final playoff week)</span>
+					<span>🪠</span><span><strong>Toilet Bowl</strong> — Chumpionship Winner (final playoff week)</span>
 				</div>
 			</details>
 			{/if}
