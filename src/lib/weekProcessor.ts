@@ -534,7 +534,7 @@ export function processWeek(
 						count++;
 					}
 				}
-				if (count > maxGambles) {
+				if (count >= 2 && count > maxGambles) {
 					maxGambles = count;
 					gambler = { teamId: t.teamId, teamName: t.teamName, successfulGambles: count };
 				}

@@ -126,7 +126,7 @@
 
 	function displacedFromOptimal(t: ProcessedTeam): ProcessedPlayer[] {
 		const optIds = new Set(t.optimalStarters.map(s => s.playerId));
-		return t.starters.filter(s => !optIds.has(s.playerId));
+		return [...t.starters, ...t.bench].filter(p => !optIds.has(p.playerId) && p.slotName !== 'IR');
 	}
 
 	function sortPlayers(players: ProcessedPlayer[]) {
@@ -430,6 +430,9 @@
 		border-radius: 3px;
 		padding: 18px;
 	}
+	.award-card.good { border-left: 3px solid #00d26d; }
+	.award-card.bad  { border-left: 3px solid #ff5a46; }
+
 	.award-emoji { font-size: 24px; float: left; margin-right: 18px; }
 	.award-label {
 		font-size: 9px;
@@ -526,7 +529,7 @@
 			<div class="awards">
 				{#if weekData.goldenApple}
 					{@const g = weekData.goldenApple}
-					<div class="award-card">
+					<div class="award-card good">
 						<div class="award-emoji">🍎</div>
 						<div class="award-label">Golden Apple</div>
 						<div class="award-player">{g.playerName}</div>
@@ -538,7 +541,7 @@
 
 				{#if weekData.brownBanana}
 					{@const b = weekData.brownBanana}
-					<div class="award-card">
+					<div class="award-card bad">
 						<div class="award-emoji">🍌</div>
 						<div class="award-label">Brown Banana</div>
 						<div class="award-player">{b.playerName}</div>
@@ -550,7 +553,7 @@
 
 				{#if weekData.lamentStud}
 					{@const l = weekData.lamentStud}
-					<div class="award-card">
+					<div class="award-card bad">
 						<div class="award-emoji">🤡</div>
 						<div class="award-label">Lamest Stud</div>
 						<div class="award-player">{l.playerName}</div>
@@ -561,7 +564,7 @@
 				{/if}
 				{#if weekData.muscleMan}
 					{@const m = weekData.muscleMan}
-					<div class="award-card">
+					<div class="award-card good">
 						<div class="award-emoji">💪</div>
 						<div class="award-label">Muscle Man</div>
 						<div class="award-player">{m.playerName}</div>
@@ -573,7 +576,7 @@
 
 				{#if weekData.poopMan}
 					{@const p = weekData.poopMan}
-					<div class="award-card">
+					<div class="award-card bad">
 						<div class="award-emoji">💩</div>
 						<div class="award-label">Poop Man</div>
 						<div class="award-player">{p.playerName}</div>
@@ -585,7 +588,7 @@
 
 				{#if weekData.superMushroom}
 					{@const a = weekData.superMushroom}
-					<div class="award-card">
+					<div class="award-card good">
 						<div class="award-emoji">🍄</div>
 						<div class="award-label">Super Mushroom</div>
 						<div class="award-player">{a.teamName}</div>
@@ -597,7 +600,7 @@
 
 				{#if weekData.closeShave}
 					{@const cs = weekData.closeShave}
-					<div class="award-card">
+					<div class="award-card good">
 						<div class="award-emoji">💈</div>
 						<div class="award-label">Close Shave</div>
 						<div class="award-player">{cs.teamName}</div>
@@ -608,7 +611,7 @@
 				{/if}
 
 				{#each weekData.assassins ?? [] as a}
-					<div class="award-card">
+					<div class="award-card good">
 						<div class="award-emoji">🥷</div>
 						<div class="award-label">Assassin</div>
 						<div class="award-player">{a.teamName}</div>
@@ -620,7 +623,7 @@
 
 				{#if weekData.gambler}
 					{@const ga = weekData.gambler}
-					<div class="award-card">
+					<div class="award-card good">
 						<div class="award-emoji">🎲</div>
 						<div class="award-label">The Gambler</div>
 						<div class="award-player">{ga.teamName}</div>
@@ -632,7 +635,7 @@
 
 				{#if weekData.wrongMan}
 					{@const wm = weekData.wrongMan}
-					<div class="award-card">
+					<div class="award-card bad">
 						<div class="award-emoji">👥</div>
 						<div class="award-label">Wrong Man</div>
 						<div class="award-player">{wm.teamName}</div>
@@ -644,7 +647,7 @@
 
 				{#if weekData.luckyDevil}
 					{@const ld = weekData.luckyDevil}
-					<div class="award-card">
+					<div class="award-card good">
 						<div class="award-emoji">🍀</div>
 						<div class="award-label">Lucky Devil</div>
 						<div class="award-player">{ld.teamName}</div>
@@ -656,7 +659,7 @@
 
 				{#if weekData.mrMonopoly}
 					{@const mm = weekData.mrMonopoly}
-					<div class="award-card">
+					<div class="award-card good">
 						<div class="award-emoji">🎩</div>
 						<div class="award-label">Mr. Monopoly</div>
 						<div class="award-player">{mm.teamName}</div>
@@ -774,7 +777,10 @@
 															<span>{p.fullName}</span>
 															{#if p.nflTeam}<span class="nfl-team">{p.nflTeam}</span>{/if}
 														</div>
-														<span>{p.actualScore.toFixed(2)}</span>
+														<div class="player-right">
+															<span class="proj">{p.projectedScore.toFixed(1)}</span>
+															<span class="actual norm">{p.actualScore.toFixed(2)}</span>
+														</div>
 													</div>
 												{/each}
 											</div>
@@ -843,7 +849,10 @@
 															<span>{p.fullName}</span>
 															{#if p.nflTeam}<span class="nfl-team">{p.nflTeam}</span>{/if}
 														</div>
-														<span>{p.actualScore.toFixed(2)}</span>
+														<div class="player-right">
+															<span class="proj">{p.projectedScore.toFixed(1)}</span>
+															<span class="actual norm">{p.actualScore.toFixed(2)}</span>
+														</div>
 													</div>
 												{/each}
 											</div>
