@@ -108,6 +108,9 @@
 	$: topScore = weekData
 		? Math.max(...weekData.matchups.flatMap(m => [m.home.totalPoints, m.away?.totalPoints ?? 0]))
 		: -Infinity;
+	$: bottomScore = weekData
+		? Math.min(...weekData.matchups.flatMap(m => [m.home.totalPoints, m.away?.totalPoints ?? Infinity]))
+		: Infinity;
 
 	function displacedFromOptimal(t: ProcessedTeam): ProcessedPlayer[] {
 		const optIds = new Set(t.optimalStarters.map(s => s.playerId));
@@ -207,6 +210,15 @@
 	}
 	.team-name.winner { color: #fff; }
 	.team-name.top-scorer { color: var(--gold); }
+	.team-name.bottom-scorer { color: #8B4513; font-weight: 700; }
+	.score.bottom-scorer { color: #8B4513; font-weight: 700; }
+	.cake-opt-delta {
+		font-size: 12px;
+		font-weight: 700;
+		color: var(--gold);
+		letter-spacing: 0;
+	}
+	.bench-left { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1; }
 	.team-name.loser  { color: rgba(255,255,255,0.45); }
 	.score {
 		font-size: 20px;
@@ -219,48 +231,28 @@
 
 	/* Tab buttons */
 	.cake-btn {
-		min-height: 44px;
-		border-radius: 12px;
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
 		border: 2px solid rgba(255,255,255,0.15);
 		background: rgba(255,255,255,0.06);
 		cursor: pointer;
 		display: flex;
-		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: 2px;
-		padding: 6px 12px;
+		font-size: 20px;
+		padding: 0;
 		transition: border-color .18s, background .18s, box-shadow .18s;
 		flex-shrink: 0;
 	}
 	.cake-btn:hover {
 		border-color: rgba(255,255,255,0.35);
 	}
-	.cake-emoji { font-size: 20px; line-height: 1; }
-	.cake-label {
-		display: none;
-		font-family: 'Raleway', sans-serif;
-		font-size: 9px;
-		font-weight: 700;
-		letter-spacing: 1px;
-		text-transform: uppercase;
-		color: #00ccff;
-		white-space: nowrap;
-	}
-	.cake-delta {
-		font-family: 'Raleway', sans-serif;
-		font-size: 10px;
-		font-weight: 700;
-		color: rgba(255,255,255,0.35);
-		white-space: nowrap;
-	}
 	.cake-btn.active {
 		border-color: #00ccff;
 		background: rgba(0,204,255,0.12);
 		box-shadow: 0 0 0 3px rgba(0,204,255,0.15);
 	}
-	.cake-btn.active .cake-label { display: block; }
-	.cake-btn.active .cake-delta { color: #00ccff; }
 
 	/* Roster grid */
 	.roster-grid {
@@ -349,6 +341,7 @@
 	/* Bench toggle */
 	.total-row {
 		display: flex;
+		align-items: center;
 		justify-content: space-between;
 		padding: 6px 6px 4px;
 		font-size: 11px;
@@ -359,6 +352,9 @@
 		border-top: 1px solid rgba(255,255,255,0.1);
 		margin-top: 2px;
 	}
+	.total-right { display: flex; gap: 8px; align-items: center; }
+	.total-right .proj { font-size: 11px; }
+	.total-right .actual { font-size: 13px; font-weight: 700; width: 48px; text-align: right; }
 	.proj-total { color: rgba(255,255,255,0.3); }
 	.bench-row.displaced { color: rgba(255,200,50,0.6); }
 	.award-emoji-inline {
@@ -422,17 +418,17 @@
 		border-radius: 3px;
 		padding: 18px;
 	}
-	.award-emoji { font-size: 24px; margin-bottom: 6px; }
+	.award-emoji { font-size: 24px; float: left; margin-right: 18px; }
 	.award-label {
 		font-size: 9px;
 		font-weight: 700;
 		letter-spacing: 2px;
 		text-transform: uppercase;
 		color: rgba(255,255,255,0.3);
-		margin-bottom: 8px;
+		margin-bottom: 0;
 	}
 	.award-player { font-size: 15px; font-weight: 600; }
-	.award-meta { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+	.award-meta { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 0; }
 	.award-score { font-size: 22px; font-weight: 100; letter-spacing: -0.5px; margin-top: 8px; }
 	.award-score.green { color: #00d26d; }
 	.award-score.red   { color: #ff5a46; }
@@ -521,15 +517,17 @@
 							<!-- Home -->
 							<div class="team-score">
 								{#if matchup.home.isLuckiest}<span title="Luckiest win — won with a score that would have lost most other matchups this week">🍀</span>{/if}
-								<span class="team-name {matchup.winner === 'home' ? 'winner' : 'loser'} {matchup.home.totalPoints === topScore ? 'top-scorer' : ''}">{matchup.home.teamName}</span>
-								<span class="score {matchup.winner === 'home' ? 'winner' : 'loser'}">{matchup.home.totalPoints.toFixed(2)}</span>
+								<span class="team-name {matchup.winner === 'home' ? 'winner' : 'loser'} {matchup.home.totalPoints === topScore ? 'top-scorer' : ''} {matchup.home.totalPoints === bottomScore ? 'bottom-scorer' : ''}">{matchup.home.teamName}{matchup.home.totalPoints === bottomScore ? ' 💩' : ''}</span>
+								{#if isOptimal && matchup.home.pointsLeftOnBench > 0}<span class="cake-opt-delta">+{matchup.home.pointsLeftOnBench.toFixed(1)}</span>{/if}
+								<span class="score {matchup.winner === 'home' ? 'winner' : 'loser'} {matchup.home.totalPoints === bottomScore ? 'bottom-scorer' : ''}">{matchup.home.totalPoints.toFixed(2)}</span>
 							</div>
 							<span class="vs">vs</span>
 							<!-- Away -->
 							{#if matchup.away}
 								<div class="team-score">
-									<span class="score {matchup.winner === 'away' ? 'winner' : 'loser'}">{matchup.away.totalPoints.toFixed(2)}</span>
-									<span class="team-name {matchup.winner === 'away' ? 'winner' : 'loser'} {matchup.away.totalPoints === topScore ? 'top-scorer' : ''}">{#if matchup.away.isLuckiest}<span title="Luckiest win — won with a score that would have lost most other matchups this week">🍀</span> {/if}{matchup.away.teamName}</span>
+									<span class="score {matchup.winner === 'away' ? 'winner' : 'loser'} {matchup.away.totalPoints === bottomScore ? 'bottom-scorer' : ''}">{matchup.away.totalPoints.toFixed(2)}</span>
+									{#if isOptimal && matchup.away.pointsLeftOnBench > 0}<span class="cake-opt-delta">+{matchup.away.pointsLeftOnBench.toFixed(1)}</span>{/if}
+									<span class="team-name {matchup.winner === 'away' ? 'winner' : 'loser'} {matchup.away.totalPoints === topScore ? 'top-scorer' : ''} {matchup.away.totalPoints === bottomScore ? 'bottom-scorer' : ''}">{#if matchup.away.isLuckiest}<span title="Luckiest win — won with a score that would have lost most other matchups this week">🍀</span> {/if}{matchup.away.teamName}{matchup.away.totalPoints === bottomScore ? ' 💩' : ''}</span>
 								</div>
 							{/if}
 						</div>
@@ -539,13 +537,7 @@
 							on:click={() => toggleOptimal(matchup.matchupId)}
 							title="Optimal Lineup"
 							aria-label="Optimal Lineup"
-						>
-							<span class="cake-emoji">🍰</span>
-							<span class="cake-label">Cake Mode</span>
-							{#if (matchup.home.pointsLeftOnBench + (matchup.away?.pointsLeftOnBench ?? 0)) > 0}
-								<span class="cake-delta">+{(matchup.home.pointsLeftOnBench + (matchup.away?.pointsLeftOnBench ?? 0)).toFixed(1)}</span>
-							{/if}
-						</button>
+						>🍰</button>
 					</div>
 
 					<!-- Results / Optimal view -->
@@ -556,10 +548,6 @@
 								<div class="team-col">
 									<div class="col-header">
 										<span class="col-team-name">{t.teamName}</span>
-										<span class="col-meta">
-											opt {t.optimalPoints.toFixed(2)}
-											{#if t.pointsLeftOnBench > 0}<span class="bench-pts"> +{t.pointsLeftOnBench.toFixed(1)} on bench</span>{/if}
-										</span>
 									</div>
 
 									{#each sortPlayers(t.starters) as p}
@@ -583,12 +571,11 @@
 										</div>
 									{/each}
 									<div class="total-row">
-										<span>TOTAL</span>
-										<span>{t.totalPoints.toFixed(2)}</span>
-									</div>
-									<div class="total-row proj-total">
-										<span>PROJ</span>
-										<span>{t.starters.reduce((s, p) => s + p.projectedScore, 0).toFixed(2)}</span>
+										<span class="total-label">TOTAL</span>
+										<div class="total-right">
+											<span class="proj">{t.starters.reduce((s, p) => s + p.projectedScore, 0).toFixed(2)}</span>
+											<span class="actual norm">{t.totalPoints.toFixed(2)}</span>
+										</div>
 									</div>
 
 									<!-- Bench toggle (shared across both teams via matchupId) -->
@@ -600,7 +587,11 @@
 											<div class="bench-section">
 												{#each t.bench.filter(p => p.slotName !== 'IR') as p}
 													<div class="bench-row">
-														<span>{p.fullName} {#if p.nflTeam}<span class="nfl-team" style="margin-left:6px">{p.nflTeam}</span>{/if}</span>
+														<div class="bench-left">
+															<span class="slot-label">{p.position}</span>
+															<span>{p.fullName}</span>
+															{#if p.nflTeam}<span class="nfl-team">{p.nflTeam}</span>{/if}
+														</div>
 														<span>{p.actualScore.toFixed(2)}</span>
 													</div>
 												{/each}
@@ -658,7 +649,11 @@
 											<div class="bench-section">
 												{#each displacedFromOptimal(t) as p}
 													<div class="bench-row displaced">
-														<span>{p.fullName} {#if p.nflTeam}<span class="nfl-team" style="margin-left:6px">{p.nflTeam}</span>{/if}</span>
+														<div class="bench-left">
+															<span class="slot-label">{p.position}</span>
+															<span>{p.fullName}</span>
+															{#if p.nflTeam}<span class="nfl-team">{p.nflTeam}</span>{/if}
+														</div>
 														<span>{p.actualScore.toFixed(2)}</span>
 													</div>
 												{/each}
