@@ -1,7 +1,9 @@
 <script lang="ts">
 	import type { ProcessedWeek, ProcessedMatchup, ProcessedTeam, ProcessedPlayer } from '$lib/weekProcessor';
-
 	import type { StandingsEntry } from '$lib/standingsHistory';
+	import { goto } from '$app/navigation';
+	import { navigating } from '$app/stores';
+	import { onMount } from 'svelte';
 
 	export let data: {
 		availableWeeks: Array<{ seasonId: number; scoringPeriodId: number; isPlayoff: boolean }>;
@@ -12,10 +14,43 @@
 
 	let weekData: ProcessedWeek | null = data.weekData;
 	let standingsHistory: StandingsEntry[] = data.standingsHistory ?? [];
-	let loading = false;
 
 	let selectedSeason: number = data.weekData?.seasonId ?? data.availableWeeks[0]?.seasonId;
 	let selectedWeek: number = data.weekData?.scoringPeriodId ?? data.availableWeeks[0]?.scoringPeriodId;
+
+	// Sync reactive state when server load re-runs after navigation
+	$: {
+		weekData = data.weekData;
+		standingsHistory = data.standingsHistory ?? [];
+		if (data.weekData) {
+			selectedSeason = data.weekData.seasonId;
+			selectedWeek = data.weekData.scoringPeriodId;
+			showOptimal = {};
+			benchOpen = {};
+		}
+	}
+
+	$: loading = !!$navigating;
+
+	onMount(() => {
+		// If no URL params present, restore last saved selection from localStorage
+		const params = new URLSearchParams(window.location.search);
+		if (!params.has('season') || !params.has('week')) {
+			try {
+				const s = localStorage.getItem('ff_season');
+				const w = localStorage.getItem('ff_week');
+				if (s && w) {
+					const seasonId = parseInt(s);
+					const weekId = parseInt(w);
+					// Only restore if that week actually exists in the available list
+					const exists = data.availableWeeks.some(
+						aw => aw.seasonId === seasonId && aw.scoringPeriodId === weekId
+					);
+					if (exists) goto(`?season=${seasonId}&week=${weekId}`, { replaceState: true });
+				}
+			} catch {}
+		}
+	});
 
 	$: weeksBySeason = groupWeeksBySeason(data.availableWeeks);
 	$: seasons = [...(weeksBySeason?.keys() ?? [])].sort((a, b) => b - a);
@@ -30,38 +65,22 @@
 		return map;
 	}
 
-	async function loadWeek(seasonId: number, week: number) {
-		loading = true;
-		showOptimal = {};
-		benchOpen = {};
-		try {
-			const res = await fetch(`/api/week-data?season=${seasonId}&week=${week}`);
-			const payload = await res.json();
-			// API now returns { weekData, standingsHistory }
-			if (payload?.weekData) {
-				weekData = payload.weekData;
-				standingsHistory = payload.standingsHistory ?? [];
-			} else {
-				// fallback for old shape
-				weekData = payload;
-			}
-		} catch (e) {
-			console.error(e);
-		} finally {
-			loading = false;
-		}
+	function saveSelection(seasonId: number, week: number) {
+		try { localStorage.setItem('ff_season', String(seasonId)); localStorage.setItem('ff_week', String(week)); } catch {}
 	}
 
 	function onSeasonChange() {
 		const weeks = weeksBySeason.get(selectedSeason) ?? [];
 		if (weeks.length > 0) {
-			selectedWeek = weeks[0].scoringPeriodId;
-			loadWeek(selectedSeason, selectedWeek);
+			const firstWeek = weeks[0].scoringPeriodId;
+			saveSelection(selectedSeason, firstWeek);
+			goto(`?season=${selectedSeason}&week=${firstWeek}`);
 		}
 	}
 
 	function onWeekChange() {
-		loadWeek(selectedSeason, selectedWeek);
+		saveSelection(selectedSeason, selectedWeek);
+		goto(`?season=${selectedSeason}&week=${selectedWeek}`);
 	}
 
 	// Genie toggle state per matchup
