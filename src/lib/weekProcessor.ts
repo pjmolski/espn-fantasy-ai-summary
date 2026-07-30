@@ -54,6 +54,7 @@ export interface ProcessedTeam {
 	logoUrl?: string;
 	pointsLeftOnBench: number;
 	wouldHaveBeaten: number;
+	optimalWouldHaveBeaten: number;
 	totalTeams: number;
 	isLuckiest: boolean;
 }
@@ -322,6 +323,7 @@ export function processWeek(
 			bench,
 			optimalStarters,
 			wouldHaveBeaten: wouldHaveBeatenMap.get(side.teamId) ?? 0,
+			optimalWouldHaveBeaten: 0,
 			totalTeams,
 			isLuckiest: side.teamId === luckiestTeamId
 		};
@@ -336,7 +338,16 @@ export function processWeek(
 		away: m.away ? processTeamSide(m.away) : undefined
 	}));
 
-	// ── Golden Apple / Brown Banana ───────────────────────────────────────────
+	// ── Optimal Would-Have-Beaten second pass ──────────────────────────────────
+	for (const m of matchups) {
+		for (const t of [m.home, m.away].filter(Boolean) as ProcessedTeam[]) {
+			t.optimalWouldHaveBeaten = allTeamScores.filter(
+				(o) => o.teamId !== t.teamId && t.optimalPoints > o.score
+			).length;
+		}
+	}
+
+		// ── Golden Apple / Brown Banana ───────────────────────────────────────────
 	const qualifiedStarters = allStartersByTeam.filter((s) => s.player.projectedScore > 1);
 	let goldenApple: LeagueAward | null = null;
 	let brownBanana: LeagueAward | null = null;
@@ -404,7 +415,7 @@ export function processWeek(
 	let poopMan: LeagueAward | null = null;
 	{
 		const eligible = allStartersByTeam.filter(s =>
-			s.player.position !== 'D/ST' && s.player.position !== 'K'
+			s.player.position !== 'D/ST' && s.player.position !== 'K' && s.player.projectedScore > 0
 		);
 		if (eligible.length > 0) {
 			const worst = eligible.reduce((min, s) => s.player.actualScore < min.player.actualScore ? s : min);
@@ -566,8 +577,10 @@ export function processWeek(
 		for (const m of matchups) {
 			for (const t of [m.home, m.away].filter(Boolean) as ProcessedTeam[]) {
 				for (const starter of t.starters) {
+					if (starter.projectedScore <= 0) continue;
 					for (const bench of t.bench) {
 						if (!canFill(bench.position, starter.slotName)) continue;
+						if (bench.projectedScore <= 0) continue;
 						const delta = bench.actualScore - starter.actualScore;
 						if (delta > maxDelta) {
 							maxDelta = delta;

@@ -1,13 +1,17 @@
 <script lang="ts">
 	import type { ProcessedWeek, ProcessedMatchup, ProcessedTeam, ProcessedPlayer } from '$lib/weekProcessor';
 
+	import type { StandingsEntry } from '$lib/standingsHistory';
+
 	export let data: {
 		availableWeeks: Array<{ seasonId: number; scoringPeriodId: number; isPlayoff: boolean }>;
 		weekData: ProcessedWeek | null;
+		standingsHistory: StandingsEntry[];
 		error?: string;
 	};
 
 	let weekData: ProcessedWeek | null = data.weekData;
+	let standingsHistory: StandingsEntry[] = data.standingsHistory ?? [];
 	let loading = false;
 
 	let selectedSeason: number = data.weekData?.seasonId ?? data.availableWeeks[0]?.seasonId;
@@ -32,7 +36,15 @@
 		benchOpen = {};
 		try {
 			const res = await fetch(`/api/week-data?season=${seasonId}&week=${week}`);
-			weekData = await res.json();
+			const payload = await res.json();
+			// API now returns { weekData, standingsHistory }
+			if (payload?.weekData) {
+				weekData = payload.weekData;
+				standingsHistory = payload.standingsHistory ?? [];
+			} else {
+				// fallback for old shape
+				weekData = payload;
+			}
 		} catch (e) {
 			console.error(e);
 		} finally {
@@ -150,6 +162,51 @@
 		}
 		return map;
 	})();
+	// ── Standings chart ──────────────────────────────────────────────────────────
+	let standingsOpen = true;
+
+	const CHART_COLORS = [
+		'#ff6b6b', '#ff9f43', '#ffd32a', '#48dbfb',
+		'#54a0ff', '#5f27cd', '#ff9ff3', '#1dd1a1',
+		'#00d2d3', '#a29bfe', '#fd79a8', '#b8e994'
+	];
+
+	const PAD_L = 52, PAD_T = 16, PAD_R = 20, PAD_B = 36;
+	const SVG_W = 800, SVG_H = 340;
+	const PLOT_W = SVG_W - PAD_L - PAD_R;
+	const PLOT_H = SVG_H - PAD_T - PAD_B;
+
+	$: chartInfo = buildChart(standingsHistory);
+
+	function buildChart(history: import('$lib/standingsHistory').StandingsEntry[]) {
+		if (!history.length) return null;
+		const allWeeks = [...new Set(history.flatMap(e => e.weeklyRanks.map(r => r.week)))].sort((a, b) => a - b);
+		const maxWeek = allWeeks[allWeeks.length - 1] ?? 1;
+		const maxRank = Math.max(...history.map(e => e.weeklyRanks.length > 0 ? Math.ceil(Math.max(...e.weeklyRanks.map(r => r.rank))) : 1));
+
+		const xFor = (w: number) => PAD_L + (maxWeek > 0 ? (w / maxWeek) * PLOT_W : 0);
+		const yFor = (r: number) => PAD_T + ((r - 1) / Math.max(maxRank - 1, 1)) * PLOT_H;
+
+		// Determine where playoffs start (first week where isPlayoff, from availableWeeks)
+		const playoffStartWeek = (() => {
+			const pw = data.availableWeeks.find(w => w.isPlayoff && w.seasonId === selectedSeason);
+			return pw ? pw.scoringPeriodId : null;
+		})();
+
+		const gridRanks = Array.from({ length: maxRank }, (_, i) => i + 1);
+
+		return {
+			allWeeks, maxWeek, maxRank,
+			xFor, yFor, gridRanks,
+			playoffStartWeek,
+			teams: history.map((entry, i) => {
+				const pts = entry.weeklyRanks.map(r => `${xFor(r.week).toFixed(1)},${yFor(r.rank).toFixed(1)}`);
+				const d = pts.length > 1 ? 'M ' + pts.join(' L ') : '';
+				return { ...entry, d, color: CHART_COLORS[i % CHART_COLORS.length] };
+			})
+		};
+	}
+
 </script>
 
 <svelte:head>
@@ -544,7 +601,6 @@
 		border-radius: 6px;
 		padding: 10px 16px;
 		margin-bottom: 24px;
-		max-width: 800px;
 	}
 	.legend-card summary {
 		cursor: pointer;
@@ -569,6 +625,78 @@
 	}
 	.legend-grid span:first-child { font-size: 14px; line-height: 1; padding-top: 1px; }
 	.legend-grid strong { color: rgba(255,255,255,0.8); }
+	/* ── Standings chart ──────────────────────────────────────────────────────── */
+	.standings-chart-wrap {
+		margin-bottom: 48px;
+	}
+	.standings-svg {
+		width: 100%;
+		height: auto;
+		display: block;
+		overflow: visible;
+	}
+	.chart-grid-line {
+		stroke: rgba(255,255,255,0.06);
+		stroke-width: 1;
+	}
+	.chart-grid-line-playoff {
+		stroke: rgba(255,204,51,0.12);
+		stroke-width: 1;
+	}
+	.chart-playoff-bg {
+		fill: rgba(255,204,51,0.04);
+	}
+	.chart-axis-label {
+		fill: rgba(255,255,255,0.25);
+		font-size: 10px;
+		font-family: inherit;
+	}
+	.chart-team-line {
+		fill: none;
+		stroke-width: 2;
+		opacity: 0.7;
+		transition: opacity 0.15s, stroke-width 0.15s;
+		cursor: pointer;
+	}
+	.chart-team-line:hover {
+		opacity: 1;
+		stroke-width: 3;
+	}
+	.chart-legend {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px 16px;
+		margin-top: 12px;
+	}
+	.chart-legend-item {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 11px;
+		color: rgba(255,255,255,0.55);
+		cursor: default;
+	}
+	.chart-legend-dot {
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+		flex-shrink: 0;
+	}
+	.chart-week-label {
+		fill: rgba(255,255,255,0.2);
+		font-size: 9px;
+		text-anchor: middle;
+		font-family: inherit;
+	}
+	.chart-playoff-label {
+		fill: rgba(255,204,51,0.4);
+		font-size: 9px;
+		text-anchor: middle;
+		font-family: inherit;
+		font-weight: 700;
+		letter-spacing: 1px;
+	}
+
 </style>
 
 <div class="page">
@@ -1061,6 +1189,9 @@
 											{optimalWouldWin(t, matchup) ? '✓ Would have won' : '✗ Would have lost anyway'}
 										</div>
 									{/if}
+									<div class="whb">
+										Optimal would've beaten <strong style="color:var(--gold)">{t.optimalWouldHaveBeaten}/{t.totalTeams - 1}</strong> teams
+									</div>
 								</div>
 							{/each}
 						</div>
@@ -1070,6 +1201,91 @@
 
 
 
+
+			<!-- ── Season Standings ──────────────────────────────────────────────────── -->
+			{#if standingsHistory.length > 0 && chartInfo}
+				<h2 class="section-header" onclick={() => standingsOpen = !standingsOpen}>
+					<span>Season Standings</span>
+					<span class="section-chevron {standingsOpen ? 'open' : ''}">▶</span>
+				</h2>
+				{#if standingsOpen}
+					<div class="standings-chart-wrap">
+						{@const c = chartInfo}
+						<svg viewBox="0 0 {SVG_W} {SVG_H}" class="standings-svg">
+							<!-- Playoff background shading -->
+							{#if c.playoffStartWeek !== null}
+								<rect
+									class="chart-playoff-bg"
+									x={c.xFor(c.playoffStartWeek - 0.5)}
+									y={PAD_T}
+									width={SVG_W - PAD_R - c.xFor(c.playoffStartWeek - 0.5)}
+									height={PLOT_H}
+								/>
+							{/if}
+
+							<!-- Horizontal grid lines (one per rank) -->
+							{#each c.gridRanks as rank}
+								<line
+									class="chart-grid-line"
+									x1={PAD_L} y1={c.yFor(rank)}
+									x2={SVG_W - PAD_R} y2={c.yFor(rank)}
+								/>
+								<text class="chart-axis-label" x={PAD_L - 6} y={c.yFor(rank) + 3.5} text-anchor="end">{rank}</text>
+							{/each}
+
+							<!-- Vertical week lines + labels -->
+							{#each c.allWeeks as week}
+								{@const isPlayoffWeek = c.playoffStartWeek !== null && week >= c.playoffStartWeek}
+								<line
+									class="{isPlayoffWeek ? 'chart-grid-line-playoff' : 'chart-grid-line'}"
+									x1={c.xFor(week)} y1={PAD_T}
+									x2={c.xFor(week)} y2={PAD_T + PLOT_H}
+								/>
+								{#if week > 0}
+									<text class="chart-week-label" x={c.xFor(week)} y={PAD_T + PLOT_H + 14}>
+										{week}
+									</text>
+								{/if}
+							{/each}
+
+							<!-- "PLAYOFFS" label -->
+							{#if c.playoffStartWeek !== null}
+								{@const pLabelX = (c.xFor(c.playoffStartWeek) + (SVG_W - PAD_R)) / 2}
+								<text class="chart-playoff-label" x={pLabelX} y={PAD_T - 3}>PLAYOFFS</text>
+							{/if}
+
+							<!-- Week 0 vertical line -->
+							<line class="chart-grid-line" x1={PAD_L} y1={PAD_T} x2={PAD_L} y2={PAD_T + PLOT_H} />
+
+							<!-- Team lines -->
+							{#each c.teams as team}
+								{#if team.d}
+									<path
+										class="chart-team-line"
+										d={team.d}
+										stroke={team.color}
+									>
+										<title>{team.teamName}</title>
+									</path>
+								{/if}
+							{/each}
+
+							<!-- X-axis label -->
+							<text class="chart-axis-label" x={PAD_L + PLOT_W / 2} y={SVG_H} text-anchor="middle">Week</text>
+						</svg>
+
+						<!-- Legend -->
+						<div class="chart-legend">
+							{#each c.teams as team}
+								<div class="chart-legend-item">
+									<span class="chart-legend-dot" style="background:{team.color}"></span>
+									<span>{team.teamName}</span>
+								</div>
+							{/each}
+						</div>
+					</div>
+				{/if}
+			{/if}
 			{/if}
 		{:else}
 			<div class="empty">No data found. Run the backfill to populate historical data.</div>

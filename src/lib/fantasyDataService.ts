@@ -396,3 +396,17 @@ export async function getCumulativeScoresByWeek(
 	}
 	return scores;
 }
+
+/** All weekly matchup docs for a season up to and including the given week. */
+export async function getAllWeeklyDocs(
+	leagueId: string,
+	seasonId: number,
+	upToWeek: number
+): Promise<WeeklyMatchupDoc[]> {
+	const db = await getDb();
+	return db
+		.collection<WeeklyMatchupDoc>(WEEKLY_MATCHUPS_COLLECTION)
+		.find({ leagueId, seasonId, scoringPeriodId: { $lte: upToWeek } })
+		.sort({ scoringPeriodId: 1 })
+		.toArray();
+}
