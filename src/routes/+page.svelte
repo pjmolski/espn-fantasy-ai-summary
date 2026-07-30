@@ -130,38 +130,12 @@
 
 	.page { min-height: 100vh; }
 
-	/* Header — always dark */
-	header {
+	/* Top bar — just the selects */
+	.top-bar {
 		background: #1e1e1e;
-		border-bottom: 3px solid #00d26d;
-		padding: 24px 40px;
+		border-bottom: 1px solid rgba(255,255,255,0.08);
+		padding: 12px 40px;
 	}
-	.header-inner {
-		max-width: 960px;
-		margin: 0 auto;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 16px;
-		flex-wrap: wrap;
-	}
-	.site-badge {
-		font-size: 10px;
-		letter-spacing: 2px;
-		text-transform: uppercase;
-		color: #00d26d;
-		font-weight: 700;
-		margin-bottom: 4px;
-	}
-	h1 {
-		font-size: 32px;
-		font-weight: 100;
-		letter-spacing: -1.5px;
-		line-height: 1;
-	}
-	h1 em { color: #00d26d; font-style: normal; }
-
-	/* Selects */
 	.selects { display: flex; gap: 10px; flex-wrap: wrap; }
 	select {
 		background: #272727;
@@ -452,26 +426,20 @@
 </style>
 
 <div class="page">
-	<header>
-		<div class="header-inner">
-			<div>
-				<div class="site-badge">Hoboken Diaspora</div>
-				<h1>Fantasy <em>Football</em></h1>
-			</div>
-			<div class="selects">
-				<select bind:value={selectedSeason} on:change={onSeasonChange}>
-					{#each seasons as s}
-						<option value={s}>{s} Season</option>
-					{/each}
-				</select>
-				<select bind:value={selectedWeek} on:change={onWeekChange}>
-					{#each weeksForSeason as w}
-						<option value={w.scoringPeriodId}>{w.isPlayoff ? '🏆 ' : ''}Week {w.scoringPeriodId}</option>
-					{/each}
-				</select>
-			</div>
+	<div class="top-bar">
+		<div class="selects">
+			<select bind:value={selectedSeason} on:change={onSeasonChange}>
+				{#each seasons as s}
+					<option value={s}>{s} Season</option>
+				{/each}
+			</select>
+			<select bind:value={selectedWeek} on:change={onWeekChange}>
+				{#each weeksForSeason as w}
+					<option value={w.scoringPeriodId}>{w.isPlayoff ? '🏆 ' : ''}Week {w.scoringPeriodId}</option>
+				{/each}
+			</select>
 		</div>
-	</header>
+	</div>
 
 	<main>
 		{#if data.error}
