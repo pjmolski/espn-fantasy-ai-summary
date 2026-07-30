@@ -185,6 +185,14 @@
 		padding: 32px 40px 80px;
 	}
 
+	.section-header {
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 2px;
+		text-transform: uppercase;
+		color: rgba(255,255,255,0.25);
+		margin: 0 0 16px 0;
+	}
 	.week-label {
 		font-size: 11px;
 		letter-spacing: 2px;
@@ -525,7 +533,8 @@
 				{weekData.seasonId} · {weekData.isPlayoffWeek ? '🏆 Playoffs · ' : ''}Week {weekData.scoringPeriodId}
 			</div>
 
-			<!-- Awards -->
+			<h2 class="section-header">Week {weekData.scoringPeriodId} Honors</h2>
+
 			<div class="awards">
 				{#if weekData.goldenApple}
 					{@const g = weekData.goldenApple}
@@ -688,7 +697,8 @@
 				</div>
 			</details>
 
-			<!-- Matchups -->
+			<h2 class="section-header">Matchups</h2>
+
 			{#each weekData.matchups as matchup}
 				{@const isOptimal = showOptimal[matchup.matchupId] ?? false}
 				{@const isBenchOpen = benchOpen[matchup.matchupId] ?? false}
