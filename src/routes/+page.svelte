@@ -3,7 +3,6 @@
 	import type { StandingsEntry } from '$lib/standingsHistory';
 	import { goto, afterNavigate } from '$app/navigation';
 	import { navigating } from '$app/stores';
-	import { onMount } from 'svelte';
 
 	export let data: {
 		availableWeeks: Array<{ seasonId: number; scoringPeriodId: number; isPlayoff: boolean }>;
@@ -32,27 +31,6 @@
 
 	$: loading = !!$navigating;
 
-	onMount(() => {
-		const params = new URLSearchParams(window.location.search);
-		if (params.has('season') && params.has('week')) {
-			// URL params present (e.g. shared link) — they win; sync localStorage to match
-			saveSelection(parseInt(params.get('season')!), parseInt(params.get('week')!));
-		} else {
-			// No URL params — restore from localStorage and update URL so it's shareable
-			try {
-				const s = localStorage.getItem('ff_season');
-				const w = localStorage.getItem('ff_week');
-				if (s && w) {
-					const seasonId = parseInt(s);
-					const weekId = parseInt(w);
-					const exists = data.availableWeeks.some(
-						aw => aw.seasonId === seasonId && aw.scoringPeriodId === weekId
-					);
-					if (exists) goto(`?season=${seasonId}&week=${weekId}`, { replaceState: true });
-				}
-			} catch {}
-		}
-	});
 
 	// Notify parent frame so it can sync its own URL (pjmolski.com/ff?season=X&week=Y)
 	afterNavigate(({ to }) => {
@@ -77,21 +55,14 @@
 		return map;
 	}
 
-	function saveSelection(seasonId: number, week: number) {
-		try { localStorage.setItem('ff_season', String(seasonId)); localStorage.setItem('ff_week', String(week)); } catch {}
-	}
-
 	function onSeasonChange() {
 		const weeks = weeksBySeason.get(selectedSeason) ?? [];
 		if (weeks.length > 0) {
-			const firstWeek = weeks[0].scoringPeriodId;
-			saveSelection(selectedSeason, firstWeek);
-			goto(`?season=${selectedSeason}&week=${firstWeek}`);
+			goto(`?season=${selectedSeason}&week=${weeks[0].scoringPeriodId}`);
 		}
 	}
 
 	function onWeekChange() {
-		saveSelection(selectedSeason, selectedWeek);
 		goto(`?season=${selectedSeason}&week=${selectedWeek}`);
 	}
 
