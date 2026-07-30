@@ -59,42 +59,25 @@ export function computeStandingsHistory(
 
 	// ── Playoffs ───────────────────────────────────────────────────────────────
 	if (playoffDocs.length > 0) {
-		// Use playoffTierType from the first playoff week to assign brackets correctly.
-		// This avoids relying on our computed regular-season rank which may differ from ESPN's seeding.
-		const winnersBracketTeams = new Set<number>();
-		const losersBracketTeams = new Set<number>();
-		const firstPlayoffDoc = playoffDocs[0];
-		for (const m of firstPlayoffDoc.matchups) {
-			const isWinners = m.playoffTierType === 'WINNERS_BRACKET';
-			const isLosers = !isWinners && m.playoffTierType !== 'NONE';
-			if (isWinners) {
-				winnersBracketTeams.add(m.home.teamId);
-				if (m.away) winnersBracketTeams.add(m.away.teamId);
-			} else if (isLosers) {
-				losersBracketTeams.add(m.home.teamId);
-				if (m.away) losersBracketTeams.add(m.away.teamId);
-			}
-		}
-		// Any team not yet classified must have a bye — fall back to computed seed
-		const seeds = new Map<number, number>();
-		for (const id of teamIds) {
-			const ranks = weeklyRanks.get(id)!;
-			seeds.set(id, ranks[ranks.length - 1]);
-		}
-		for (const id of teamIds) {
-			if (!winnersBracketTeams.has(id) && !losersBracketTeams.has(id)) {
-				const seed = seeds.get(id) ?? 1;
-				if (seed <= 6) winnersBracketTeams.add(id);
-				else losersBracketTeams.add(id);
-			}
-		}
-
-		// Possible final rank range [lo, hi] for each team.
+		// Assign initial lo/hi ranges using bracket seeds when available (authoritative),
+		// otherwise fall back to our computed regular-season rank.
 		const lo = new Map<number, number>();
 		const hi = new Map<number, number>();
-		for (const id of teamIds) {
-			lo.set(id, winnersBracketTeams.has(id) ? 1 : 7);
-			hi.set(id, winnersBracketTeams.has(id) ? 6 : 12);
+		if (bracket) {
+			// Use the same seed computation as playoffBracket.ts — single source of truth.
+			for (const id of teamIds) {
+				const seed = bracket.seeds.get(id) ?? 7;
+				lo.set(id, seed <= 6 ? 1 : 7);
+				hi.set(id, seed <= 6 ? 6 : 12);
+			}
+		} else {
+			// No bracket provided — fall back to our computed regular-season rank
+			for (const id of teamIds) {
+				const ranks = weeklyRanks.get(id)!;
+				const seed = ranks[ranks.length - 1];
+				lo.set(id, seed <= 6 ? 1 : 7);
+				hi.set(id, seed <= 6 ? 6 : 12);
+			}
 		}
 
 		for (const doc of playoffDocs) {
