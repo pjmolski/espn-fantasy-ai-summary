@@ -1209,8 +1209,8 @@
 					<span class="section-chevron {standingsOpen ? 'open' : ''}">▶</span>
 				</h2>
 				{#if standingsOpen}
+					{@const c = chartInfo}
 					<div class="standings-chart-wrap">
-						{@const c = chartInfo}
 						<svg viewBox="0 0 {SVG_W} {SVG_H}" class="standings-svg">
 							<!-- Playoff background shading -->
 							{#if c.playoffStartWeek !== null}
