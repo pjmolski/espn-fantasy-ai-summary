@@ -296,9 +296,9 @@
 		border-color: rgba(255,255,255,0.35);
 	}
 	.cake-btn.active {
-		border-color: #00d26d;
-		background: rgba(0,210,109,0.12);
-		box-shadow: 0 0 0 3px rgba(0,210,109,0.15);
+		border-color: var(--gold);
+		background: rgba(255,204,51,0.1);
+		box-shadow: 0 0 0 3px rgba(255,204,51,0.15);
 	}
 
 	/* Roster grid */
@@ -438,13 +438,13 @@
 	}
 	.bench-row:nth-child(odd) { background: rgba(255,255,255,0.02); }
 
-	.matchup-card.optimal-mode { background: rgba(0,210,109,0.05); border-color: rgba(0,210,109,0.3); }
-	.matchup-card.optimal-mode .matchup-header { background: rgba(0,50,30,0.7); border-bottom-color: rgba(0,210,109,0.2); }
+	.matchup-card.optimal-mode { background: rgba(255,204,51,0.04); border-color: rgba(255,204,51,0.25); }
+	.matchup-card.optimal-mode .matchup-header { background: rgba(40,30,0,0.7); border-bottom-color: rgba(255,204,51,0.15); }
 
 	/* Optimal highlight */
 	.was-benched { background: rgba(255,200,50,0.07) !important; }
 	.was-benched .player-name { color: var(--gold); }
-	.benched-tag { font-size: 9px; color: rgba(255,200,50,0.6); font-weight: 700; letter-spacing: 0.5px; }
+	.benched-tag { font-size: 9px; color: var(--gold); font-weight: 700; letter-spacing: 0.5px; }
 
 	/* Optimal outcome line */
 	.opt-outcome {
@@ -473,8 +473,9 @@
 		object-fit: contain;
 		background: transparent;
 	}
+	.award-band { border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 6px; padding-bottom: 4px; }
 	.award-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-	.award-card-inner { display: flex; gap: 10px; align-items: flex-start; }
+	.award-card-inner { display: flex; gap: 10px; align-items: flex-start; clear: both; }
 		.award-card {
 		background: #272727;
 		border: 1px solid rgba(255,255,255,0.08);
@@ -484,7 +485,7 @@
 	.award-card.good { border-left: 3px solid #00d26d; }
 	.award-card.bad  { border-left: 3px solid #ff5a46; }
 
-	.award-emoji { font-size: 24px; float: left; margin-right: 18px; }
+	.award-emoji { font-size: 16px; display: inline-block; margin-right: 4px; }
 	.award-label {
 		display: inline-block;
 		font-size: 9px;
@@ -520,7 +521,7 @@
 	.stud-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
 	.stud-row:last-child { border-bottom: none; }
 	.stud-rank { font-size: 11px; color: rgba(255,255,255,0.3); width: 24px; text-align: right; flex-shrink: 0; }
-	.stud-rank.medal { font-size: 16px; opacity: 1; }
+	.stud-rank.medal { font-size: 16px; color: rgba(255,255,255,1); }
 	.stud-img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: rgba(255,255,255,0.06); flex-shrink: 0; }
 	.stud-img.dst { border-radius: 4px; object-fit: contain; background: transparent; }
 	.stud-info { flex: none; }
