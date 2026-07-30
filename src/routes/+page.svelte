@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { ProcessedWeek, ProcessedMatchup, ProcessedTeam, ProcessedPlayer } from '$lib/weekProcessor';
 	import type { StandingsEntry } from '$lib/standingsHistory';
-	import { goto } from '$app/navigation';
+	import { goto, afterNavigate } from '$app/navigation';
 	import { navigating } from '$app/stores';
 	import { onMount } from 'svelte';
 
@@ -51,6 +51,16 @@
 					if (exists) goto(`?season=${seasonId}&week=${weekId}`, { replaceState: true });
 				}
 			} catch {}
+		}
+	});
+
+	// Notify parent frame so it can sync its own URL (pjmolski.com/ff?season=X&week=Y)
+	afterNavigate(({ to }) => {
+		const params = to?.url?.searchParams ?? new URLSearchParams(window.location.search);
+		const season = params.get('season');
+		const week = params.get('week');
+		if (season && week) {
+			try { window.parent.postMessage({ type: 'ff-nav', season: +season, week: +week }, '*'); } catch {}
 		}
 	});
 
