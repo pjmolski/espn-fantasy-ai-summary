@@ -560,12 +560,12 @@
 <div class="page">
 	<div class="top-bar">
 		<div class="selects">
-			<select bind:value={selectedSeason} on:change={onSeasonChange}>
+			<select bind:value={selectedSeason} onchange={onSeasonChange}>
 				{#each seasons as s}
 					<option value={s}>{s} Season</option>
 				{/each}
 			</select>
-			<select bind:value={selectedWeek} on:change={onWeekChange}>
+			<select bind:value={selectedWeek} onchange={onWeekChange}>
 				{#each weeksForSeason as w}
 					<option value={w.scoringPeriodId}>{w.isPlayoff ? '🏆 ' : ''}Week {w.scoringPeriodId}</option>
 				{/each}
@@ -860,7 +860,7 @@
 
 						<button
 							class="cake-btn {isOptimal ? 'active' : ''}"
-							on:click={() => toggleOptimal(matchup.matchupId)}
+							onclick={() => toggleOptimal(matchup.matchupId)}
 							title="Optimal Lineup"
 							aria-label="Optimal Lineup"
 						>🍰</button>
@@ -910,7 +910,7 @@
 
 									<!-- Bench toggle (shared across both teams via matchupId) -->
 									{#if t.bench.filter(p => p.slotName !== 'IR').length > 0}
-										<button class="bench-toggle" on:click={() => toggleBench(matchup.matchupId)}>
+										<button class="bench-toggle" onclick={() => toggleBench(matchup.matchupId)}>
 											<span>{isBenchOpen ? '▴' : '▾'}</span> Bench
 										</button>
 										{#if isBenchOpen}
@@ -982,7 +982,7 @@
 
 									<!-- Optimal bench: starters displaced by the optimal lineup -->
 									{#if displacedFromOptimal(t).length > 0}
-										<button class="bench-toggle" on:click={() => toggleBench(matchup.matchupId)}>
+										<button class="bench-toggle" onclick={() => toggleBench(matchup.matchupId)}>
 											<span>{isBenchOpen ? '▴' : '▾'}</span> Bench
 										</button>
 										{#if isBenchOpen}
