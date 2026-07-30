@@ -374,3 +374,25 @@ export async function getAllSeasons(leagueId: string): Promise<SeasonDoc[]> {
 		.sort({ seasonId: -1 })
 		.toArray();
 }
+
+/** Cumulative totalPoints per team for a season up to (not including) the given week. */
+export async function getCumulativeScoresByWeek(
+	leagueId: string,
+	seasonId: number,
+	upToWeek: number
+): Promise<Map<number, number>> {
+	const db = await getDb();
+	const docs = await db
+		.collection<WeeklyMatchupDoc>(WEEKLY_MATCHUPS_COLLECTION)
+		.find({ leagueId, seasonId, scoringPeriodId: { $lt: upToWeek } })
+		.toArray();
+
+	const scores = new Map<number, number>();
+	for (const doc of docs) {
+		for (const m of doc.matchups) {
+			scores.set(m.home.teamId, (scores.get(m.home.teamId) ?? 0) + m.home.totalPoints);
+			if (m.away) scores.set(m.away.teamId, (scores.get(m.away.teamId) ?? 0) + m.away.totalPoints);
+		}
+	}
+	return scores;
+}

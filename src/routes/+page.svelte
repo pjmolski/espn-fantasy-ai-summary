@@ -95,22 +95,34 @@
 
 	// Muscle 💪 = highest scorer across all starters this week
 	// Poop 💩 = lowest scorer (DST excluded) across all starters this week
-	$: allWeekStarters = weekData?.matchups.flatMap(m =>
-		([m.home, m.away].filter(Boolean) as ProcessedTeam[]).flatMap(t => t.starters)
-	) ?? [];
-	$: muscleScore = allWeekStarters.length ? Math.max(...allWeekStarters.map(p => p.actualScore)) : -Infinity;
-	$: poopScore = (() => {
-		const nonDST = allWeekStarters.filter(p => p.position !== 'D/ST');
-		return nonDST.length ? Math.min(...nonDST.map(p => p.actualScore)) : Infinity;
-	})();
-	$: muscleIds = new Set(allWeekStarters.filter(p => p.actualScore === muscleScore).map(p => p.playerId));
-	$: poopIds   = new Set(allWeekStarters.filter(p => p.position !== 'D/ST' && p.actualScore === poopScore).map(p => p.playerId));
+
 	$: topScore = weekData
 		? Math.max(...weekData.matchups.flatMap(m => [m.home.totalPoints, m.away?.totalPoints ?? 0]))
 		: -Infinity;
 	$: bottomScore = weekData
 		? Math.min(...weekData.matchups.flatMap(m => [m.home.totalPoints, m.away?.totalPoints ?? Infinity]))
 		: Infinity;
+
+	// Team award emoji map: teamId → emoji[]
+	$: teamAwardMap = (() => {
+		const map = new Map<number, string[]>();
+		if (!weekData) return map;
+		const add = (teamId: number | null | undefined, emoji: string) => {
+			if (teamId == null) return;
+			if (!map.has(teamId)) map.set(teamId, []);
+			map.get(teamId)!.push(emoji);
+		};
+		if (weekData.superMushroom) add(weekData.superMushroom.teamId, '🍄');
+		if (weekData.closeShave) add(weekData.closeShave.teamId, '💈');
+		for (const a of weekData.assassins ?? []) add(a.teamId, '🥷');
+		if (weekData.gambler) add(weekData.gambler.teamId, '🎲');
+		if (weekData.wrongMan) add(weekData.wrongMan.teamId, '👥');
+		if (weekData.luckyDevil) add(weekData.luckyDevil.teamId, '🍀');
+		if (weekData.mrMonopoly) add(weekData.mrMonopoly.teamId, '🎩');
+		return map;
+	})();
+
+	let legendOpen = false;
 
 	function displacedFromOptimal(t: ProcessedTeam): ProcessedPlayer[] {
 		const optIds = new Set(t.optimalStarters.map(s => s.playerId));
@@ -437,6 +449,49 @@
 	.award-delta .red   { color: #ff5a46; }
 
 	.empty { text-align: center; padding: 80px 20px; color: rgba(255,255,255,0.25); font-size: 14px; }
+
+	/* Team award badges */
+	.team-score { display: flex; align-items: center; gap: 4px; }
+	.team-award-badge {
+		font-size: 14px;
+		line-height: 1;
+		opacity: 0.9;
+		cursor: default;
+	}
+	.team-award-badge.sm { font-size: 11px; }
+
+	/* Award legend */
+	.legend-card {
+		background: rgba(255,255,255,0.03);
+		border: 1px solid rgba(255,255,255,0.08);
+		border-radius: 6px;
+		padding: 10px 16px;
+		margin-bottom: 24px;
+		max-width: 800px;
+	}
+	.legend-card summary {
+		cursor: pointer;
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 1.5px;
+		text-transform: uppercase;
+		color: rgba(255,255,255,0.35);
+		user-select: none;
+		list-style: none;
+	}
+	.legend-card summary::before { content: '▸ '; }
+	.legend-card[open] summary::before { content: '▾ '; }
+	.legend-grid {
+		display: grid;
+		grid-template-columns: 24px 1fr;
+		gap: 6px 10px;
+		margin-top: 10px;
+		font-size: 12px;
+		color: rgba(255,255,255,0.55);
+		line-height: 1.4;
+	}
+	.legend-grid span:first-child { font-size: 14px; line-height: 1; padding-top: 1px; }
+	.legend-grid strong { color: rgba(255,255,255,0.8); }
 </style>
 
 <div class="page">
@@ -504,7 +559,131 @@
 						<div class="award-delta">{ordinal(l.overallPick)} overall · Round {l.draftRound}</div>
 					</div>
 				{/if}
+				{#if weekData.muscleMan}
+					{@const m = weekData.muscleMan}
+					<div class="award-card">
+						<div class="award-emoji">💪</div>
+						<div class="award-label">Muscle Man</div>
+						<div class="award-player">{m.playerName}</div>
+						<div class="award-meta">{m.position}{m.nflTeam ? ' · ' + m.nflTeam : ''} · {m.teamName}</div>
+						<div class="award-score green">{m.actualScore.toFixed(2)}</div>
+						<div class="award-delta">proj {m.projectedScore.toFixed(1)} · <span class="green">{sign(m.delta)}{m.delta.toFixed(1)}</span></div>
+					</div>
+				{/if}
+
+				{#if weekData.poopMan}
+					{@const p = weekData.poopMan}
+					<div class="award-card">
+						<div class="award-emoji">💩</div>
+						<div class="award-label">Poop Man</div>
+						<div class="award-player">{p.playerName}</div>
+						<div class="award-meta">{p.position}{p.nflTeam ? ' · ' + p.nflTeam : ''} · {p.teamName}</div>
+						<div class="award-score red">{p.actualScore.toFixed(2)}</div>
+						<div class="award-delta">proj {p.projectedScore.toFixed(1)} · <span class="red">{sign(p.delta)}{p.delta.toFixed(1)}</span></div>
+					</div>
+				{/if}
+
+				{#if weekData.superMushroom}
+					{@const a = weekData.superMushroom}
+					<div class="award-card">
+						<div class="award-emoji">🍄</div>
+						<div class="award-label">Super Mushroom</div>
+						<div class="award-player">{a.teamName}</div>
+						<div class="award-meta">Projected to lose vs {a.opponentName}</div>
+						<div class="award-score green">{a.actualScore.toFixed(2)}</div>
+						<div class="award-delta">proj {a.projectedScore.toFixed(1)} · opp proj {a.opponentProjected.toFixed(1)}</div>
+					</div>
+				{/if}
+
+				{#if weekData.closeShave}
+					{@const cs = weekData.closeShave}
+					<div class="award-card">
+						<div class="award-emoji">💈</div>
+						<div class="award-label">Close Shave</div>
+						<div class="award-player">{cs.teamName}</div>
+						<div class="award-meta">Narrowest win this week</div>
+						<div class="award-score green">{(cs.loserScore + cs.margin).toFixed(2)}</div>
+						<div class="award-delta">won by {cs.margin.toFixed(2)} pts · vs {cs.loserName} ({cs.loserScore.toFixed(2)})</div>
+					</div>
+				{/if}
+
+				{#each weekData.assassins ?? [] as a}
+					<div class="award-card">
+						<div class="award-emoji">🥷</div>
+						<div class="award-label">Assassin</div>
+						<div class="award-player">{a.teamName}</div>
+						<div class="award-meta">Took out a top-3 scorer</div>
+						<div class="award-score green">{a.actualScore.toFixed(2)}</div>
+						<div class="award-delta">vs {a.victimName} · {a.victimScore.toFixed(2)}</div>
+					</div>
+				{/each}
+
+				{#if weekData.gambler}
+					{@const ga = weekData.gambler}
+					<div class="award-card">
+						<div class="award-emoji">🎲</div>
+						<div class="award-label">The Gambler</div>
+						<div class="award-player">{ga.teamName}</div>
+						<div class="award-meta">Started lower-projected players who delivered</div>
+						<div class="award-score green">{ga.successfulGambles}</div>
+						<div class="award-delta">starters who beat a higher-proj bench player</div>
+					</div>
+				{/if}
+
+				{#if weekData.wrongMan}
+					{@const wm = weekData.wrongMan}
+					<div class="award-card">
+						<div class="award-emoji">👥</div>
+						<div class="award-label">Wrong Man</div>
+						<div class="award-player">{wm.teamName}</div>
+						<div class="award-meta">Started {wm.startedName} ({wm.startedScore.toFixed(1)}) over {wm.benchedName} ({wm.benchedScore.toFixed(1)})</div>
+						<div class="award-score red">−{wm.pointsLeft.toFixed(2)}</div>
+						<div class="award-delta">pts left on bench</div>
+					</div>
+				{/if}
+
+				{#if weekData.luckyDevil}
+					{@const ld = weekData.luckyDevil}
+					<div class="award-card">
+						<div class="award-emoji">🍀</div>
+						<div class="award-label">Lucky Devil</div>
+						<div class="award-player">{ld.teamName}</div>
+						<div class="award-meta">Lowest-scoring winner this week</div>
+						<div class="award-score">{ld.actualScore.toFixed(2)}</div>
+						<div class="award-delta">would've beaten only {ld.wouldHaveBeaten} of {ld.totalTeams - 1} other teams</div>
+					</div>
+				{/if}
+
+				{#if weekData.mrMonopoly}
+					{@const mm = weekData.mrMonopoly}
+					<div class="award-card">
+						<div class="award-emoji">🎩</div>
+						<div class="award-label">Mr. Monopoly</div>
+						<div class="award-player">{mm.teamName}</div>
+						<div class="award-meta">Took over the season points lead</div>
+						<div class="award-score green">{mm.currentTotal.toFixed(2)}</div>
+						<div class="award-delta">overtook {mm.prevLeaderName} · {mm.prevLeaderTotal.toFixed(2)}</div>
+					</div>
+				{/if}
 			</div>
+
+			<details class="legend-card" bind:open={legendOpen}>
+				<summary>Award Legend</summary>
+				<div class="legend-grid">
+					<span>🍎</span><span><strong>Golden Apple</strong> — biggest single-player over-performance vs projection</span>
+					<span>🍌</span><span><strong>Brown Banana</strong> — biggest single-player under-performance vs projection</span>
+					<span>🤡</span><span><strong>Lamest Stud</strong> — worst-scoring starter drafted in rounds 1–3</span>
+					<span>🍄</span><span><strong>Super Mushroom</strong> — biggest overperformance among underdog winners (single award)</span>
+					<span>💈</span><span><strong>Close Shave</strong> — narrowest margin of victory (under 5 pts)</span>
+					<span>🥷</span><span><strong>Assassin</strong> — beat a top-3 scorer this week</span>
+					<span>🎲</span><span><strong>The Gambler</strong> — most starters who outscored a higher-projected bench player at the same position (unique pairs)</span>
+					<span>👥</span><span><strong>Wrong Man</strong> — biggest pts left on bench from one bad start decision</span>
+					<span>🍀</span><span><strong>Lucky Devil</strong> — lowest-scoring winner who scored below the top half of the league</span>
+					<span>🎩</span><span><strong>Mr. Monopoly</strong> — overtook the cumulative season points lead this week</span>
+					<span>💪</span><span><strong>Muscle Man</strong> — top scorer in starting lineups this week</span>
+					<span>💩</span><span><strong>Poop Man</strong> — bottom scorer in starting lineups this week (non-DST, non-K)</span>
+				</div>
+			</details>
 
 			<!-- Matchups -->
 			{#each weekData.matchups as matchup}
@@ -516,8 +695,8 @@
 						<div class="score-line">
 							<!-- Home -->
 							<div class="team-score">
-								{#if matchup.home.isLuckiest}<span title="Luckiest win — won with a score that would have lost most other matchups this week">🍀</span>{/if}
 								<span class="team-name {matchup.winner === 'home' ? 'winner' : 'loser'} {matchup.home.totalPoints === topScore ? 'top-scorer' : ''} {matchup.home.totalPoints === bottomScore ? 'bottom-scorer' : ''}">{matchup.home.teamName}{matchup.home.totalPoints === bottomScore ? ' 💩' : ''}</span>
+								{#each (teamAwardMap.get(matchup.home.teamId) ?? []) as emoji}<span class="team-award-badge">{emoji}</span>{/each}
 								<span class="score {matchup.winner === 'home' ? 'winner' : 'loser'} {matchup.home.totalPoints === bottomScore ? 'bottom-scorer' : ''}">{matchup.home.totalPoints.toFixed(2)}</span>
 							</div>
 							<span class="vs">vs</span>
@@ -525,7 +704,8 @@
 							{#if matchup.away}
 								<div class="team-score">
 									<span class="score {matchup.winner === 'away' ? 'winner' : 'loser'} {matchup.away.totalPoints === bottomScore ? 'bottom-scorer' : ''}">{matchup.away.totalPoints.toFixed(2)}</span>
-									<span class="team-name {matchup.winner === 'away' ? 'winner' : 'loser'} {matchup.away.totalPoints === topScore ? 'top-scorer' : ''} {matchup.away.totalPoints === bottomScore ? 'bottom-scorer' : ''}">{#if matchup.away.isLuckiest}<span title="Luckiest win — won with a score that would have lost most other matchups this week">🍀</span> {/if}{matchup.away.teamName}{matchup.away.totalPoints === bottomScore ? ' 💩' : ''}</span>
+									<span class="team-name {matchup.winner === 'away' ? 'winner' : 'loser'} {matchup.away.totalPoints === topScore ? 'top-scorer' : ''} {matchup.away.totalPoints === bottomScore ? 'bottom-scorer' : ''}">{matchup.away.teamName}{matchup.away.totalPoints === bottomScore ? ' 💩' : ''}</span>
+								{#each (teamAwardMap.get(matchup.away.teamId) ?? []) as emoji}<span class="team-award-badge">{emoji}</span>{/each}
 								</div>
 							{/if}
 						</div>
@@ -546,6 +726,7 @@
 								<div class="team-col">
 									<div class="col-header">
 										<span class="col-team-name">{t.teamName}</span>
+										{#each (teamAwardMap.get(t.teamId) ?? []) as emoji}<span class="team-award-badge sm">{emoji}</span>{/each}
 									</div>
 
 									{#each sortPlayers(t.starters) as p}
@@ -554,8 +735,11 @@
 												<span class="slot-label">{p.slotName}</span>
 												<span class="player-name">{p.fullName}</span>
 												{#if p.nflTeam}<span class="nfl-team">{p.nflTeam}</span>{/if}
-												{#if muscleIds.has(p.playerId)}<span class="award-emoji-inline" title="Top Weekly Scorer">💪</span>{/if}
-												{#if poopIds.has(p.playerId)}<span class="award-emoji-inline" title="Bottom Weekly Scorer">💩</span>{/if}
+												{#if weekData?.muscleMan && p.actualScore === weekData.muscleMan.actualScore}<span class="award-emoji-inline" title="Muscle Man — top scorer this week">💪</span>{/if}
+												{#if weekData?.poopMan && p.position !== 'D/ST' && p.position !== 'K' && p.actualScore === weekData.poopMan.actualScore}<span class="award-emoji-inline" title="Poop Man — bottom scorer this week">💩</span>{/if}
+												{#if p.playerId === weekData?.goldenApple?.playerId}<span class="award-emoji-inline" title="Golden Apple — biggest over-performance">🍎</span>{/if}
+												{#if p.playerId === weekData?.brownBanana?.playerId}<span class="award-emoji-inline" title="Brown Banana — biggest under-performance">🍌</span>{/if}
+												{#if p.playerId === weekData?.lamentStud?.playerId}<span class="award-emoji-inline" title="Lamest Stud — worst early-round pick">🤡</span>{/if}
 												{#if p.injuryStatus === 'OUT' || p.injuryStatus === 'DOUBTFUL'}
 													<span class="injury-badge out">{p.injuryStatus[0]}</span>
 												{:else if p.injuryStatus === 'QUESTIONABLE'}
@@ -613,6 +797,7 @@
 								<div class="team-col">
 									<div class="col-header">
 										<span class="col-team-name">{t.teamName}</span>
+										{#each (teamAwardMap.get(t.teamId) ?? []) as emoji}<span class="team-award-badge sm">{emoji}</span>{/each}
 										<span class="cake-opt-delta">+{(t.optimalPoints - t.totalPoints).toFixed(1)}</span>
 									</div>
 
@@ -623,8 +808,11 @@
 												<span class="slot-label">{p.slotName}</span>
 												<span class="player-name">{p.fullName}</span>
 												{#if p.nflTeam}<span class="nfl-team">{p.nflTeam}</span>{/if}
-												{#if muscleIds.has(p.playerId)}<span class="award-emoji-inline" title="Top Weekly Scorer">💪</span>{/if}
-												{#if poopIds.has(p.playerId)}<span class="award-emoji-inline" title="Bottom Weekly Scorer">💩</span>{/if}
+												{#if weekData?.muscleMan && p.actualScore === weekData.muscleMan.actualScore}<span class="award-emoji-inline" title="Muscle Man — top scorer this week">💪</span>{/if}
+												{#if weekData?.poopMan && p.position !== 'D/ST' && p.position !== 'K' && p.actualScore === weekData.poopMan.actualScore}<span class="award-emoji-inline" title="Poop Man — bottom scorer this week">💩</span>{/if}
+												{#if p.playerId === weekData?.goldenApple?.playerId}<span class="award-emoji-inline" title="Golden Apple — biggest over-performance">🍎</span>{/if}
+												{#if p.playerId === weekData?.brownBanana?.playerId}<span class="award-emoji-inline" title="Brown Banana — biggest under-performance">🍌</span>{/if}
+												{#if p.playerId === weekData?.lamentStud?.playerId}<span class="award-emoji-inline" title="Lamest Stud — worst early-round pick">🤡</span>{/if}
 												{#if !wasStarted}<span class="benched-tag">BENCHED</span>{/if}
 											</div>
 											<div class="player-right">

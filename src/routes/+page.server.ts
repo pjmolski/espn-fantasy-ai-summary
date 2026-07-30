@@ -1,4 +1,4 @@
-import { getAvailableWeeks, getWeeklyMatchupDoc, getSeasonDoc } from '$lib/fantasyDataService';
+import { getAvailableWeeks, getWeeklyMatchupDoc, getSeasonDoc, getCumulativeScoresByWeek } from '$lib/fantasyDataService';
 import { processWeek } from '$lib/weekProcessor';
 import { LEAGUE_ID, OWNER_DICT } from '$env/static/private';
 
@@ -16,13 +16,14 @@ export async function load({ url }) {
 			) ?? availableWeeks[0]
 			: availableWeeks[0];
 
-		const [weekDoc, seasonDoc] = await Promise.all([
+		const [weekDoc, seasonDoc, prevScores] = await Promise.all([
 			getWeeklyMatchupDoc(LEAGUE_ID, target.seasonId, target.scoringPeriodId),
-			getSeasonDoc(LEAGUE_ID, target.seasonId)
+			getSeasonDoc(LEAGUE_ID, target.seasonId),
+			getCumulativeScoresByWeek(LEAGUE_ID, target.seasonId, target.scoringPeriodId)
 		]);
 
 		const ownerDict: Record<string, string> = JSON.parse(OWNER_DICT || '{}');
-		const weekData = weekDoc && seasonDoc ? processWeek(weekDoc, seasonDoc, ownerDict) : null;
+		const weekData = weekDoc && seasonDoc ? processWeek(weekDoc, seasonDoc, ownerDict, prevScores) : null;
 
 		return { availableWeeks, weekData };
 	} catch (error) {
