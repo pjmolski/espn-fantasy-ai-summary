@@ -123,6 +123,9 @@
 	})();
 
 	let legendOpen = false;
+	let honorsOpen = true;
+	let studsOpen = true;
+	let matchupsOpen = true;
 
 	function displacedFromOptimal(t: ProcessedTeam): ProcessedPlayer[] {
 		const optIds = new Set(t.optimalStarters.map(s => s.playerId));
@@ -208,7 +211,15 @@
 		margin: 40px 0 20px;
 		padding-bottom: 10px;
 		border-bottom: 1px solid rgba(0,210,109,0.2);
+		cursor: pointer;
+		user-select: none;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
 	}
+	.section-header:hover { opacity: 0.85; }
+	.section-chevron { font-size: 16px; opacity: 0.4; transition: transform 0.2s; display: inline-block; }
+	.section-chevron.open { transform: rotate(90deg); opacity: 0.7; }
 	.week-label {
 		font-size: 11px;
 		letter-spacing: 2px;
@@ -285,9 +296,9 @@
 		border-color: rgba(255,255,255,0.35);
 	}
 	.cake-btn.active {
-		border-color: #00ccff;
-		background: rgba(0,204,255,0.12);
-		box-shadow: 0 0 0 3px rgba(0,204,255,0.15);
+		border-color: #00d26d;
+		background: rgba(0,210,109,0.12);
+		box-shadow: 0 0 0 3px rgba(0,210,109,0.15);
 	}
 
 	/* Roster grid */
@@ -427,8 +438,8 @@
 	}
 	.bench-row:nth-child(odd) { background: rgba(255,255,255,0.02); }
 
-	.matchup-card.optimal-mode { background: rgba(0,204,255,0.05); border-color: rgba(0,204,255,0.3); }
-	.matchup-card.optimal-mode .matchup-header { background: rgba(0,60,80,0.7); border-bottom-color: rgba(0,204,255,0.2); }
+	.matchup-card.optimal-mode { background: rgba(0,210,109,0.05); border-color: rgba(0,210,109,0.3); }
+	.matchup-card.optimal-mode .matchup-header { background: rgba(0,50,30,0.7); border-bottom-color: rgba(0,210,109,0.2); }
 
 	/* Optimal highlight */
 	.was-benched { background: rgba(255,200,50,0.07) !important; }
@@ -455,7 +466,7 @@
 		border-radius: 50%;
 		background: rgba(255,255,255,0.06);
 		flex-shrink: 0;
-		align-self: center;
+		align-self: auto;
 	}
 	.award-img.team-logo {
 		border-radius: 6px;
@@ -468,13 +479,14 @@
 		background: #272727;
 		border: 1px solid rgba(255,255,255,0.08);
 		border-radius: 3px;
-		padding: 18px;
+		padding: 8px 12px;
 	}
 	.award-card.good { border-left: 3px solid #00d26d; }
 	.award-card.bad  { border-left: 3px solid #ff5a46; }
 
 	.award-emoji { font-size: 24px; float: left; margin-right: 18px; }
 	.award-label {
+		display: inline-block;
 		font-size: 9px;
 		font-weight: 700;
 		letter-spacing: 2px;
@@ -508,9 +520,10 @@
 	.stud-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
 	.stud-row:last-child { border-bottom: none; }
 	.stud-rank { font-size: 11px; color: rgba(255,255,255,0.3); width: 24px; text-align: right; flex-shrink: 0; }
+	.stud-rank.medal { font-size: 16px; opacity: 1; }
 	.stud-img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: rgba(255,255,255,0.06); flex-shrink: 0; }
 	.stud-img.dst { border-radius: 4px; object-fit: contain; background: transparent; }
-	.stud-info { flex: 1; min-width: 0; }
+	.stud-info { flex: none; }
 	.stud-name-line { display: flex; align-items: center; gap: 6px; }
 	.stud-name { font-size: 13px; color: rgba(255,255,255,0.9); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 	.stud-pos { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; flex-shrink: 0; }
@@ -521,7 +534,7 @@
 	.stud-pos.DST, .stud-pos.K { color: rgba(255,255,255,0.35); }
 	.stud-nfl { font-size: 11px; color: rgba(255,255,255,0.3); flex-shrink: 0; }
 	.stud-score { font-size: 13px; font-weight: 600; color: #fff; width: 46px; text-align: right; flex-shrink: 0; }
-	.stud-owner { font-size: 11px; color: rgba(255,255,255,0.35); width: 110px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
+	.stud-owner { font-size: 11px; color: rgba(255,255,255,0.35); flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 	/* Award legend */
 	.legend-card {
@@ -585,8 +598,12 @@
 				{weekData.seasonId} · {weekData.isPlayoffWeek ? '🏆 Playoffs · ' : ''}Week {weekData.scoringPeriodId}
 			</div>
 
-			<h2 class="section-header">Week {weekData.scoringPeriodId} Honors</h2>
+			<h2 class="section-header" onclick={() => honorsOpen = !honorsOpen}>
+				<span>Week {weekData.scoringPeriodId} Honors</span>
+				<span class="section-chevron {honorsOpen ? 'open' : ''}">▶</span>
+			</h2>
 
+			{#if honorsOpen}
 			<div class="awards">
 				{#if weekData.goldenApple}
 					{@const g = weekData.goldenApple}
@@ -832,15 +849,20 @@
 					<span>💩</span><span><strong>Poop Man</strong> — bottom scorer in starting lineups this week (non-DST, non-K)</span>
 				</div>
 			</details>
+			{/if}
 
 			{#if weekData.topStuds && weekData.topStuds.length > 0}
 			<div class="studs-section">
-				<h2 class="section-header">Weekly Studs</h2>
+				<h2 class="section-header" onclick={() => studsOpen = !studsOpen}>
+					<span>Weekly Studs</span>
+					<span class="section-chevron {studsOpen ? 'open' : ''}">▶</span>
+				</h2>
+				{#if studsOpen}
 				{#each weekData.topStuds as s}
 					{@const medal = s.rank === 1 ? '🥇' : s.rank === 2 ? '🥈' : s.rank === 3 ? '🥉' : null}
 					{@const posClass = s.position === 'D/ST' ? 'DST' : s.position}
 					<div class="stud-row">
-						<div class="stud-rank">{medal ?? s.rank}</div>
+						<div class="stud-rank {medal ? 'medal' : ''}">{medal ?? s.rank}</div>
 						<img class="stud-img {s.position === 'D/ST' ? 'dst' : ''}" src={playerImgUrl(s.playerId, s.position, s.nflTeam)} alt={s.playerName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />
 						<div class="stud-info">
 							<div class="stud-name-line">
@@ -853,10 +875,15 @@
 						<div class="stud-owner">{s.ownerName}</div>
 					</div>
 				{/each}
+			{/if}
 			</div>
 			{/if}
 
-			<h2 class="section-header">Matchups</h2>
+			<h2 class="section-header" onclick={() => matchupsOpen = !matchupsOpen}>
+				<span>Matchups</span>
+				<span class="section-chevron {matchupsOpen ? 'open' : ''}">▶</span>
+			</h2>
+			{#if matchupsOpen}
 
 			{#each weekData.matchups as matchup}
 				{@const isOptimal = showOptimal[matchup.matchupId] ?? false}
@@ -1042,6 +1069,8 @@
 
 
 
+			{/if}
+			{/if}
 		{:else}
 			<div class="empty">No data found. Run the backfill to populate historical data.</div>
 		{/if}
