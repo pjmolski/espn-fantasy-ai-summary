@@ -147,6 +147,16 @@ export interface MrMonopolyAward {
 	prevLeaderTotal: number;
 }
 
+export interface StudEntry {
+	rank: number;
+	score: number;
+	playerName: string;
+	position: string;
+	nflTeam: string;
+	ownerName: string;
+	playerId: number;
+}
+
 export interface ProcessedWeek {
 	leagueId: string;
 	seasonId: number;
@@ -166,6 +176,7 @@ export interface ProcessedWeek {
 	wrongMan: WrongManAward | null;
 	luckyDevil: LuckyDevilAward | null;
 	mrMonopoly: MrMonopolyAward | null;
+	topStuds: StudEntry[];
 }
 
 // ─── Optimal lineup ───────────────────────────────────────────────────────────
@@ -626,6 +637,26 @@ export function processWeek(
 		}
 	}
 
+	// ── Top Studs: top 10 scorers across all starters ───────────────────────────
+	const allStarterEntries: StudEntry[] = [];
+	for (const m of matchups) {
+		for (const t of [m.home, m.away].filter(Boolean) as ProcessedTeam[]) {
+			for (const p of t.starters) {
+				allStarterEntries.push({
+					rank: 0,
+					score: p.actualScore,
+					playerName: p.fullName,
+					position: p.position,
+					nflTeam: p.nflTeam,
+					ownerName: t.ownerName,
+					playerId: p.playerId
+				});
+			}
+		}
+	}
+	allStarterEntries.sort((a, b) => b.score - a.score);
+	const topStuds: StudEntry[] = allStarterEntries.slice(0, 10).map((s, i) => ({ ...s, rank: i + 1 }));
+
 	return {
 		leagueId: weekDoc.leagueId,
 		seasonId: weekDoc.seasonId,
@@ -643,6 +674,7 @@ export function processWeek(
 		gambler,
 		wrongMan,
 		luckyDevil,
-		mrMonopoly
+		mrMonopoly,
+		topStuds
 	};
 }

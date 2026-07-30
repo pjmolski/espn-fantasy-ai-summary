@@ -186,12 +186,14 @@
 	}
 
 	.section-header {
-		font-size: 11px;
-		font-weight: 700;
-		letter-spacing: 2px;
+		font-size: 28px;
+		font-weight: 100;
+		letter-spacing: -0.5px;
 		text-transform: uppercase;
-		color: rgba(255,255,255,0.25);
-		margin: 0 0 16px 0;
+		color: #fff;
+		margin: 40px 0 20px;
+		padding-bottom: 10px;
+		border-bottom: 1px solid rgba(255,255,255,0.08);
 	}
 	.week-label {
 		font-size: 11px;
@@ -471,6 +473,19 @@
 	}
 	.team-award-badge.sm { font-size: 11px; }
 
+	/* Studs table */
+	.studs-section { margin: 32px 0 0; }
+	.studs-table { width: 100%; border-collapse: collapse; }
+	.studs-table tr { border-bottom: 1px solid rgba(255,255,255,0.06); }
+	.studs-table tr:last-child { border-bottom: none; }
+	.studs-table td { padding: 7px 6px; font-size: 13px; color: rgba(255,255,255,0.75); vertical-align: middle; }
+	.studs-table .rank { color: rgba(255,255,255,0.3); font-size: 11px; width: 22px; text-align: right; padding-right: 10px; }
+	.studs-table .score { font-weight: 600; color: #fff; width: 46px; }
+	.studs-table .player-name { color: rgba(255,255,255,0.9); }
+	.studs-table .pos-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; color: rgba(255,255,255,0.4); width: 36px; }
+	.studs-table .nfl-team { color: rgba(255,255,255,0.35); font-size: 11px; width: 36px; }
+	.studs-table .owner { color: rgba(255,255,255,0.4); font-size: 11px; text-align: right; }
+
 	/* Award legend */
 	.legend-card {
 		background: rgba(255,255,255,0.03);
@@ -696,6 +711,26 @@
 					<span>💩</span><span><strong>Poop Man</strong> — bottom scorer in starting lineups this week (non-DST, non-K)</span>
 				</div>
 			</details>
+
+			{#if weekData.topStuds && weekData.topStuds.length > 0}
+			<div class="studs-section">
+				<h2 class="section-header">Studs</h2>
+				<table class="studs-table">
+					<tbody>
+						{#each weekData.topStuds as s}
+							<tr>
+								<td class="rank">{s.rank}</td>
+								<td class="score">{s.score.toFixed(2)}</td>
+								<td class="player-name">{s.playerName}</td>
+								<td class="pos-tag">{s.position}</td>
+								<td class="nfl-team">{s.nflTeam}</td>
+								<td class="owner">{s.ownerName}</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+			{/if}
 
 			<h2 class="section-header">Matchups</h2>
 
