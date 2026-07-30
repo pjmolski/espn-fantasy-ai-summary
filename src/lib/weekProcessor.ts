@@ -51,6 +51,7 @@ export interface ProcessedTeam {
 	starters: ProcessedPlayer[];
 	bench: ProcessedPlayer[];
 	optimalStarters: ProcessedPlayer[];
+	logoUrl?: string;
 	pointsLeftOnBench: number;
 	wouldHaveBeaten: number;
 	totalTeams: number;
@@ -311,6 +312,7 @@ export function processWeek(
 
 		return {
 			teamId: side.teamId,
+			logoUrl: teamMap.get(side.teamId)?.logoUrl,
 			teamName,
 			ownerName,
 			totalPoints: side.totalPoints,
@@ -648,7 +650,7 @@ export function processWeek(
 					playerName: p.fullName,
 					position: p.position,
 					nflTeam: p.nflTeam,
-					ownerName: t.ownerName,
+					ownerName: t.teamName,
 					playerId: p.playerId
 				});
 			}

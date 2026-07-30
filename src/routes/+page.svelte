@@ -132,6 +132,21 @@
 	function sortPlayers(players: ProcessedPlayer[]) {
 		return [...players].sort((a, b) => SLOT_ORDER.indexOf(a.slotName) - SLOT_ORDER.indexOf(b.slotName));
 	}
+
+	function playerImgUrl(playerId: number, position: string, nflTeam: string): string {
+		if (position === 'D/ST') return `https://a.espncdn.com/i/teamlogos/nfl/500/${nflTeam.toLowerCase()}.png`;
+		return `https://a.espncdn.com/i/headshots/nfl/players/full/${playerId}.png`;
+	}
+
+	$: teamLogoMap = (() => {
+		const map = new Map<number, string>();
+		if (!weekData) return map;
+		for (const m of weekData.matchups) {
+			if (m.home.logoUrl) map.set(m.home.teamId, m.home.logoUrl);
+			if (m.away?.logoUrl) map.set(m.away.teamId, m.away.logoUrl);
+		}
+		return map;
+	})();
 </script>
 
 <svelte:head>
@@ -187,13 +202,12 @@
 
 	.section-header {
 		font-size: 28px;
-		font-weight: 100;
+		font-weight: 200;
 		letter-spacing: -0.5px;
-		text-transform: uppercase;
-		color: #fff;
+		color: #00d26d;
 		margin: 40px 0 20px;
 		padding-bottom: 10px;
-		border-bottom: 1px solid rgba(255,255,255,0.08);
+		border-bottom: 1px solid rgba(0,210,109,0.2);
 	}
 	.week-label {
 		font-size: 11px;
@@ -434,7 +448,23 @@
 	/* Awards */
 	.awards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 40px; }
 	@media (max-width: 640px) { .awards { grid-template-columns: 1fr; } }
-	.award-card {
+	.award-img {
+		width: 48px;
+		height: 48px;
+		object-fit: cover;
+		border-radius: 50%;
+		background: rgba(255,255,255,0.06);
+		flex-shrink: 0;
+		align-self: center;
+	}
+	.award-img.team-logo {
+		border-radius: 6px;
+		object-fit: contain;
+		background: transparent;
+	}
+	.award-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+	.award-card-inner { display: flex; gap: 10px; align-items: flex-start; }
+		.award-card {
 		background: #272727;
 		border: 1px solid rgba(255,255,255,0.08);
 		border-radius: 3px;
@@ -473,18 +503,25 @@
 	}
 	.team-award-badge.sm { font-size: 11px; }
 
-	/* Studs table */
+	/* Weekly Studs */
 	.studs-section { margin: 32px 0 0; }
-	.studs-table { width: 100%; border-collapse: collapse; }
-	.studs-table tr { border-bottom: 1px solid rgba(255,255,255,0.06); }
-	.studs-table tr:last-child { border-bottom: none; }
-	.studs-table td { padding: 7px 6px; font-size: 13px; color: rgba(255,255,255,0.75); vertical-align: middle; }
-	.studs-table .rank { color: rgba(255,255,255,0.3); font-size: 11px; width: 22px; text-align: right; padding-right: 10px; }
-	.studs-table .score { font-weight: 600; color: #fff; width: 46px; }
-	.studs-table .player-name { color: rgba(255,255,255,0.9); }
-	.studs-table .pos-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; color: rgba(255,255,255,0.4); width: 36px; }
-	.studs-table .nfl-team { color: rgba(255,255,255,0.35); font-size: 11px; width: 36px; }
-	.studs-table .owner { color: rgba(255,255,255,0.4); font-size: 11px; text-align: right; }
+	.stud-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+	.stud-row:last-child { border-bottom: none; }
+	.stud-rank { font-size: 11px; color: rgba(255,255,255,0.3); width: 24px; text-align: right; flex-shrink: 0; }
+	.stud-img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: rgba(255,255,255,0.06); flex-shrink: 0; }
+	.stud-img.dst { border-radius: 4px; object-fit: contain; background: transparent; }
+	.stud-info { flex: 1; min-width: 0; }
+	.stud-name-line { display: flex; align-items: center; gap: 6px; }
+	.stud-name { font-size: 13px; color: rgba(255,255,255,0.9); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.stud-pos { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; flex-shrink: 0; }
+	.stud-pos.QB { color: #00d26d; }
+	.stud-pos.RB { color: #4da6ff; }
+	.stud-pos.WR { color: #ff5a46; }
+	.stud-pos.TE { color: #f5c518; }
+	.stud-pos.DST, .stud-pos.K { color: rgba(255,255,255,0.35); }
+	.stud-nfl { font-size: 11px; color: rgba(255,255,255,0.3); flex-shrink: 0; }
+	.stud-score { font-size: 13px; font-weight: 600; color: #fff; width: 46px; text-align: right; flex-shrink: 0; }
+	.stud-owner { font-size: 11px; color: rgba(255,255,255,0.35); width: 110px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
 
 	/* Award legend */
 	.legend-card {
@@ -555,11 +592,16 @@
 					{@const g = weekData.goldenApple}
 					<div class="award-card good">
 						<div class="award-emoji">🍎</div>
-						<div class="award-label">Golden Apple</div>
-						<div class="award-player">{g.playerName}</div>
-						<div class="award-meta">{g.position}{g.nflTeam ? ' · ' + g.nflTeam : ''} · {g.teamName}</div>
-						<div class="award-score green">{g.actualScore.toFixed(2)}</div>
-						<div class="award-delta">proj {g.projectedScore.toFixed(1)} · <span class="green">{sign(g.delta)}{g.delta.toFixed(1)}</span></div>
+						<div class="award-card-inner">
+							<img class="award-img" src={playerImgUrl(g.playerId, g.position, g.nflTeam)} alt={g.playerName} onerror="this.style.display='none'" loading="lazy" />
+							<div class="award-body">
+								<div class="award-label">Golden Apple</div>
+								<div class="award-player">{g.playerName}</div>
+								<div class="award-meta">{g.position}{g.nflTeam ? ' · ' + g.nflTeam : ''} · {g.teamName}</div>
+								<div class="award-score green">{g.actualScore.toFixed(2)}</div>
+								<div class="award-delta">proj {g.projectedScore.toFixed(1)} · <span class="green">{sign(g.delta)}{g.delta.toFixed(1)}</span></div>
+							</div>
+						</div>
 					</div>
 				{/if}
 
@@ -567,11 +609,16 @@
 					{@const b = weekData.brownBanana}
 					<div class="award-card bad">
 						<div class="award-emoji">🍌</div>
-						<div class="award-label">Brown Banana</div>
-						<div class="award-player">{b.playerName}</div>
-						<div class="award-meta">{b.position}{b.nflTeam ? ' · ' + b.nflTeam : ''} · {b.teamName}</div>
-						<div class="award-score red">{b.actualScore.toFixed(2)}</div>
-						<div class="award-delta">proj {b.projectedScore.toFixed(1)} · <span class="red">{sign(b.delta)}{b.delta.toFixed(1)}</span></div>
+						<div class="award-card-inner">
+							<img class="award-img" src={playerImgUrl(b.playerId, b.position, b.nflTeam)} alt={b.playerName} onerror="this.style.display='none'" loading="lazy" />
+							<div class="award-body">
+								<div class="award-label">Brown Banana</div>
+								<div class="award-player">{b.playerName}</div>
+								<div class="award-meta">{b.position}{b.nflTeam ? ' · ' + b.nflTeam : ''} · {b.teamName}</div>
+								<div class="award-score red">{b.actualScore.toFixed(2)}</div>
+								<div class="award-delta">proj {b.projectedScore.toFixed(1)} · <span class="red">{sign(b.delta)}{b.delta.toFixed(1)}</span></div>
+							</div>
+						</div>
 					</div>
 				{/if}
 
@@ -579,22 +626,32 @@
 					{@const l = weekData.lamentStud}
 					<div class="award-card bad">
 						<div class="award-emoji">🤡</div>
-						<div class="award-label">Lamest Stud</div>
-						<div class="award-player">{l.playerName}</div>
-						<div class="award-meta">{l.position}{l.nflTeam ? ' · ' + l.nflTeam : ''} · {l.teamName}</div>
-						<div class="award-score red">{l.actualScore.toFixed(2)}</div>
-						<div class="award-delta">{ordinal(l.overallPick)} overall · Round {l.draftRound}</div>
+						<div class="award-card-inner">
+							<img class="award-img" src={playerImgUrl(l.playerId, l.position, l.nflTeam)} alt={l.playerName} onerror="this.style.display='none'" loading="lazy" />
+							<div class="award-body">
+								<div class="award-label">Lamest Stud</div>
+								<div class="award-player">{l.playerName}</div>
+								<div class="award-meta">{l.position}{l.nflTeam ? ' · ' + l.nflTeam : ''} · {l.teamName}</div>
+								<div class="award-score red">{l.actualScore.toFixed(2)}</div>
+								<div class="award-delta">{ordinal(l.overallPick)} overall · Round {l.draftRound}</div>
+							</div>
+						</div>
 					</div>
 				{/if}
 				{#if weekData.muscleMan}
 					{@const m = weekData.muscleMan}
 					<div class="award-card good">
 						<div class="award-emoji">💪</div>
-						<div class="award-label">Muscle Man</div>
-						<div class="award-player">{m.playerName}</div>
-						<div class="award-meta">{m.position}{m.nflTeam ? ' · ' + m.nflTeam : ''} · {m.teamName}</div>
-						<div class="award-score green">{m.actualScore.toFixed(2)}</div>
-						<div class="award-delta">proj {m.projectedScore.toFixed(1)} · <span class="green">{sign(m.delta)}{m.delta.toFixed(1)}</span></div>
+						<div class="award-card-inner">
+							<img class="award-img" src={playerImgUrl(m.playerId, m.position, m.nflTeam)} alt={m.playerName} onerror="this.style.display='none'" loading="lazy" />
+							<div class="award-body">
+								<div class="award-label">Muscle Man</div>
+								<div class="award-player">{m.playerName}</div>
+								<div class="award-meta">{m.position}{m.nflTeam ? ' · ' + m.nflTeam : ''} · {m.teamName}</div>
+								<div class="award-score green">{m.actualScore.toFixed(2)}</div>
+								<div class="award-delta">proj {m.projectedScore.toFixed(1)} · <span class="green">{sign(m.delta)}{m.delta.toFixed(1)}</span></div>
+							</div>
+						</div>
 					</div>
 				{/if}
 
@@ -602,11 +659,16 @@
 					{@const p = weekData.poopMan}
 					<div class="award-card bad">
 						<div class="award-emoji">💩</div>
-						<div class="award-label">Poop Man</div>
-						<div class="award-player">{p.playerName}</div>
-						<div class="award-meta">{p.position}{p.nflTeam ? ' · ' + p.nflTeam : ''} · {p.teamName}</div>
-						<div class="award-score red">{p.actualScore.toFixed(2)}</div>
-						<div class="award-delta">proj {p.projectedScore.toFixed(1)} · <span class="red">{sign(p.delta)}{p.delta.toFixed(1)}</span></div>
+						<div class="award-card-inner">
+							<img class="award-img" src={playerImgUrl(p.playerId, p.position, p.nflTeam)} alt={p.playerName} onerror="this.style.display='none'" loading="lazy" />
+							<div class="award-body">
+								<div class="award-label">Poop Man</div>
+								<div class="award-player">{p.playerName}</div>
+								<div class="award-meta">{p.position}{p.nflTeam ? ' · ' + p.nflTeam : ''} · {p.teamName}</div>
+								<div class="award-score red">{p.actualScore.toFixed(2)}</div>
+								<div class="award-delta">proj {p.projectedScore.toFixed(1)} · <span class="red">{sign(p.delta)}{p.delta.toFixed(1)}</span></div>
+							</div>
+						</div>
 					</div>
 				{/if}
 
@@ -614,11 +676,16 @@
 					{@const a = weekData.superMushroom}
 					<div class="award-card good">
 						<div class="award-emoji">🍄</div>
-						<div class="award-label">Super Mushroom</div>
-						<div class="award-player">{a.teamName}</div>
-						<div class="award-meta">Projected to lose vs {a.opponentName}</div>
-						<div class="award-score green">{a.actualScore.toFixed(2)}</div>
-						<div class="award-delta">proj {a.projectedScore.toFixed(1)} · opp proj {a.opponentProjected.toFixed(1)}</div>
+						<div class="award-card-inner">
+							{#if teamLogoMap.get(a.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(a.teamId)} alt={a.teamName} onerror="this.style.display='none'" loading="lazy" />{/if}
+							<div class="award-body">
+								<div class="award-label">Super Mushroom</div>
+								<div class="award-player">{a.teamName}</div>
+								<div class="award-meta">Projected to lose vs {a.opponentName}</div>
+								<div class="award-score green">{a.actualScore.toFixed(2)}</div>
+								<div class="award-delta">proj {a.projectedScore.toFixed(1)} · opp proj {a.opponentProjected.toFixed(1)}</div>
+							</div>
+						</div>
 					</div>
 				{/if}
 
@@ -626,22 +693,32 @@
 					{@const cs = weekData.closeShave}
 					<div class="award-card good">
 						<div class="award-emoji">💈</div>
-						<div class="award-label">Close Shave</div>
-						<div class="award-player">{cs.teamName}</div>
-						<div class="award-meta">Narrowest win this week</div>
-						<div class="award-score green">{(cs.loserScore + cs.margin).toFixed(2)}</div>
-						<div class="award-delta">won by {cs.margin.toFixed(2)} pts · vs {cs.loserName} ({cs.loserScore.toFixed(2)})</div>
+						<div class="award-card-inner">
+							{#if teamLogoMap.get(cs.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(cs.teamId)} alt={cs.teamName} onerror="this.style.display='none'" loading="lazy" />{/if}
+							<div class="award-body">
+								<div class="award-label">Close Shave</div>
+								<div class="award-player">{cs.teamName}</div>
+								<div class="award-meta">Narrowest win this week</div>
+								<div class="award-score green">{(cs.loserScore + cs.margin).toFixed(2)}</div>
+								<div class="award-delta">won by {cs.margin.toFixed(2)} pts · vs {cs.loserName} ({cs.loserScore.toFixed(2)})</div>
+							</div>
+						</div>
 					</div>
 				{/if}
 
 				{#each weekData.assassins ?? [] as a}
 					<div class="award-card good">
 						<div class="award-emoji">🥷</div>
-						<div class="award-label">Assassin</div>
-						<div class="award-player">{a.teamName}</div>
-						<div class="award-meta">Took out a top-3 scorer</div>
-						<div class="award-score green">{a.actualScore.toFixed(2)}</div>
-						<div class="award-delta">vs {a.victimName} · {a.victimScore.toFixed(2)}</div>
+						<div class="award-card-inner">
+							{#if teamLogoMap.get(a.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(a.teamId)} alt={a.teamName} onerror="this.style.display='none'" loading="lazy" />{/if}
+							<div class="award-body">
+								<div class="award-label">Assassin</div>
+								<div class="award-player">{a.teamName}</div>
+								<div class="award-meta">Took out a top-3 scorer</div>
+								<div class="award-score green">{a.actualScore.toFixed(2)}</div>
+								<div class="award-delta">vs {a.victimName} · {a.victimScore.toFixed(2)}</div>
+							</div>
+						</div>
 					</div>
 				{/each}
 
@@ -649,11 +726,16 @@
 					{@const ga = weekData.gambler}
 					<div class="award-card good">
 						<div class="award-emoji">🎲</div>
-						<div class="award-label">The Gambler</div>
-						<div class="award-player">{ga.teamName}</div>
-						<div class="award-meta">Started lower-projected players who delivered</div>
-						<div class="award-score green">{ga.successfulGambles}</div>
-						<div class="award-delta">starters who beat a higher-proj bench player</div>
+						<div class="award-card-inner">
+							{#if teamLogoMap.get(ga.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(ga.teamId)} alt={ga.teamName} onerror="this.style.display='none'" loading="lazy" />{/if}
+							<div class="award-body">
+								<div class="award-label">The Gambler</div>
+								<div class="award-player">{ga.teamName}</div>
+								<div class="award-meta">Started lower-projected players who delivered</div>
+								<div class="award-score green">{ga.successfulGambles}</div>
+								<div class="award-delta">starters who beat a higher-proj bench player</div>
+							</div>
+						</div>
 					</div>
 				{/if}
 
@@ -661,11 +743,16 @@
 					{@const wm = weekData.wrongMan}
 					<div class="award-card bad">
 						<div class="award-emoji">👥</div>
-						<div class="award-label">Wrong Man</div>
-						<div class="award-player">{wm.teamName}</div>
-						<div class="award-meta">Started {wm.startedName} ({wm.startedScore.toFixed(1)}) over {wm.benchedName} ({wm.benchedScore.toFixed(1)})</div>
-						<div class="award-score red">−{wm.pointsLeft.toFixed(2)}</div>
-						<div class="award-delta">pts left on bench</div>
+						<div class="award-card-inner">
+							{#if teamLogoMap.get(wm.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(wm.teamId)} alt={wm.teamName} onerror="this.style.display='none'" loading="lazy" />{/if}
+							<div class="award-body">
+								<div class="award-label">Wrong Man</div>
+								<div class="award-player">{wm.teamName}</div>
+								<div class="award-meta">Started {wm.startedName} ({wm.startedScore.toFixed(1)}) over {wm.benchedName} ({wm.benchedScore.toFixed(1)})</div>
+								<div class="award-score red">−{wm.pointsLeft.toFixed(2)}</div>
+								<div class="award-delta">pts left on bench</div>
+							</div>
+						</div>
 					</div>
 				{/if}
 
@@ -673,11 +760,16 @@
 					{@const ld = weekData.luckyDevil}
 					<div class="award-card good">
 						<div class="award-emoji">🍀</div>
-						<div class="award-label">Lucky Devil</div>
-						<div class="award-player">{ld.teamName}</div>
-						<div class="award-meta">Lowest-scoring winner this week</div>
-						<div class="award-score">{ld.actualScore.toFixed(2)}</div>
-						<div class="award-delta">would've beaten only {ld.wouldHaveBeaten} of {ld.totalTeams - 1} other teams</div>
+						<div class="award-card-inner">
+							{#if teamLogoMap.get(ld.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(ld.teamId)} alt={ld.teamName} onerror="this.style.display='none'" loading="lazy" />{/if}
+							<div class="award-body">
+								<div class="award-label">Lucky Devil</div>
+								<div class="award-player">{ld.teamName}</div>
+								<div class="award-meta">Lowest-scoring winner this week</div>
+								<div class="award-score">{ld.actualScore.toFixed(2)}</div>
+								<div class="award-delta">would've beaten only {ld.wouldHaveBeaten} of {ld.totalTeams - 1} other teams</div>
+							</div>
+						</div>
 					</div>
 				{/if}
 
@@ -685,11 +777,16 @@
 					{@const mm = weekData.mrMonopoly}
 					<div class="award-card good">
 						<div class="award-emoji">🎩</div>
-						<div class="award-label">Mr. Monopoly</div>
-						<div class="award-player">{mm.teamName}</div>
-						<div class="award-meta">Took over the season points lead</div>
-						<div class="award-score green">{mm.currentTotal.toFixed(2)}</div>
-						<div class="award-delta">overtook {mm.prevLeaderName} · {mm.prevLeaderTotal.toFixed(2)}</div>
+						<div class="award-card-inner">
+							{#if teamLogoMap.get(mm.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(mm.teamId)} alt={mm.teamName} onerror="this.style.display='none'" loading="lazy" />{/if}
+							<div class="award-body">
+								<div class="award-label">Mr. Monopoly</div>
+								<div class="award-player">{mm.teamName}</div>
+								<div class="award-meta">Took over the season points lead</div>
+								<div class="award-score green">{mm.currentTotal.toFixed(2)}</div>
+								<div class="award-delta">overtook {mm.prevLeaderName} · {mm.prevLeaderTotal.toFixed(2)}</div>
+							</div>
+						</div>
 					</div>
 				{/if}
 			</div>
@@ -714,21 +811,24 @@
 
 			{#if weekData.topStuds && weekData.topStuds.length > 0}
 			<div class="studs-section">
-				<h2 class="section-header">Studs</h2>
-				<table class="studs-table">
-					<tbody>
-						{#each weekData.topStuds as s}
-							<tr>
-								<td class="rank">{s.rank}</td>
-								<td class="score">{s.score.toFixed(2)}</td>
-								<td class="player-name">{s.playerName}</td>
-								<td class="pos-tag">{s.position}</td>
-								<td class="nfl-team">{s.nflTeam}</td>
-								<td class="owner">{s.ownerName}</td>
-							</tr>
-						{/each}
-					</tbody>
-				</table>
+				<h2 class="section-header">Weekly Studs</h2>
+				{#each weekData.topStuds as s}
+					{@const medal = s.rank === 1 ? '🥇' : s.rank === 2 ? '🥈' : s.rank === 3 ? '🥉' : null}
+					{@const posClass = s.position === 'D/ST' ? 'DST' : s.position}
+					<div class="stud-row">
+						<div class="stud-rank">{medal ?? s.rank}</div>
+						<img class="stud-img {s.position === 'D/ST' ? 'dst' : ''}" src={playerImgUrl(s.playerId, s.position, s.nflTeam)} alt={s.playerName} onerror="this.style.display='none'" loading="lazy" />
+						<div class="stud-info">
+							<div class="stud-name-line">
+								<span class="stud-pos {posClass}">{s.position}</span>
+								<span class="stud-name">{s.playerName}</span>
+								{#if s.nflTeam}<span class="stud-nfl">{s.nflTeam}</span>{/if}
+							</div>
+						</div>
+						<div class="stud-score">{s.score.toFixed(2)}</div>
+						<div class="stud-owner">{s.ownerName}</div>
+					</div>
+				{/each}
 			</div>
 			{/if}
 
