@@ -109,6 +109,11 @@
 		? Math.max(...weekData.matchups.flatMap(m => [m.home.totalPoints, m.away?.totalPoints ?? 0]))
 		: -Infinity;
 
+	function displacedFromOptimal(t: ProcessedTeam): ProcessedPlayer[] {
+		const optIds = new Set(t.optimalStarters.map(s => s.playerId));
+		return t.starters.filter(s => !optIds.has(s.playerId));
+	}
+
 	function sortPlayers(players: ProcessedPlayer[]) {
 		return [...players].sort((a, b) => SLOT_ORDER.indexOf(a.slotName) - SLOT_ORDER.indexOf(b.slotName));
 	}
@@ -645,15 +650,13 @@
 									</div>
 
 									<!-- Optimal bench: starters displaced by the optimal lineup -->
-									{@const optimalIds = new Set(t.optimalStarters.map(s => s.playerId))}
-									{@const displacedStarters = t.starters.filter(s => !optimalIds.has(s.playerId))}
-									{#if displacedStarters.length > 0}
+									{#if displacedFromOptimal(t).length > 0}
 										<button class="bench-toggle" on:click={() => toggleBench(matchup.matchupId)}>
 											<span>{isBenchOpen ? '▴' : '▾'}</span> Bench
 										</button>
 										{#if isBenchOpen}
 											<div class="bench-section">
-												{#each displacedStarters as p}
+												{#each displacedFromOptimal(t) as p}
 													<div class="bench-row displaced">
 														<span>{p.fullName} {#if p.nflTeam}<span class="nfl-team" style="margin-left:6px">{p.nflTeam}</span>{/if}</span>
 														<span>{p.actualScore.toFixed(2)}</span>
