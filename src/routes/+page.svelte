@@ -105,6 +105,10 @@
 	})();
 	$: muscleIds = new Set(allWeekStarters.filter(p => p.actualScore === muscleScore).map(p => p.playerId));
 	$: poopIds   = new Set(allWeekStarters.filter(p => p.position !== 'D/ST' && p.actualScore === poopScore).map(p => p.playerId));
+	$: topScore = weekData
+		? Math.max(...weekData.matchups.flatMap(m => [m.home.totalPoints, m.away?.totalPoints ?? 0]))
+		: -Infinity;
+
 	function sortPlayers(players: ProcessedPlayer[]) {
 		return [...players].sort((a, b) => SLOT_ORDER.indexOf(a.slotName) - SLOT_ORDER.indexOf(b.slotName));
 	}
@@ -119,6 +123,7 @@
 
 <style>
 	:global(*) { box-sizing: border-box; margin: 0; padding: 0; }
+	:global(:root) { --gold: #ffcc33; }
 	:global(body) {
 		font-family: 'Raleway', sans-serif;
 		background: #303030;
@@ -196,6 +201,7 @@
 		letter-spacing: 0.3px;
 	}
 	.team-name.winner { color: #fff; }
+	.team-name.top-scorer { color: var(--gold); }
 	.team-name.loser  { color: rgba(255,255,255,0.45); }
 	.score {
 		font-size: 20px;
@@ -207,44 +213,49 @@
 	.vs { font-size: 11px; color: rgba(255,255,255,0.25); letter-spacing: 1px; text-transform: uppercase; }
 
 	/* Tab buttons */
-	.genie-btn {
-		height: 36px;
-		border-radius: 18px;
+	.cake-btn {
+		min-height: 44px;
+		border-radius: 12px;
 		border: 2px solid rgba(255,255,255,0.15);
 		background: rgba(255,255,255,0.06);
-		font-size: 18px;
-		line-height: 1;
 		cursor: pointer;
 		display: flex;
+		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: 6px;
-		padding: 0 10px;
-		transition: border-color .18s, background .18s, box-shadow .18s, padding .18s;
+		gap: 2px;
+		padding: 6px 12px;
+		transition: border-color .18s, background .18s, box-shadow .18s;
 		flex-shrink: 0;
 	}
-	.genie-btn:hover {
+	.cake-btn:hover {
 		border-color: rgba(255,255,255,0.35);
 	}
-	.genie-btn .genie-label {
+	.cake-emoji { font-size: 20px; line-height: 1; }
+	.cake-label {
 		display: none;
 		font-family: 'Raleway', sans-serif;
-		font-size: 11px;
+		font-size: 9px;
 		font-weight: 700;
 		letter-spacing: 1px;
 		text-transform: uppercase;
 		color: #00ccff;
 		white-space: nowrap;
 	}
-	.genie-btn.active {
+	.cake-delta {
+		font-family: 'Raleway', sans-serif;
+		font-size: 10px;
+		font-weight: 700;
+		color: rgba(255,255,255,0.35);
+		white-space: nowrap;
+	}
+	.cake-btn.active {
 		border-color: #00ccff;
 		background: rgba(0,204,255,0.12);
 		box-shadow: 0 0 0 3px rgba(0,204,255,0.15);
-		padding: 0 14px;
 	}
-	.genie-btn.active .genie-label {
-		display: inline;
-	}
+	.cake-btn.active .cake-label { display: block; }
+	.cake-btn.active .cake-delta { color: #00ccff; }
 
 	/* Roster grid */
 	.roster-grid {
@@ -265,7 +276,7 @@
 	}
 	.col-team-name { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: rgba(255,255,255,0.7); }
 	.col-meta { font-size: 11px; color: rgba(255,255,255,0.3); }
-	.col-meta .bench-pts { color: #ffc832; }
+	.col-meta .bench-pts { color: var(--gold); }
 
 	/* Player rows */
 	.player-row {
@@ -295,7 +306,7 @@
 		font-weight: 700;
 		letter-spacing: 1px;
 		text-transform: uppercase;
-		color: rgba(255,255,255,0.3);
+		color: rgba(255,255,255,0.8);
 		flex-shrink: 0;
 	}
 	.injury-badge {
@@ -306,7 +317,7 @@
 		flex-shrink: 0;
 	}
 	.injury-badge.out  { background: rgba(255,90,70,0.2);  color: #ff5a46; }
-	.injury-badge.q    { background: rgba(255,200,50,0.2); color: #ffc832; }
+	.injury-badge.q    { background: rgba(255,200,50,0.2); color: var(--gold); }
 
 	.player-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 6px; }
 	.proj { font-size: 11px; color: rgba(255,255,255,0.25); }
@@ -343,6 +354,8 @@
 		border-top: 1px solid rgba(255,255,255,0.1);
 		margin-top: 2px;
 	}
+	.proj-total { color: rgba(255,255,255,0.3); }
+	.bench-row.displaced { color: rgba(255,200,50,0.6); }
 	.award-emoji-inline {
 		font-size: 12px;
 		line-height: 1;
@@ -382,7 +395,7 @@
 
 	/* Optimal highlight */
 	.was-benched { background: rgba(255,200,50,0.07) !important; }
-	.was-benched .player-name { color: #ffc832; }
+	.was-benched .player-name { color: var(--gold); }
 	.benched-tag { font-size: 9px; color: rgba(255,200,50,0.6); font-weight: 700; letter-spacing: 0.5px; }
 
 	/* Optimal outcome line */
@@ -453,10 +466,49 @@
 				{weekData.seasonId} · {weekData.isPlayoffWeek ? '🏆 Playoffs · ' : ''}Week {weekData.scoringPeriodId}
 			</div>
 
+			<!-- Awards -->
+			<div class="awards">
+				{#if weekData.goldenApple}
+					{@const g = weekData.goldenApple}
+					<div class="award-card">
+						<div class="award-emoji">🍎</div>
+						<div class="award-label">Golden Apple</div>
+						<div class="award-player">{g.playerName}</div>
+						<div class="award-meta">{g.position}{g.nflTeam ? ' · ' + g.nflTeam : ''} · {g.teamName}</div>
+						<div class="award-score green">{g.actualScore.toFixed(2)}</div>
+						<div class="award-delta">proj {g.projectedScore.toFixed(1)} · <span class="green">{sign(g.delta)}{g.delta.toFixed(1)}</span></div>
+					</div>
+				{/if}
+
+				{#if weekData.brownBanana}
+					{@const b = weekData.brownBanana}
+					<div class="award-card">
+						<div class="award-emoji">🍌</div>
+						<div class="award-label">Brown Banana</div>
+						<div class="award-player">{b.playerName}</div>
+						<div class="award-meta">{b.position}{b.nflTeam ? ' · ' + b.nflTeam : ''} · {b.teamName}</div>
+						<div class="award-score red">{b.actualScore.toFixed(2)}</div>
+						<div class="award-delta">proj {b.projectedScore.toFixed(1)} · <span class="red">{sign(b.delta)}{b.delta.toFixed(1)}</span></div>
+					</div>
+				{/if}
+
+				{#if weekData.lamentStud}
+					{@const l = weekData.lamentStud}
+					<div class="award-card">
+						<div class="award-emoji">🤡</div>
+						<div class="award-label">Lamest Stud</div>
+						<div class="award-player">{l.playerName}</div>
+						<div class="award-meta">{l.position}{l.nflTeam ? ' · ' + l.nflTeam : ''} · {l.teamName}</div>
+						<div class="award-score red">{l.actualScore.toFixed(2)}</div>
+						<div class="award-delta">{ordinal(l.overallPick)} overall · Round {l.draftRound}</div>
+					</div>
+				{/if}
+			</div>
+
 			<!-- Matchups -->
 			{#each weekData.matchups as matchup}
 				{@const isOptimal = showOptimal[matchup.matchupId] ?? false}
-				{@const isBenchOpen = benchOpen[matchup.matchupId] ?? true}
+				{@const isBenchOpen = benchOpen[matchup.matchupId] ?? false}
 
 				<div class="matchup-card {isOptimal ? 'optimal-mode' : ''}">
 					<div class="matchup-header">
@@ -464,7 +516,7 @@
 							<!-- Home -->
 							<div class="team-score">
 								{#if matchup.home.isLuckiest}<span title="Luckiest win — won with a score that would have lost most other matchups this week">🍀</span>{/if}
-								<span class="team-name {matchup.winner === 'home' ? 'winner' : 'loser'}">{matchup.home.teamName}</span>
+								<span class="team-name {matchup.winner === 'home' ? 'winner' : 'loser'} {matchup.home.totalPoints === topScore ? 'top-scorer' : ''}">{matchup.home.teamName}</span>
 								<span class="score {matchup.winner === 'home' ? 'winner' : 'loser'}">{matchup.home.totalPoints.toFixed(2)}</span>
 							</div>
 							<span class="vs">vs</span>
@@ -472,17 +524,23 @@
 							{#if matchup.away}
 								<div class="team-score">
 									<span class="score {matchup.winner === 'away' ? 'winner' : 'loser'}">{matchup.away.totalPoints.toFixed(2)}</span>
-									<span class="team-name {matchup.winner === 'away' ? 'winner' : 'loser'}">{#if matchup.away.isLuckiest}<span title="Luckiest win — won with a score that would have lost most other matchups this week">🍀</span> {/if}{matchup.away.teamName}</span>
+									<span class="team-name {matchup.winner === 'away' ? 'winner' : 'loser'} {matchup.away.totalPoints === topScore ? 'top-scorer' : ''}">{#if matchup.away.isLuckiest}<span title="Luckiest win — won with a score that would have lost most other matchups this week">🍀</span> {/if}{matchup.away.teamName}</span>
 								</div>
 							{/if}
 						</div>
 
 						<button
-							class="genie-btn {isOptimal ? 'active' : ''}"
+							class="cake-btn {isOptimal ? 'active' : ''}"
 							on:click={() => toggleOptimal(matchup.matchupId)}
-							title="Optimal Lineup Genie"
-							aria-label="Optimal Lineup Genie"
-						>🧞<span class="genie-label">Optimal Lineup</span></button>
+							title="Optimal Lineup"
+							aria-label="Optimal Lineup"
+						>
+							<span class="cake-emoji">🍰</span>
+							<span class="cake-label">Cake Mode</span>
+							{#if (matchup.home.pointsLeftOnBench + (matchup.away?.pointsLeftOnBench ?? 0)) > 0}
+								<span class="cake-delta">+{(matchup.home.pointsLeftOnBench + (matchup.away?.pointsLeftOnBench ?? 0)).toFixed(1)}</span>
+							{/if}
+						</button>
 					</div>
 
 					<!-- Results / Optimal view -->
@@ -504,9 +562,9 @@
 											<div class="player-left">
 												<span class="slot-label">{p.slotName}</span>
 												<span class="player-name">{p.fullName}</span>
+												{#if p.nflTeam}<span class="nfl-team">{p.nflTeam}</span>{/if}
 												{#if muscleIds.has(p.playerId)}<span class="award-emoji-inline" title="Top Weekly Scorer">💪</span>{/if}
 												{#if poopIds.has(p.playerId)}<span class="award-emoji-inline" title="Bottom Weekly Scorer">💩</span>{/if}
-												{#if p.nflTeam}<span class="nfl-team">{p.nflTeam}</span>{/if}
 												{#if p.injuryStatus === 'OUT' || p.injuryStatus === 'DOUBTFUL'}
 													<span class="injury-badge out">{p.injuryStatus[0]}</span>
 												{:else if p.injuryStatus === 'QUESTIONABLE'}
@@ -522,6 +580,10 @@
 									<div class="total-row">
 										<span>TOTAL</span>
 										<span>{t.totalPoints.toFixed(2)}</span>
+									</div>
+									<div class="total-row proj-total">
+										<span>PROJ</span>
+										<span>{t.starters.reduce((s, p) => s + p.projectedScore, 0).toFixed(2)}</span>
 									</div>
 
 									<!-- Bench toggle (shared across both teams via matchupId) -->
@@ -566,9 +628,9 @@
 											<div class="player-left">
 												<span class="slot-label">{p.slotName}</span>
 												<span class="player-name">{p.fullName}</span>
+												{#if p.nflTeam}<span class="nfl-team">{p.nflTeam}</span>{/if}
 												{#if muscleIds.has(p.playerId)}<span class="award-emoji-inline" title="Top Weekly Scorer">💪</span>{/if}
 												{#if poopIds.has(p.playerId)}<span class="award-emoji-inline" title="Bottom Weekly Scorer">💩</span>{/if}
-												{#if p.nflTeam}<span class="nfl-team">{p.nflTeam}</span>{/if}
 												{#if !wasStarted}<span class="benched-tag">BENCHED</span>{/if}
 											</div>
 											<div class="player-right">
@@ -582,15 +644,17 @@
 										<span style="color:#00d26d">{t.optimalPoints.toFixed(2)}</span>
 									</div>
 
-									<!-- Bench toggle (shared with results view) -->
-									{#if t.bench.filter(p => p.slotName !== 'IR').length > 0}
+									<!-- Optimal bench: starters displaced by the optimal lineup -->
+									{@const optimalIds = new Set(t.optimalStarters.map(s => s.playerId))}
+									{@const displacedStarters = t.starters.filter(s => !optimalIds.has(s.playerId))}
+									{#if displacedStarters.length > 0}
 										<button class="bench-toggle" on:click={() => toggleBench(matchup.matchupId)}>
 											<span>{isBenchOpen ? '▴' : '▾'}</span> Bench
 										</button>
 										{#if isBenchOpen}
 											<div class="bench-section">
-												{#each t.bench.filter(p => p.slotName !== 'IR') as p}
-													<div class="bench-row">
+												{#each displacedStarters as p}
+													<div class="bench-row displaced">
 														<span>{p.fullName} {#if p.nflTeam}<span class="nfl-team" style="margin-left:6px">{p.nflTeam}</span>{/if}</span>
 														<span>{p.actualScore.toFixed(2)}</span>
 													</div>
@@ -611,44 +675,7 @@
 				</div>
 			{/each}
 
-			<!-- Awards -->
-			<div class="awards">
-				{#if weekData.goldenApple}
-					{@const g = weekData.goldenApple}
-					<div class="award-card">
-						<div class="award-emoji">🍎</div>
-						<div class="award-label">Golden Apple</div>
-						<div class="award-player">{g.playerName}</div>
-						<div class="award-meta">{g.position}{g.nflTeam ? ' · ' + g.nflTeam : ''} · {g.teamName}</div>
-						<div class="award-score green">{g.actualScore.toFixed(2)}</div>
-						<div class="award-delta">proj {g.projectedScore.toFixed(1)} · <span class="green">{sign(g.delta)}{g.delta.toFixed(1)}</span></div>
-					</div>
-				{/if}
 
-				{#if weekData.brownBanana}
-					{@const b = weekData.brownBanana}
-					<div class="award-card">
-						<div class="award-emoji">🍌</div>
-						<div class="award-label">Brown Banana</div>
-						<div class="award-player">{b.playerName}</div>
-						<div class="award-meta">{b.position}{b.nflTeam ? ' · ' + b.nflTeam : ''} · {b.teamName}</div>
-						<div class="award-score red">{b.actualScore.toFixed(2)}</div>
-						<div class="award-delta">proj {b.projectedScore.toFixed(1)} · <span class="red">{sign(b.delta)}{b.delta.toFixed(1)}</span></div>
-					</div>
-				{/if}
-
-				{#if weekData.lamentStud}
-					{@const l = weekData.lamentStud}
-					<div class="award-card">
-						<div class="award-emoji">🤡</div>
-						<div class="award-label">Lamest Stud</div>
-						<div class="award-player">{l.playerName}</div>
-						<div class="award-meta">{l.position}{l.nflTeam ? ' · ' + l.nflTeam : ''} · {l.teamName}</div>
-						<div class="award-score red">{l.actualScore.toFixed(2)}</div>
-						<div class="award-delta">{ordinal(l.overallPick)} overall · Round {l.draftRound}</div>
-					</div>
-				{/if}
-			</div>
 
 		{:else}
 			<div class="empty">No data found. Run the backfill to populate historical data.</div>
