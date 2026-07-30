@@ -279,8 +279,9 @@
 		justify-content: space-between;
 	}
 	.section-header:hover { opacity: 0.85; }
-	.section-chevron { font-size: 16px; opacity: 0.4; transition: transform 0.2s; display: inline-block; }
-	.section-chevron.open { transform: rotate(90deg); opacity: 0.7; }
+	.section-chevron { margin-left: 10px; font-size: 22px; opacity: 0.85; color: var(--green); display: inline-block; transition: transform 0.2s; line-height: 1; }
+	.section-chevron::before { content: "›"; }
+	.section-chevron.open { transform: rotate(90deg); }
 	.week-label {
 		font-size: 11px;
 		letter-spacing: 2px;
@@ -733,7 +734,7 @@
 
 			<h2 class="section-header" onclick={() => honorsOpen = !honorsOpen}>
 				<span>Week {weekData.scoringPeriodId} Honors</span>
-				<span class="section-chevron {honorsOpen ? 'open' : ''}">▶</span>
+				<span class="section-chevron {honorsOpen ? 'open' : ''}"></span>
 			</h2>
 
 			{#if honorsOpen}
@@ -1026,7 +1027,7 @@
 			<div class="studs-section">
 				<h2 class="section-header" onclick={() => studsOpen = !studsOpen}>
 					<span>Weekly Studs</span>
-					<span class="section-chevron {studsOpen ? 'open' : ''}">▶</span>
+					<span class="section-chevron {studsOpen ? 'open' : ''}"></span>
 				</h2>
 				{#if studsOpen}
 				{#each weekData.topStuds as s}
@@ -1052,7 +1053,7 @@
 
 			<h2 class="section-header" onclick={() => matchupsOpen = !matchupsOpen}>
 				<span>Matchups</span>
-				<span class="section-chevron {matchupsOpen ? 'open' : ''}">▶</span>
+				<span class="section-chevron {matchupsOpen ? 'open' : ''}"></span>
 			</h2>
 			{#if matchupsOpen}
 
@@ -1248,7 +1249,7 @@
 			{#if standingsHistory.length > 0 && chartInfo}
 				<h2 class="section-header" onclick={() => standingsOpen = !standingsOpen}>
 					<span>Season Standings</span>
-					<span class="section-chevron {standingsOpen ? 'open' : ''}">▶</span>
+					<span class="section-chevron {standingsOpen ? 'open' : ''}"></span>
 				</h2>
 				{#if standingsOpen}
 					{@const c = chartInfo}
