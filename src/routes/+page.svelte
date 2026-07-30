@@ -492,7 +492,7 @@
 		font-weight: 700;
 		letter-spacing: 2px;
 		text-transform: uppercase;
-		color: rgba(255,255,255,0.3);
+		color: var(--gold);
 		margin-bottom: 0;
 	}
 	.award-player { font-size: 15px; font-weight: 600; }
@@ -520,7 +520,7 @@
 	.studs-section { margin: 32px 0 0; }
 	.stud-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
 	.stud-row:last-child { border-bottom: none; }
-	.stud-rank { font-size: 11px; color: rgba(255,255,255,0.3); width: 24px; text-align: right; flex-shrink: 0; }
+	.stud-rank { font-size: 11px; color: rgba(255,255,255,0.3); width: 24px; text-align: center; flex-shrink: 0; }
 	.stud-rank.medal { font-size: 16px; color: rgba(255,255,255,1); }
 	.stud-img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: rgba(255,255,255,0.06); flex-shrink: 0; }
 	.stud-img.dst { border-radius: 4px; object-fit: contain; background: transparent; }
