@@ -1070,7 +1070,6 @@
 
 
 			{/if}
-			{/if}
 		{:else}
 			<div class="empty">No data found. Run the backfill to populate historical data.</div>
 		{/if}
