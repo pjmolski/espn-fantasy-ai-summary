@@ -1,6 +1,7 @@
 import { getAvailableWeeks, getWeeklyMatchupDoc, getSeasonDoc, getCumulativeScoresByWeek, getAllWeeklyDocs } from '$lib/fantasyDataService';
 import { processWeek } from '$lib/weekProcessor';
 import { computeStandingsHistory, computeStreaks } from '$lib/standingsHistory';
+import { computePlayoffBracket, getPlayoffRoundForWeek } from '$lib/playoffBracket';
 import { LEAGUE_ID, OWNER_DICT } from '$env/static/private';
 
 export async function load({ url }) {
@@ -26,8 +27,15 @@ export async function load({ url }) {
 
 		const ownerDict: Record<string, string> = JSON.parse(OWNER_DICT || '{}');
 		const streaks = computeStreaks(allDocs);
-		const weekData = weekDoc && seasonDoc ? processWeek(weekDoc, seasonDoc, ownerDict, prevScores, streaks) : null;
-		const standingsHistory = seasonDoc ? computeStandingsHistory(allDocs, seasonDoc) : [];
+
+		// Compute playoff bracket (no-op for regular season weeks)
+		const bracket = seasonDoc ? computePlayoffBracket(allDocs, seasonDoc) : null;
+		const playoffRound = bracket && weekDoc ? getPlayoffRoundForWeek(bracket, weekDoc.scoringPeriodId) : null;
+
+		const weekData = weekDoc && seasonDoc
+			? processWeek(weekDoc, seasonDoc, ownerDict, prevScores, streaks, playoffRound, bracket?.seeds ?? null)
+			: null;
+		const standingsHistory = seasonDoc ? computeStandingsHistory(allDocs, seasonDoc, bracket ?? undefined) : [];
 
 		// Inject championship awards: only when final ranks are fully resolved (lo===hi)
 		if (weekData?.isPlayoffWeek) {

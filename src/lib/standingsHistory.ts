@@ -1,4 +1,5 @@
 import type { WeeklyMatchupDoc, SeasonDoc } from './schema';
+import type { PlayoffBracketState } from './playoffBracket';
 
 export interface StandingsEntry {
 	teamId: number;
@@ -18,7 +19,8 @@ export interface StandingsEntry {
  */
 export function computeStandingsHistory(
 	docs: WeeklyMatchupDoc[],
-	seasonDoc: SeasonDoc
+	seasonDoc: SeasonDoc,
+	bracket?: PlayoffBracketState
 ): StandingsEntry[] {
 	const totalTeams = seasonDoc.teamCount;
 	const teamIds = seasonDoc.teams.map((t) => t.teamId);
@@ -96,28 +98,44 @@ export function computeStandingsHistory(
 		}
 
 		for (const doc of playoffDocs) {
-			const playedThisRound = new Set<number>();
+			const bracketRound = bracket?.rounds.find((r) => r.week === doc.scoringPeriodId);
 
-			for (const m of doc.matchups) {
-				// m.away === undefined → this is a bye matchup; skip but don't add home to playedThisRound
-				if (!m.away) continue;
+			if (bracketRound) {
+				// Use custom bracket results (correct losers-bracket pairings)
+				const playedThisRound = new Set<number>();
 
-				playedThisRound.add(m.home.teamId);
-				playedThisRound.add(m.away.teamId);
+				for (const bm of bracketRound.matchups) {
+					if (!bm.teamIdB || !bm.winner) continue;
+					const loserId = bm.winner === bm.teamIdA ? bm.teamIdB : bm.teamIdA;
+					narrowRange(bm.winner, true, lo, hi);
+					narrowRange(loserId, false, lo, hi);
+					playedThisRound.add(bm.teamIdA);
+					playedThisRound.add(bm.teamIdB);
+				}
 
-				if (m.winner === 'UNDECIDED') continue;
-
-				const winnerId = m.winner === 'HOME' ? m.home.teamId : m.away.teamId;
-				const loserId = m.winner === 'HOME' ? m.away.teamId : m.home.teamId;
-				narrowRange(winnerId, true, lo, hi);
-				narrowRange(loserId, false, lo, hi);
-			}
-
-			// Teams that didn't appear in any matchup this round had a bye → treat as a win
-			// (also handles teams already done whose lo===hi – narrowRange is a no-op for them)
-			for (const id of teamIds) {
-				if (!playedThisRound.has(id)) {
+				// Vacation teams are treated as byes (wins that don't narrow further)
+				for (const id of bracketRound.onVacation) {
 					narrowRange(id, true, lo, hi);
+				}
+
+				// TBD matchups (prior round incomplete) — don't narrow
+			} else {
+				// Fall back to ESPN matchup data
+				const playedThisRound = new Set<number>();
+
+				for (const m of doc.matchups) {
+					if (!m.away) continue;
+					playedThisRound.add(m.home.teamId);
+					playedThisRound.add(m.away.teamId);
+					if (m.winner === 'UNDECIDED') continue;
+					const winnerId = m.winner === 'HOME' ? m.home.teamId : m.away.teamId;
+					const loserId = m.winner === 'HOME' ? m.away.teamId : m.home.teamId;
+					narrowRange(winnerId, true, lo, hi);
+					narrowRange(loserId, false, lo, hi);
+				}
+
+				for (const id of teamIds) {
+					if (!playedThisRound.has(id)) narrowRange(id, true, lo, hi);
 				}
 			}
 

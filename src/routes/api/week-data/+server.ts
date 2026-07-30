@@ -3,6 +3,7 @@ import { LEAGUE_ID } from '$env/static/private';
 import { getWeeklyMatchupDoc, getSeasonDoc, getCumulativeScoresByWeek, getAllWeeklyDocs } from '$lib/fantasyDataService';
 import { processWeek } from '$lib/weekProcessor';
 import { computeStandingsHistory, computeStreaks } from '$lib/standingsHistory';
+import { computePlayoffBracket, getPlayoffRoundForWeek } from '$lib/playoffBracket';
 
 export async function GET({ url }) {
 	const season = url.searchParams.get('season');
@@ -26,8 +27,12 @@ export async function GET({ url }) {
 	if (!seasonDoc) return json({ error: `No season doc for ${seasonId}` }, { status: 404 });
 
 	const streaks = computeStreaks(allDocs);
-	const processed = processWeek(weekDoc, seasonDoc, {}, prevScores, streaks);
-	const standingsHistory = computeStandingsHistory(allDocs, seasonDoc);
+
+	const bracket = computePlayoffBracket(allDocs, seasonDoc);
+	const playoffRound = getPlayoffRoundForWeek(bracket, weekId);
+
+	const processed = processWeek(weekDoc, seasonDoc, {}, prevScores, streaks, playoffRound, bracket.seeds);
+	const standingsHistory = computeStandingsHistory(allDocs, seasonDoc, bracket);
 
 	if (processed.isPlayoffWeek) {
 		for (const entry of standingsHistory) {

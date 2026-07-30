@@ -504,6 +504,12 @@
 
 	.matchup-card.optimal-mode { background: rgba(255,204,51,0.04); border-color: rgba(255,204,51,0.25); }
 	.matchup-card.optimal-mode .matchup-header { background: rgba(40,30,0,0.7); border-bottom-color: rgba(255,204,51,0.15); }
+	.bracket-label { font-size: 10px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--dim); opacity: 0.7; margin-bottom: 6px; }
+	.vacation-section { margin-bottom: 20px; }
+	.vacation-header { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--dim); opacity: 0.6; margin-bottom: 10px; }
+	.vacation-cards { display: flex; flex-wrap: wrap; gap: 10px; }
+	.vacation-card { background: #1e1e1e; border: 1px solid rgba(255,255,255,0.07); border-radius: 3px; padding: 8px 14px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--dim); opacity: 0.75; }
+	.vacation-seed { font-size: 10px; font-weight: 700; background: rgba(255,255,255,0.07); border-radius: 2px; padding: 1px 5px; color: var(--dim); }
 
 	/* Optimal highlight */
 	.was-benched { background: rgba(255,200,50,0.07) !important; }
@@ -1095,16 +1101,34 @@
 			</h2>
 			{#if matchupsOpen}
 
+			{#if weekData.onVacation && weekData.onVacation.length > 0}
+				<div class="vacation-section">
+					<div class="vacation-header">🏖️ On Vacation</div>
+					<div class="vacation-cards">
+						{#each weekData.onVacation as vt}
+							<div class="vacation-card">
+								{#if weekData.playoffSeeds?.get(vt.teamId)}<span class="vacation-seed">#{weekData.playoffSeeds.get(vt.teamId)}</span>{/if}
+								{#if teamLogoMap.get(vt.teamId)}<img src={teamLogoMap.get(vt.teamId)} alt={vt.teamName} style="width:20px;height:20px;border-radius:2px;object-fit:contain" onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+								<span>{vt.teamName}</span>
+							</div>
+						{/each}
+					</div>
+				</div>
+			{/if}
+
 			{#each weekData.matchups as matchup}
 				{@const isOptimal = showOptimal[matchup.matchupId] ?? false}
 				{@const isBenchOpen = benchOpen[matchup.matchupId] ?? false}
 
 				<div class="matchup-card {isOptimal ? 'optimal-mode' : ''}">
+					{#if matchup.bracketLabel}
+						<div class="bracket-label" style="padding: 8px 20px 0;">{matchup.bracketLabel}</div>
+					{/if}
 					<div class="matchup-header">
 						<div class="score-line">
 							<!-- Home -->
 							<div class="team-score">
-								<span class="team-name {matchup.winner === 'home' ? 'winner' : 'loser'} {matchup.home.totalPoints === topScore ? 'top-scorer' : ''} {matchup.home.totalPoints === bottomScore ? 'bottom-scorer' : ''}">{matchup.home.teamName}{matchup.home.totalPoints === bottomScore ? ' 💩' : ''}</span>
+								{#if weekData.playoffSeeds?.get(matchup.home.teamId)}<span class="vacation-seed">#{weekData.playoffSeeds.get(matchup.home.teamId)}</span>{/if}<span class="team-name {matchup.winner === 'home' ? 'winner' : 'loser'} {matchup.home.totalPoints === topScore ? 'top-scorer' : ''} {matchup.home.totalPoints === bottomScore ? 'bottom-scorer' : ''}">{matchup.home.teamName}{matchup.home.totalPoints === bottomScore ? ' 💩' : ''}</span>
 								{#each (teamAwardMap.get(matchup.home.teamId) ?? []) as emoji}<span class="team-award-badge">{emoji}</span>{/each}
 								<span class="score {matchup.winner === 'home' ? 'winner' : 'loser'} {matchup.home.totalPoints === bottomScore ? 'bottom-scorer' : ''}">{matchup.home.totalPoints.toFixed(2)}</span>
 							</div>
@@ -1113,7 +1137,7 @@
 							{#if matchup.away}
 								<div class="team-score">
 									<span class="score {matchup.winner === 'away' ? 'winner' : 'loser'} {matchup.away.totalPoints === bottomScore ? 'bottom-scorer' : ''}">{matchup.away.totalPoints.toFixed(2)}</span>
-									<span class="team-name {matchup.winner === 'away' ? 'winner' : 'loser'} {matchup.away.totalPoints === topScore ? 'top-scorer' : ''} {matchup.away.totalPoints === bottomScore ? 'bottom-scorer' : ''}">{matchup.away.teamName}{matchup.away.totalPoints === bottomScore ? ' 💩' : ''}</span>
+									<span class="team-name {matchup.winner === 'away' ? 'winner' : 'loser'} {matchup.away.totalPoints === topScore ? 'top-scorer' : ''} {matchup.away.totalPoints === bottomScore ? 'bottom-scorer' : ''}">{matchup.away.teamName}{matchup.away.totalPoints === bottomScore ? ' 💩' : ''}</span>{#if weekData.playoffSeeds?.get(matchup.away.teamId)}<span class="vacation-seed">#{weekData.playoffSeeds.get(matchup.away.teamId)}</span>{/if}
 								{#each (teamAwardMap.get(matchup.away.teamId) ?? []) as emoji}<span class="team-award-badge">{emoji}</span>{/each}
 								</div>
 							{/if}

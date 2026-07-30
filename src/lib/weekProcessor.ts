@@ -1,4 +1,5 @@
 import type { WeeklyMatchupDoc, SeasonDoc, PlayerEntry } from './schema';
+import type { PlayoffRound } from './playoffBracket';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -66,6 +67,9 @@ export interface ProcessedMatchup {
 	winner: 'home' | 'away' | 'tie' | 'undecided';
 	home: ProcessedTeam;
 	away?: ProcessedTeam;
+	// playoff bracket fields
+	bracketLabel?: string;
+	placesAtStake?: [number, number];
 }
 
 export interface LeagueAward {
@@ -188,6 +192,8 @@ export interface ProcessedWeek {
 	snowMan: StreakAward | null;
 	brassNuts: ChampionshipAward | null;
 	toiletBowl: ChampionshipAward | null;
+	onVacation: ProcessedTeam[];
+	playoffSeeds: Map<number, number> | null; // teamId → seed, populated for playoff weeks
 	topStuds: StudEntry[];
 }
 
@@ -248,7 +254,9 @@ export function processWeek(
 	seasonDoc: SeasonDoc,
 	ownerDict: Record<string, string> = {},
 	prevCumulativeScores: Map<number, number> = new Map(),
-	streaks: Map<number, { type: 'W' | 'L'; count: number }> = new Map()
+	streaks: Map<number, { type: 'W' | 'L'; count: number }> = new Map(),
+	playoffRound: PlayoffRound | null = null,
+	playoffSeeds: Map<number, number> | null = null
 ): ProcessedWeek {
 	const teamMap = new Map(seasonDoc.teams.map((t) => [t.teamId, t]));
 	const draftMap = new Map(seasonDoc.draft.picks.map((p) => [p.playerId, p]));
@@ -345,14 +353,50 @@ export function processWeek(
 		};
 	}
 
-	const matchups: ProcessedMatchup[] = weekDoc.matchups.map((m) => ({
-		matchupId: m.matchupId,
-		isPlayoff: weekDoc.isPlayoff,
-		playoffTierType: m.playoffTierType,
-		winner: m.winner === 'HOME' ? 'home' : m.winner === 'AWAY' ? 'away' : m.winner === 'TIE' ? 'tie' : 'undecided',
-		home: processTeamSide(m.home),
-		away: m.away ? processTeamSide(m.away) : undefined
-	}));
+	// ── Build per-team data map (processes all teams, populates allStartersByTeam) ──
+	const teamDataMap = new Map<number, ProcessedTeam>();
+	for (const m of weekDoc.matchups) {
+		if (!teamDataMap.has(m.home.teamId)) teamDataMap.set(m.home.teamId, processTeamSide(m.home));
+		if (m.away && !teamDataMap.has(m.away.teamId)) teamDataMap.set(m.away.teamId, processTeamSide(m.away));
+	}
+
+	// ── Build matchups: use bracket pairings for playoff weeks ────────────────
+	let matchups: ProcessedMatchup[];
+	let onVacation: ProcessedTeam[] = [];
+
+	if (weekDoc.isPlayoff && playoffRound) {
+		matchups = playoffRound.matchups
+			.filter((bm) => bm.teamIdA && bm.teamIdB !== null)
+			.map((bm, i) => {
+				const home = teamDataMap.get(bm.teamIdA)!;
+				const away = bm.teamIdB ? teamDataMap.get(bm.teamIdB) : undefined;
+				const winner: ProcessedMatchup['winner'] =
+					bm.winner === null ? 'undecided' :
+					bm.winner === bm.teamIdA ? 'home' : 'away';
+				return {
+					matchupId: 9000 + i,
+					isPlayoff: true,
+					playoffTierType: bm.placesAtStake[0] <= 6 ? 'WINNERS_BRACKET' : 'LOSERS_CONSOLATION_LADDER',
+					winner,
+					home,
+					away,
+					bracketLabel: bm.label,
+					placesAtStake: bm.placesAtStake,
+				};
+			});
+		onVacation = playoffRound.onVacation
+			.map((id) => teamDataMap.get(id))
+			.filter(Boolean) as ProcessedTeam[];
+	} else {
+		matchups = weekDoc.matchups.map((m) => ({
+			matchupId: m.matchupId,
+			isPlayoff: weekDoc.isPlayoff,
+			playoffTierType: m.playoffTierType,
+			winner: m.winner === 'HOME' ? 'home' : m.winner === 'AWAY' ? 'away' : m.winner === 'TIE' ? 'tie' : 'undecided',
+			home: teamDataMap.get(m.home.teamId)!,
+			away: m.away ? teamDataMap.get(m.away.teamId) : undefined
+		}));
+	}
 
 	// ── Optimal Would-Have-Beaten second pass ──────────────────────────────────
 	for (const m of matchups) {
@@ -738,6 +782,8 @@ export function processWeek(
 		snowMan,
 		brassNuts: null,
 		toiletBowl: null,
+		onVacation,
+		playoffSeeds,
 		topStuds
 	};
 }
