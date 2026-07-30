@@ -593,7 +593,7 @@
 					<div class="award-card good">
 						<div class="award-emoji">🍎</div>
 						<div class="award-card-inner">
-							<img class="award-img" src={playerImgUrl(g.playerId, g.position, g.nflTeam)} alt={g.playerName} onerror="this.style.display='none'" loading="lazy" />
+							<img class="award-img" src={playerImgUrl(g.playerId, g.position, g.nflTeam)} alt={g.playerName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />
 							<div class="award-body">
 								<div class="award-label">Golden Apple</div>
 								<div class="award-player">{g.playerName}</div>
@@ -610,7 +610,7 @@
 					<div class="award-card bad">
 						<div class="award-emoji">🍌</div>
 						<div class="award-card-inner">
-							<img class="award-img" src={playerImgUrl(b.playerId, b.position, b.nflTeam)} alt={b.playerName} onerror="this.style.display='none'" loading="lazy" />
+							<img class="award-img" src={playerImgUrl(b.playerId, b.position, b.nflTeam)} alt={b.playerName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />
 							<div class="award-body">
 								<div class="award-label">Brown Banana</div>
 								<div class="award-player">{b.playerName}</div>
@@ -627,7 +627,7 @@
 					<div class="award-card bad">
 						<div class="award-emoji">🤡</div>
 						<div class="award-card-inner">
-							<img class="award-img" src={playerImgUrl(l.playerId, l.position, l.nflTeam)} alt={l.playerName} onerror="this.style.display='none'" loading="lazy" />
+							<img class="award-img" src={playerImgUrl(l.playerId, l.position, l.nflTeam)} alt={l.playerName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />
 							<div class="award-body">
 								<div class="award-label">Lamest Stud</div>
 								<div class="award-player">{l.playerName}</div>
@@ -643,7 +643,7 @@
 					<div class="award-card good">
 						<div class="award-emoji">💪</div>
 						<div class="award-card-inner">
-							<img class="award-img" src={playerImgUrl(m.playerId, m.position, m.nflTeam)} alt={m.playerName} onerror="this.style.display='none'" loading="lazy" />
+							<img class="award-img" src={playerImgUrl(m.playerId, m.position, m.nflTeam)} alt={m.playerName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />
 							<div class="award-body">
 								<div class="award-label">Muscle Man</div>
 								<div class="award-player">{m.playerName}</div>
@@ -660,7 +660,7 @@
 					<div class="award-card bad">
 						<div class="award-emoji">💩</div>
 						<div class="award-card-inner">
-							<img class="award-img" src={playerImgUrl(p.playerId, p.position, p.nflTeam)} alt={p.playerName} onerror="this.style.display='none'" loading="lazy" />
+							<img class="award-img" src={playerImgUrl(p.playerId, p.position, p.nflTeam)} alt={p.playerName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />
 							<div class="award-body">
 								<div class="award-label">Poop Man</div>
 								<div class="award-player">{p.playerName}</div>
@@ -677,7 +677,7 @@
 					<div class="award-card good">
 						<div class="award-emoji">🍄</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(a.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(a.teamId)} alt={a.teamName} onerror="this.style.display='none'" loading="lazy" />{/if}
+							{#if teamLogoMap.get(a.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(a.teamId)} alt={a.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
 							<div class="award-body">
 								<div class="award-label">Super Mushroom</div>
 								<div class="award-player">{a.teamName}</div>
@@ -694,7 +694,7 @@
 					<div class="award-card good">
 						<div class="award-emoji">💈</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(cs.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(cs.teamId)} alt={cs.teamName} onerror="this.style.display='none'" loading="lazy" />{/if}
+							{#if teamLogoMap.get(cs.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(cs.teamId)} alt={cs.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
 							<div class="award-body">
 								<div class="award-label">Close Shave</div>
 								<div class="award-player">{cs.teamName}</div>
@@ -710,7 +710,7 @@
 					<div class="award-card good">
 						<div class="award-emoji">🥷</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(a.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(a.teamId)} alt={a.teamName} onerror="this.style.display='none'" loading="lazy" />{/if}
+							{#if teamLogoMap.get(a.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(a.teamId)} alt={a.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
 							<div class="award-body">
 								<div class="award-label">Assassin</div>
 								<div class="award-player">{a.teamName}</div>
@@ -727,7 +727,7 @@
 					<div class="award-card good">
 						<div class="award-emoji">🎲</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(ga.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(ga.teamId)} alt={ga.teamName} onerror="this.style.display='none'" loading="lazy" />{/if}
+							{#if teamLogoMap.get(ga.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(ga.teamId)} alt={ga.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
 							<div class="award-body">
 								<div class="award-label">The Gambler</div>
 								<div class="award-player">{ga.teamName}</div>
@@ -744,7 +744,7 @@
 					<div class="award-card bad">
 						<div class="award-emoji">👥</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(wm.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(wm.teamId)} alt={wm.teamName} onerror="this.style.display='none'" loading="lazy" />{/if}
+							{#if teamLogoMap.get(wm.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(wm.teamId)} alt={wm.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
 							<div class="award-body">
 								<div class="award-label">Wrong Man</div>
 								<div class="award-player">{wm.teamName}</div>
@@ -761,7 +761,7 @@
 					<div class="award-card good">
 						<div class="award-emoji">🍀</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(ld.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(ld.teamId)} alt={ld.teamName} onerror="this.style.display='none'" loading="lazy" />{/if}
+							{#if teamLogoMap.get(ld.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(ld.teamId)} alt={ld.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
 							<div class="award-body">
 								<div class="award-label">Lucky Devil</div>
 								<div class="award-player">{ld.teamName}</div>
@@ -778,7 +778,7 @@
 					<div class="award-card good">
 						<div class="award-emoji">🎩</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(mm.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(mm.teamId)} alt={mm.teamName} onerror="this.style.display='none'" loading="lazy" />{/if}
+							{#if teamLogoMap.get(mm.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(mm.teamId)} alt={mm.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
 							<div class="award-body">
 								<div class="award-label">Mr. Monopoly</div>
 								<div class="award-player">{mm.teamName}</div>
@@ -817,7 +817,7 @@
 					{@const posClass = s.position === 'D/ST' ? 'DST' : s.position}
 					<div class="stud-row">
 						<div class="stud-rank">{medal ?? s.rank}</div>
-						<img class="stud-img {s.position === 'D/ST' ? 'dst' : ''}" src={playerImgUrl(s.playerId, s.position, s.nflTeam)} alt={s.playerName} onerror="this.style.display='none'" loading="lazy" />
+						<img class="stud-img {s.position === 'D/ST' ? 'dst' : ''}" src={playerImgUrl(s.playerId, s.position, s.nflTeam)} alt={s.playerName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />
 						<div class="stud-info">
 							<div class="stud-name-line">
 								<span class="stud-pos {posClass}">{s.position}</span>
