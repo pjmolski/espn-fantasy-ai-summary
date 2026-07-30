@@ -210,8 +210,6 @@
 	}
 	.team-name.winner { color: #fff; }
 	.team-name.top-scorer { color: var(--gold); }
-	.team-name.bottom-scorer { color: #8B4513; font-weight: 700; }
-	.score.bottom-scorer { color: #8B4513; font-weight: 700; }
 	.cake-opt-delta {
 		font-size: 12px;
 		font-weight: 700;
@@ -227,6 +225,8 @@
 	}
 	.score.winner { color: #00d26d; }
 	.score.loser  { color: rgba(255,255,255,0.35); }
+	.team-name.bottom-scorer { color: #8B4513 !important; font-weight: 700; }
+	.score.bottom-scorer { color: #8B4513 !important; font-weight: 700; }
 	.vs { font-size: 11px; color: rgba(255,255,255,0.25); letter-spacing: 1px; text-transform: uppercase; }
 
 	/* Tab buttons */
@@ -267,8 +267,8 @@
 
 	.col-header {
 		display: flex;
-		justify-content: space-between;
 		align-items: baseline;
+		gap: 6px;
 		margin-bottom: 10px;
 	}
 	.col-team-name { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: rgba(255,255,255,0.7); }
@@ -303,7 +303,7 @@
 		font-weight: 700;
 		letter-spacing: 1px;
 		text-transform: uppercase;
-		color: rgba(255,255,255,0.8);
+		color: #ffffff4d;
 		flex-shrink: 0;
 	}
 	.injury-badge {
@@ -518,7 +518,6 @@
 							<div class="team-score">
 								{#if matchup.home.isLuckiest}<span title="Luckiest win — won with a score that would have lost most other matchups this week">🍀</span>{/if}
 								<span class="team-name {matchup.winner === 'home' ? 'winner' : 'loser'} {matchup.home.totalPoints === topScore ? 'top-scorer' : ''} {matchup.home.totalPoints === bottomScore ? 'bottom-scorer' : ''}">{matchup.home.teamName}{matchup.home.totalPoints === bottomScore ? ' 💩' : ''}</span>
-								{#if isOptimal && matchup.home.pointsLeftOnBench > 0}<span class="cake-opt-delta">+{matchup.home.pointsLeftOnBench.toFixed(1)}</span>{/if}
 								<span class="score {matchup.winner === 'home' ? 'winner' : 'loser'} {matchup.home.totalPoints === bottomScore ? 'bottom-scorer' : ''}">{matchup.home.totalPoints.toFixed(2)}</span>
 							</div>
 							<span class="vs">vs</span>
@@ -526,7 +525,6 @@
 							{#if matchup.away}
 								<div class="team-score">
 									<span class="score {matchup.winner === 'away' ? 'winner' : 'loser'} {matchup.away.totalPoints === bottomScore ? 'bottom-scorer' : ''}">{matchup.away.totalPoints.toFixed(2)}</span>
-									{#if isOptimal && matchup.away.pointsLeftOnBench > 0}<span class="cake-opt-delta">+{matchup.away.pointsLeftOnBench.toFixed(1)}</span>{/if}
 									<span class="team-name {matchup.winner === 'away' ? 'winner' : 'loser'} {matchup.away.totalPoints === topScore ? 'top-scorer' : ''} {matchup.away.totalPoints === bottomScore ? 'bottom-scorer' : ''}">{#if matchup.away.isLuckiest}<span title="Luckiest win — won with a score that would have lost most other matchups this week">🍀</span> {/if}{matchup.away.teamName}{matchup.away.totalPoints === bottomScore ? ' 💩' : ''}</span>
 								</div>
 							{/if}
@@ -615,7 +613,7 @@
 								<div class="team-col">
 									<div class="col-header">
 										<span class="col-team-name">{t.teamName}</span>
-										<span class="col-meta">{t.totalPoints.toFixed(2)} → <span style="color:#00d26d">{t.optimalPoints.toFixed(2)}</span></span>
+										<span class="cake-opt-delta">+{(t.optimalPoints - t.totalPoints).toFixed(1)}</span>
 									</div>
 
 									{#each sortOptimalPlayers(t.optimalStarters) as p}
@@ -636,8 +634,11 @@
 										</div>
 									{/each}
 									<div class="total-row">
-										<span>TOTAL</span>
-										<span style="color:#00d26d">{t.optimalPoints.toFixed(2)}</span>
+										<span class="total-label">TOTAL</span>
+										<div class="total-right">
+											<span class="proj">{t.optimalStarters.reduce((s,p) => s+p.projectedScore, 0).toFixed(2)}</span>
+											<span class="actual norm" style="color:#00d26d">{t.optimalPoints.toFixed(2)}</span>
+										</div>
 									</div>
 
 									<!-- Optimal bench: starters displaced by the optimal lineup -->
