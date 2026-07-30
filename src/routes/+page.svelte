@@ -33,16 +33,18 @@
 	$: loading = !!$navigating;
 
 	onMount(() => {
-		// If no URL params present, restore last saved selection from localStorage
 		const params = new URLSearchParams(window.location.search);
-		if (!params.has('season') || !params.has('week')) {
+		if (params.has('season') && params.has('week')) {
+			// URL params present (e.g. shared link) — they win; sync localStorage to match
+			saveSelection(parseInt(params.get('season')!), parseInt(params.get('week')!));
+		} else {
+			// No URL params — restore from localStorage and update URL so it's shareable
 			try {
 				const s = localStorage.getItem('ff_season');
 				const w = localStorage.getItem('ff_week');
 				if (s && w) {
 					const seasonId = parseInt(s);
 					const weekId = parseInt(w);
-					// Only restore if that week actually exists in the available list
 					const exists = data.availableWeeks.some(
 						aw => aw.seasonId === seasonId && aw.scoringPeriodId === weekId
 					);
