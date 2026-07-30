@@ -591,11 +591,13 @@
 				{#if weekData.goldenApple}
 					{@const g = weekData.goldenApple}
 					<div class="award-card good">
-						<div class="award-emoji">🍎</div>
+						<div class="award-band">
+							<div class="award-emoji">🍎</div>
+							<div class="award-label">Golden Apple</div>
+						</div>
 						<div class="award-card-inner">
 							<img class="award-img" src={playerImgUrl(g.playerId, g.position, g.nflTeam)} alt={g.playerName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />
 							<div class="award-body">
-								<div class="award-label">Golden Apple</div>
 								<div class="award-player">{g.playerName}</div>
 								<div class="award-meta">{g.position}{g.nflTeam ? ' · ' + g.nflTeam : ''} · {g.teamName}</div>
 								<div class="award-score green">{g.actualScore.toFixed(2)}</div>
@@ -608,11 +610,13 @@
 				{#if weekData.brownBanana}
 					{@const b = weekData.brownBanana}
 					<div class="award-card bad">
-						<div class="award-emoji">🍌</div>
+						<div class="award-band">
+							<div class="award-emoji">🍌</div>
+							<div class="award-label">Brown Banana</div>
+						</div>
 						<div class="award-card-inner">
 							<img class="award-img" src={playerImgUrl(b.playerId, b.position, b.nflTeam)} alt={b.playerName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />
 							<div class="award-body">
-								<div class="award-label">Brown Banana</div>
 								<div class="award-player">{b.playerName}</div>
 								<div class="award-meta">{b.position}{b.nflTeam ? ' · ' + b.nflTeam : ''} · {b.teamName}</div>
 								<div class="award-score red">{b.actualScore.toFixed(2)}</div>
@@ -625,11 +629,13 @@
 				{#if weekData.lamentStud}
 					{@const l = weekData.lamentStud}
 					<div class="award-card bad">
-						<div class="award-emoji">🤡</div>
+						<div class="award-band">
+							<div class="award-emoji">🤡</div>
+							<div class="award-label">Lamest Stud</div>
+						</div>
 						<div class="award-card-inner">
 							<img class="award-img" src={playerImgUrl(l.playerId, l.position, l.nflTeam)} alt={l.playerName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />
 							<div class="award-body">
-								<div class="award-label">Lamest Stud</div>
 								<div class="award-player">{l.playerName}</div>
 								<div class="award-meta">{l.position}{l.nflTeam ? ' · ' + l.nflTeam : ''} · {l.teamName}</div>
 								<div class="award-score red">{l.actualScore.toFixed(2)}</div>
@@ -641,11 +647,13 @@
 				{#if weekData.muscleMan}
 					{@const m = weekData.muscleMan}
 					<div class="award-card good">
-						<div class="award-emoji">💪</div>
+						<div class="award-band">
+							<div class="award-emoji">💪</div>
+							<div class="award-label">Muscle Man</div>
+						</div>
 						<div class="award-card-inner">
 							<img class="award-img" src={playerImgUrl(m.playerId, m.position, m.nflTeam)} alt={m.playerName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />
 							<div class="award-body">
-								<div class="award-label">Muscle Man</div>
 								<div class="award-player">{m.playerName}</div>
 								<div class="award-meta">{m.position}{m.nflTeam ? ' · ' + m.nflTeam : ''} · {m.teamName}</div>
 								<div class="award-score green">{m.actualScore.toFixed(2)}</div>
@@ -658,11 +666,13 @@
 				{#if weekData.poopMan}
 					{@const p = weekData.poopMan}
 					<div class="award-card bad">
-						<div class="award-emoji">💩</div>
+						<div class="award-band">
+							<div class="award-emoji">💩</div>
+							<div class="award-label">Poop Man</div>
+						</div>
 						<div class="award-card-inner">
 							<img class="award-img" src={playerImgUrl(p.playerId, p.position, p.nflTeam)} alt={p.playerName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />
 							<div class="award-body">
-								<div class="award-label">Poop Man</div>
 								<div class="award-player">{p.playerName}</div>
 								<div class="award-meta">{p.position}{p.nflTeam ? ' · ' + p.nflTeam : ''} · {p.teamName}</div>
 								<div class="award-score red">{p.actualScore.toFixed(2)}</div>
@@ -675,11 +685,13 @@
 				{#if weekData.superMushroom}
 					{@const a = weekData.superMushroom}
 					<div class="award-card good">
-						<div class="award-emoji">🍄</div>
+						<div class="award-band">
+							<div class="award-emoji">🍄</div>
+							<div class="award-label">Super Mushroom</div>
+						</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(a.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(a.teamId)} alt={a.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							{#if teamLogoMap.get(a.teamId)}<img class="award-img" src={teamLogoMap.get(a.teamId)} alt={a.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
 							<div class="award-body">
-								<div class="award-label">Super Mushroom</div>
 								<div class="award-player">{a.teamName}</div>
 								<div class="award-meta">Projected to lose vs {a.opponentName}</div>
 								<div class="award-score green">{a.actualScore.toFixed(2)}</div>
@@ -692,11 +704,13 @@
 				{#if weekData.closeShave}
 					{@const cs = weekData.closeShave}
 					<div class="award-card good">
-						<div class="award-emoji">💈</div>
+						<div class="award-band">
+							<div class="award-emoji">💈</div>
+							<div class="award-label">Close Shave</div>
+						</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(cs.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(cs.teamId)} alt={cs.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							{#if teamLogoMap.get(cs.teamId)}<img class="award-img" src={teamLogoMap.get(cs.teamId)} alt={cs.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
 							<div class="award-body">
-								<div class="award-label">Close Shave</div>
 								<div class="award-player">{cs.teamName}</div>
 								<div class="award-meta">Narrowest win this week</div>
 								<div class="award-score green">{(cs.loserScore + cs.margin).toFixed(2)}</div>
@@ -708,11 +722,13 @@
 
 				{#each weekData.assassins ?? [] as a}
 					<div class="award-card good">
-						<div class="award-emoji">🥷</div>
+						<div class="award-band">
+							<div class="award-emoji">🥷</div>
+							<div class="award-label">Assassin</div>
+						</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(a.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(a.teamId)} alt={a.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							{#if teamLogoMap.get(a.teamId)}<img class="award-img" src={teamLogoMap.get(a.teamId)} alt={a.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
 							<div class="award-body">
-								<div class="award-label">Assassin</div>
 								<div class="award-player">{a.teamName}</div>
 								<div class="award-meta">Took out a top-3 scorer</div>
 								<div class="award-score green">{a.actualScore.toFixed(2)}</div>
@@ -725,11 +741,13 @@
 				{#if weekData.gambler}
 					{@const ga = weekData.gambler}
 					<div class="award-card good">
-						<div class="award-emoji">🎲</div>
+						<div class="award-band">
+							<div class="award-emoji">🎲</div>
+							<div class="award-label">The Gambler</div>
+						</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(ga.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(ga.teamId)} alt={ga.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							{#if teamLogoMap.get(ga.teamId)}<img class="award-img" src={teamLogoMap.get(ga.teamId)} alt={ga.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
 							<div class="award-body">
-								<div class="award-label">The Gambler</div>
 								<div class="award-player">{ga.teamName}</div>
 								<div class="award-meta">Started lower-projected players who delivered</div>
 								<div class="award-score green">{ga.successfulGambles}</div>
@@ -742,11 +760,13 @@
 				{#if weekData.wrongMan}
 					{@const wm = weekData.wrongMan}
 					<div class="award-card bad">
-						<div class="award-emoji">👥</div>
+						<div class="award-band">
+							<div class="award-emoji">👥</div>
+							<div class="award-label">Wrong Man</div>
+						</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(wm.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(wm.teamId)} alt={wm.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							{#if teamLogoMap.get(wm.teamId)}<img class="award-img" src={teamLogoMap.get(wm.teamId)} alt={wm.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
 							<div class="award-body">
-								<div class="award-label">Wrong Man</div>
 								<div class="award-player">{wm.teamName}</div>
 								<div class="award-meta">Started {wm.startedName} ({wm.startedScore.toFixed(1)}) over {wm.benchedName} ({wm.benchedScore.toFixed(1)})</div>
 								<div class="award-score red">−{wm.pointsLeft.toFixed(2)}</div>
@@ -759,11 +779,13 @@
 				{#if weekData.luckyDevil}
 					{@const ld = weekData.luckyDevil}
 					<div class="award-card good">
-						<div class="award-emoji">🍀</div>
+						<div class="award-band">
+							<div class="award-emoji">🍀</div>
+							<div class="award-label">Lucky Devil</div>
+						</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(ld.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(ld.teamId)} alt={ld.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							{#if teamLogoMap.get(ld.teamId)}<img class="award-img" src={teamLogoMap.get(ld.teamId)} alt={ld.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
 							<div class="award-body">
-								<div class="award-label">Lucky Devil</div>
 								<div class="award-player">{ld.teamName}</div>
 								<div class="award-meta">Lowest-scoring winner this week</div>
 								<div class="award-score">{ld.actualScore.toFixed(2)}</div>
@@ -776,11 +798,13 @@
 				{#if weekData.mrMonopoly}
 					{@const mm = weekData.mrMonopoly}
 					<div class="award-card good">
-						<div class="award-emoji">🎩</div>
+						<div class="award-band">
+							<div class="award-emoji">🎩</div>
+							<div class="award-label">Mr. Monopoly</div>
+						</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(mm.teamId)}<img class="award-img team-logo" src={teamLogoMap.get(mm.teamId)} alt={mm.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							{#if teamLogoMap.get(mm.teamId)}<img class="award-img" src={teamLogoMap.get(mm.teamId)} alt={mm.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
 							<div class="award-body">
-								<div class="award-label">Mr. Monopoly</div>
 								<div class="award-player">{mm.teamName}</div>
 								<div class="award-meta">Took over the season points lead</div>
 								<div class="award-score green">{mm.currentTotal.toFixed(2)}</div>
