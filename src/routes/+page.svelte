@@ -133,6 +133,8 @@
 		if (weekData.wrongMan) add(weekData.wrongMan.teamId, '👥');
 		if (weekData.luckyDevil) add(weekData.luckyDevil.teamId, '🍀');
 		if (weekData.mrMonopoly) add(weekData.mrMonopoly.teamId, '🎩');
+		if (weekData.hotRod) add(weekData.hotRod.teamId, '🏎️');
+		if (weekData.snowMan) add(weekData.snowMan.teamId, '⛄');
 		return map;
 	})();
 
@@ -961,6 +963,42 @@
 						</div>
 					</div>
 				{/if}
+
+				{#if weekData.hotRod}
+					{@const hr = weekData.hotRod}
+					<div class="award-card good">
+						<div class="award-band">
+							<div class="award-emoji">🏎️</div>
+							<div class="award-label">Hot Rod</div>
+						</div>
+						<div class="award-card-inner">
+							{#if teamLogoMap.get(hr.teamId)}<img class="award-img" src={teamLogoMap.get(hr.teamId)} alt={hr.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							<div class="award-body">
+								<div class="award-player">{hr.teamName}</div>
+								<div class="award-meta">Current win streak</div>
+								<div class="award-score green">{hr.streak}W</div>
+							</div>
+						</div>
+					</div>
+				{/if}
+
+				{#if weekData.snowMan}
+					{@const sm = weekData.snowMan}
+					<div class="award-card bad">
+						<div class="award-band">
+							<div class="award-emoji">⛄</div>
+							<div class="award-label">Snow Man</div>
+						</div>
+						<div class="award-card-inner">
+							{#if teamLogoMap.get(sm.teamId)}<img class="award-img" src={teamLogoMap.get(sm.teamId)} alt={sm.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							<div class="award-body">
+								<div class="award-player">{sm.teamName}</div>
+								<div class="award-meta">Current losing streak</div>
+								<div class="award-score red">{sm.streak}L</div>
+							</div>
+						</div>
+					</div>
+				{/if}
 			</div>
 
 			<details class="legend-card" bind:open={legendOpen}>
@@ -978,6 +1016,8 @@
 					<span>🎩</span><span><strong>Mr. Monopoly</strong> — overtook the cumulative season points lead this week</span>
 					<span>💪</span><span><strong>Muscle Man</strong> — top scorer in starting lineups this week</span>
 					<span>💩</span><span><strong>Poop Man</strong> — bottom scorer in starting lineups this week (non-DST, non-K)</span>
+					<span>🏎️</span><span><strong>Hot Rod</strong> — current highest win streak (solo leader, ≥ 3 wins)</span>
+					<span>⛄</span><span><strong>Snow Man</strong> — current highest losing streak (solo leader, ≥ 3 losses)</span>
 				</div>
 			</details>
 			{/if}
