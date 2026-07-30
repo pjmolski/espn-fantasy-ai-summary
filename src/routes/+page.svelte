@@ -552,8 +552,9 @@
 		border-radius: 3px;
 		padding: 8px 12px;
 	}
-	.award-card.good { border-left: 3px solid #00d26d; }
-	.award-card.bad  { border-left: 3px solid #ff5a46; }
+	.award-card.good   { border-left: 3px solid #00d26d; }
+	.award-card.bad    { border-left: 3px solid #ff5a46; }
+	.award-card.trophy { border-left: 3px solid var(--gold); }
 
 	.award-emoji { font-size: 16px; display: inline-block; margin-right: 4px; }
 	.award-label {
@@ -747,6 +748,40 @@
 
 			{#if honorsOpen}
 			<div class="awards">
+				{#if weekData.brassNuts}
+					{@const bn = weekData.brassNuts}
+					<div class="award-card trophy">
+						<div class="award-band">
+							<div class="award-emoji">🔩</div>
+							<div class="award-label">Brass Nuts</div>
+						</div>
+						<div class="award-card-inner">
+							{#if teamLogoMap.get(bn.teamId)}<img class="award-img" src={teamLogoMap.get(bn.teamId)} alt={bn.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							<div class="award-body">
+								<div class="award-player">{bn.teamName}</div>
+								<div class="award-meta">League Champion 🏆</div>
+							</div>
+						</div>
+					</div>
+				{/if}
+
+				{#if weekData.toiletBowl}
+					{@const tb = weekData.toiletBowl}
+					<div class="award-card trophy">
+						<div class="award-band">
+							<div class="award-emoji">🪠</div>
+							<div class="award-label">Toilet Bowl</div>
+						</div>
+						<div class="award-card-inner">
+							{#if teamLogoMap.get(tb.teamId)}<img class="award-img" src={teamLogoMap.get(tb.teamId)} alt={tb.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							<div class="award-body">
+								<div class="award-player">{tb.teamName}</div>
+								<div class="award-meta">Chumpionship Winner 🚽</div>
+							</div>
+						</div>
+					</div>
+				{/if}
+
 				{#if weekData.goldenApple}
 					{@const g = weekData.goldenApple}
 					<div class="award-card good">
@@ -1009,39 +1044,9 @@
 					</div>
 				{/if}
 
-				{#if weekData.brassNuts}
-					{@const bn = weekData.brassNuts}
-					<div class="award-card good">
-						<div class="award-band">
-							<div class="award-emoji">🔩</div>
-							<div class="award-label">Brass Nuts</div>
-						</div>
-						<div class="award-card-inner">
-							{#if teamLogoMap.get(bn.teamId)}<img class="award-img" src={teamLogoMap.get(bn.teamId)} alt={bn.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
-							<div class="award-body">
-								<div class="award-player">{bn.teamName}</div>
-								<div class="award-meta">League Champion 🏆</div>
-							</div>
-						</div>
-					</div>
-				{/if}
 
-				{#if weekData.toiletBowl}
-					{@const tb = weekData.toiletBowl}
-					<div class="award-card bad">
-						<div class="award-band">
-							<div class="award-emoji">🪠</div>
-							<div class="award-label">Toilet Bowl</div>
-						</div>
-						<div class="award-card-inner">
-							{#if teamLogoMap.get(tb.teamId)}<img class="award-img" src={teamLogoMap.get(tb.teamId)} alt={tb.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
-							<div class="award-body">
-								<div class="award-player">{tb.teamName}</div>
-								<div class="award-meta">Chumpionship Winner 🚽</div>
-							</div>
-						</div>
-					</div>
-				{/if}
+
+
 			</div>
 
 			<details class="legend-card" bind:open={legendOpen}>
