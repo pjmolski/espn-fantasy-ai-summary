@@ -568,7 +568,7 @@
 	.award-card.bad    { border-left: 3px solid var(--red); }
 	.award-card.trophy { border-left: 3px solid var(--gold); }
 
-	.award-emoji { font-size: 16px; display: inline-block; margin-right: 4px; }
+	.award-emoji { font-size: 16px; display: inline-block; margin: 0 14px 0 10px; }
 	.award-label {
 		display: inline-block;
 		font-size: 14px;
