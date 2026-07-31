@@ -1,4 +1,4 @@
-import { getAvailableWeeks, getWeeklyMatchupDoc, getSeasonDoc, getCumulativeScoresByWeek, getAllWeeklyDocs } from '$lib/fantasyDataService';
+import { getAvailableWeeks, getWeeklyMatchupDoc, getSeasonDoc, getCumulativeScoresByWeek, getAllWeeklyDocs, getAllSeasonDocs } from '$lib/fantasyDataService';
 import { processWeek } from '$lib/weekProcessor';
 import { computeStandingsHistory, computeStreaks } from '$lib/standingsHistory';
 import { computePlayoffBracket, getPlayoffRoundForWeek } from '$lib/playoffBracket';
@@ -18,24 +18,26 @@ export async function load({ url }) {
 			) ?? availableWeeks[0]
 			: availableWeeks[0];
 
-		const [weekDoc, seasonDoc, prevScores, allDocs] = await Promise.all([
+		const [weekDoc, seasonDoc, prevScores, weekDocs, allSeasonDocs] = await Promise.all([
 			getWeeklyMatchupDoc(LEAGUE_ID, target.seasonId, target.scoringPeriodId),
 			getSeasonDoc(LEAGUE_ID, target.seasonId),
 			getCumulativeScoresByWeek(LEAGUE_ID, target.seasonId, target.scoringPeriodId),
-			getAllWeeklyDocs(LEAGUE_ID, target.seasonId, target.scoringPeriodId)
+			getAllWeeklyDocs(LEAGUE_ID, target.seasonId, target.scoringPeriodId),
+			getAllSeasonDocs(LEAGUE_ID, target.seasonId)
 		]);
 
 		const ownerDict: Record<string, string> = JSON.parse(OWNER_DICT || '{}');
-		const streaks = computeStreaks(allDocs);
+		// Streaks are as-of the selected week; standings/bracket use the full season.
+		const streaks = computeStreaks(weekDocs);
 
 		// Compute playoff bracket (no-op for regular season weeks)
-		const bracket = seasonDoc ? computePlayoffBracket(allDocs, seasonDoc) : null;
+		const bracket = seasonDoc ? computePlayoffBracket(allSeasonDocs, seasonDoc) : null;
 		const playoffRound = bracket && weekDoc ? getPlayoffRoundForWeek(bracket, weekDoc.scoringPeriodId) : null;
 
 		const weekData = weekDoc && seasonDoc
 			? processWeek(weekDoc, seasonDoc, ownerDict, prevScores, streaks, playoffRound, bracket?.seeds ?? null)
 			: null;
-		const standingsHistory = seasonDoc ? computeStandingsHistory(allDocs, seasonDoc, bracket ?? undefined) : [];
+		const standingsHistory = seasonDoc ? computeStandingsHistory(allSeasonDocs, seasonDoc, bracket ?? undefined) : [];
 
 		// Inject championship awards: only when final ranks are fully resolved (lo===hi)
 		if (weekData?.isPlayoffWeek) {

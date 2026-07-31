@@ -410,3 +410,16 @@ export async function getAllWeeklyDocs(
 		.sort({ scoringPeriodId: 1 })
 		.toArray();
 }
+
+/** All weekly matchup docs for an entire season (no week limit). Used for standings history and bracket. */
+export async function getAllSeasonDocs(
+	leagueId: string,
+	seasonId: number
+): Promise<WeeklyMatchupDoc[]> {
+	const db = await getDb();
+	return db
+		.collection<WeeklyMatchupDoc>(WEEKLY_MATCHUPS_COLLECTION)
+		.find({ leagueId, seasonId })
+		.sort({ scoringPeriodId: 1 })
+		.toArray();
+}
