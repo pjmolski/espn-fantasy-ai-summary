@@ -435,7 +435,9 @@ export function processWeek(
 	// ── Lamest Stud ───────────────────────────────────────────────────────────
 	let lamentStud: LamestStud | null = null;
 	const studs = allStartersByTeam.filter(
-		(s) => earlyPickIds.has(s.player.playerId) && !INJURED_OUT.has(s.player.injuryStatus)
+		(s) => earlyPickIds.has(s.player.playerId)
+			&& !INJURED_OUT.has(s.player.injuryStatus)
+			&& s.player.projectedScore > 0
 	);
 	if (studs.length > 0) {
 		const lament = studs.reduce((min, s) => s.player.actualScore < min.player.actualScore ? s : min);
