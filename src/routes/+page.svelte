@@ -236,7 +236,7 @@
 
 <style>
 	:global(*) { box-sizing: border-box; margin: 0; padding: 0; }
-	:global(:root) { --gold: #ffcc33; --green: var(--green); --red: var(--red); }
+	:global(:root) { --gold: #ffcc33; --green: #00d26d; --red: #ff5a46; }
 	:global(body) {
 		font-family: 'Raleway', sans-serif;
 		background: #303030;
