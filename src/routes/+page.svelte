@@ -430,7 +430,7 @@
 		flex-shrink: 0;
 	}
 	.injury-badge {
-		font-size: 9px;
+		font-size: 14px;
 		font-weight: 700;
 		padding: 1px 4px;
 		border-radius: 2px;
@@ -571,7 +571,7 @@
 	.award-emoji { font-size: 16px; display: inline-block; margin-right: 4px; }
 	.award-label {
 		display: inline-block;
-		font-size: 9px;
+		font-size: 14px;
 		font-weight: 700;
 		letter-spacing: 2px;
 		text-transform: uppercase;
@@ -581,7 +581,7 @@
 	.award-card.good   .award-label { color: var(--green); }
 	.award-card.bad    .award-label { color: var(--red); }
 	.award-card.trophy .award-label { color: var(--gold); }
-	.award-player { font-size: 15px; font-weight: 600; }
+	.award-player { font-size: 12px; font-weight: 600; }
 	.award-meta { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 0; }
 	.award-score { font-size: 22px; font-weight: 100; letter-spacing: -0.5px; margin-top: 8px; }
 	.award-score.green { color: var(--green); }
