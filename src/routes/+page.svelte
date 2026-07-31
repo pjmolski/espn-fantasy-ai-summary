@@ -236,7 +236,7 @@
 
 <style>
 	:global(*) { box-sizing: border-box; margin: 0; padding: 0; }
-	:global(:root) { --gold: #ffcc33; }
+	:global(:root) { --gold: #ffcc33; --green: var(--green); --red: var(--red); }
 	:global(body) {
 		font-family: 'Raleway', sans-serif;
 		background: #303030;
@@ -269,7 +269,7 @@
 		cursor: pointer;
 		transition: border-color .18s;
 	}
-	select:focus { border-color: #00d26d; }
+	select:focus { border-color: var(--green); }
 
 	/* Main */
 	main {
@@ -282,7 +282,7 @@
 		font-size: 28px;
 		font-weight: 200;
 		letter-spacing: -0.5px;
-		color: #00d26d;
+		color: var(--green);
 		margin: 40px 0 20px;
 		padding-bottom: 10px;
 		border-bottom: 1px solid rgba(0,210,109,0.2);
@@ -346,7 +346,7 @@
 		font-weight: 200;
 		letter-spacing: -0.5px;
 	}
-	.score.winner { color: #00d26d; }
+	.score.winner { color: var(--green); }
 	.score.loser  { color: rgba(255,255,255,0.35); }
 	.team-name.bottom-scorer { color: #8B4513 !important; font-weight: 700; }
 	.score.bottom-scorer { color: #8B4513 !important; font-weight: 700; }
@@ -436,7 +436,7 @@
 		border-radius: 2px;
 		flex-shrink: 0;
 	}
-	.injury-badge.out  { background: rgba(255,90,70,0.2);  color: #ff5a46; }
+	.injury-badge.out  { background: rgba(255,90,70,0.2);  color: var(--red); }
 	.injury-badge.q    { background: rgba(255,200,50,0.2); color: var(--gold); }
 
 	.player-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 6px; }
@@ -447,8 +447,8 @@
 		width: 48px;
 		text-align: right;
 	}
-	.actual.over  { color: #00d26d; }
-	.actual.under { color: #ff5a46; }
+	.actual.over  { color: var(--green); }
+	.actual.under { color: var(--red); }
 	.actual.norm  { color: rgba(255,255,255,0.8); }
 
 	/* Would-have-beaten */
@@ -459,7 +459,7 @@
 		letter-spacing: 0.3px;
 	}
 	.whb strong { color: rgba(255,255,255,0.7); }
-	.lucky-tag { color: #00d26d; }
+	.lucky-tag { color: var(--green); }
 
 	/* Bench toggle */
 	.total-row {
@@ -535,8 +535,8 @@
 		font-weight: 600;
 		letter-spacing: 0.3px;
 	}
-	.opt-outcome.would-win { color: #00d26d; }
-	.opt-outcome.would-lose { color: #ff5a46; }
+	.opt-outcome.would-win { color: var(--green); }
+	.opt-outcome.would-lose { color: var(--red); }
 
 	/* Awards */
 	.awards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 40px; }
@@ -564,8 +564,8 @@
 		border-radius: 3px;
 		padding: 8px 12px;
 	}
-	.award-card.good   { border-left: 3px solid #00d26d; }
-	.award-card.bad    { border-left: 3px solid #ff5a46; }
+	.award-card.good   { border-left: 3px solid var(--green); }
+	.award-card.bad    { border-left: 3px solid var(--red); }
 	.award-card.trophy { border-left: 3px solid var(--gold); }
 
 	.award-emoji { font-size: 16px; display: inline-block; margin-right: 4px; }
@@ -578,14 +578,17 @@
 		color: var(--gold);
 		margin-bottom: 0;
 	}
+	.award-card.good   .award-label { color: var(--green); }
+	.award-card.bad    .award-label { color: var(--red); }
+	.award-card.trophy .award-label { color: var(--gold); }
 	.award-player { font-size: 15px; font-weight: 600; }
 	.award-meta { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 0; }
 	.award-score { font-size: 22px; font-weight: 100; letter-spacing: -0.5px; margin-top: 8px; }
-	.award-score.green { color: #00d26d; }
-	.award-score.red   { color: #ff5a46; }
+	.award-score.green { color: var(--green); }
+	.award-score.red   { color: var(--red); }
 	.award-delta { font-size: 11px; margin-top: 2px; color: rgba(255,255,255,0.35); }
-	.award-delta .green { color: #00d26d; }
-	.award-delta .red   { color: #ff5a46; }
+	.award-delta .green { color: var(--green); }
+	.award-delta .red   { color: var(--red); }
 
 	.empty { text-align: center; padding: 80px 20px; color: rgba(255,255,255,0.25); font-size: 14px; }
 
@@ -611,9 +614,9 @@
 	.stud-name-line { display: flex; align-items: center; gap: 6px; }
 	.stud-name { font-size: 13px; color: rgba(255,255,255,0.9); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 	.stud-pos { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; flex-shrink: 0; }
-	.stud-pos.QB { color: #00d26d; }
+	.stud-pos.QB { color: var(--green); }
 	.stud-pos.RB { color: #4da6ff; }
-	.stud-pos.WR { color: #ff5a46; }
+	.stud-pos.WR { color: var(--red); }
 	.stud-pos.TE { color: #f5c518; }
 	.stud-pos.DST, .stud-pos.K { color: rgba(255,255,255,0.35); }
 	.stud-nfl { font-size: 11px; color: rgba(255,255,255,0.3); flex-shrink: 0; }
@@ -1280,7 +1283,7 @@
 										<span class="total-label">TOTAL</span>
 										<div class="total-right">
 											<span class="proj">{t.optimalStarters.reduce((s,p) => s+p.projectedScore, 0).toFixed(2)}</span>
-											<span class="actual norm" style="color:#00d26d">{t.optimalPoints.toFixed(2)}</span>
+											<span class="actual norm" style="color:var(--green)">{t.optimalPoints.toFixed(2)}</span>
 										</div>
 									</div>
 
