@@ -187,7 +187,12 @@
 	function buildChart(history: import('$lib/standingsHistory').StandingsEntry[]) {
 		if (!history.length) return null;
 		const allWeeks = [...new Set(history.flatMap(e => e.weeklyRanks.map(r => r.week)))].sort((a, b) => a - b);
-		const maxWeek = allWeeks[allWeeks.length - 1] ?? 1;
+		// X-axis always spans the full season regardless of which week is selected.
+		const seasonMaxWeek = Math.max(
+			...data.availableWeeks.filter(w => w.seasonId === selectedSeason).map(w => w.scoringPeriodId),
+			1
+		);
+		const maxWeek = seasonMaxWeek;
 		const maxRank = Math.max(...history.map(e => e.weeklyRanks.length > 0 ? Math.ceil(Math.max(...e.weeklyRanks.map(r => r.rank))) : 1));
 
 		const xFor = (w: number) => PAD_L + (maxWeek > 0 ? (w / maxWeek) * PLOT_W : 0);

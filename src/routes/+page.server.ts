@@ -37,7 +37,14 @@ export async function load({ url }) {
 		const weekData = weekDoc && seasonDoc
 			? processWeek(weekDoc, seasonDoc, ownerDict, prevScores, streaks, playoffRound, bracket?.seeds ?? null)
 			: null;
-		const standingsHistory = seasonDoc ? computeStandingsHistory(allSeasonDocs, seasonDoc, bracket ?? undefined) : [];
+		const rawHistory = seasonDoc ? computeStandingsHistory(allSeasonDocs, seasonDoc, bracket ?? undefined) : [];
+
+		// Clip standings to the selected week so the chart is a snapshot of that moment.
+		// The x-axis still spans the full season (handled by buildChart using availableWeeks).
+		const standingsHistory = rawHistory.map(entry => ({
+			...entry,
+			weeklyRanks: entry.weeklyRanks.filter(r => r.week <= target.scoringPeriodId)
+		}));
 
 		// Inject championship awards: only when final ranks are fully resolved (lo===hi)
 		if (weekData?.isPlayoffWeek) {
