@@ -109,6 +109,27 @@ export function computeStandingsHistory(
 		}
 	}
 
+	// ── Final-week resolution ──────────────────────────────────────────────────
+	// After the last regular-season week every team is definitively in or out.
+	// Win-tie teams at the cutoff may have escaped the conservative loop above,
+	// so resolve them now using the actual tiebreaker (cumulative points-for).
+	if (regularDocs.length > 0) {
+		const finalWins = winSnapshot.get(lastRegularWeek)!;
+		const finalRanked = [...teamIds].sort((a, b) => {
+			const wd = (finalWins.get(b) ?? 0) - (finalWins.get(a) ?? 0);
+			return wd !== 0 ? wd : (pts.get(b) ?? 0) - (pts.get(a) ?? 0);
+		});
+		finalRanked.forEach((id, i) => {
+			const finalRank = i + 1;
+			if (!clinchWeekMap.has(id) && finalRank <= winnersCount) {
+				clinchWeekMap.set(id, lastRegularWeek);
+			}
+			if (!elimWeekMap.has(id) && finalRank > winnersCount) {
+				elimWeekMap.set(id, lastRegularWeek);
+			}
+		});
+	}
+
 	// ── Playoffs ───────────────────────────────────────────────────────────────
 	if (playoffDocs.length > 0) {
 		// Assign initial lo/hi ranges using bracket seeds when available (authoritative),
