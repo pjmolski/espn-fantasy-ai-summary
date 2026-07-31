@@ -69,14 +69,20 @@ export function computeStandingsHistory(
 	// ── Clinch / Elimination ────────────────────────────────────────────────────
 	// Uses wins only (ignores points-for tiebreaker) — conservative but correct.
 	// Top 6 = winners bracket; bottom 6 = Chumpionship bracket.
-	const winnersCount = Math.floor(totalTeams / 2); // 6 for a 12-team league
-	const totalRegularWeeks = seasonDoc.settings.regularSeasonWeeks;
+	//
+	// Derive values from actual data rather than potentially-stale ESPN API fields:
+	//   - winnersCount from teamIds.length (not seasonDoc.teamCount which may be 0)
+	//   - lastRegularWeek from max scoringPeriodId in regularDocs (not regularSeasonWeeks)
+	const winnersCount = Math.floor(teamIds.length / 2);
+	const lastRegularWeek = regularDocs.length > 0
+		? Math.max(...regularDocs.map((d) => d.scoringPeriodId))
+		: 0;
 	const clinchWeekMap = new Map<number, number>();
 	const elimWeekMap = new Map<number, number>();
 
 	for (const doc of regularDocs) {
 		const sid = doc.scoringPeriodId;
-		const remaining = totalRegularWeeks - sid; // games left after this week
+		const remaining = lastRegularWeek - sid; // games left after this week
 		const winsNow = winSnapshot.get(sid)!;
 
 		for (const id of teamIds) {
