@@ -195,8 +195,10 @@
 
 		// Determine where playoffs start (first week where isPlayoff, from availableWeeks)
 		const playoffStartWeek = (() => {
-			const pw = data.availableWeeks.find(w => w.isPlayoff && w.seasonId === selectedSeason);
-			return pw ? pw.scoringPeriodId : null;
+			const playoffWeeks = data.availableWeeks
+				.filter(w => w.isPlayoff && w.seasonId === selectedSeason)
+				.map(w => w.scoringPeriodId);
+			return playoffWeeks.length ? Math.min(...playoffWeeks) : null;
 		})();
 
 		const gridRanks = Array.from({ length: maxRank }, (_, i) => i + 1);
