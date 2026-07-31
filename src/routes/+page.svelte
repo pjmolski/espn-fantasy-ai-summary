@@ -210,7 +210,12 @@
 			teams: history.map((entry, i) => {
 				const pts = entry.weeklyRanks.map(r => `${xFor(r.week).toFixed(1)},${yFor(r.rank).toFixed(1)}`);
 				const d = pts.length > 1 ? 'M ' + pts.join(' L ') : '';
-				return { ...entry, d, color: CHART_COLORS[i % CHART_COLORS.length] };
+				const rankAt = (w: number) => entry.weeklyRanks.find(r => r.week === w)?.rank;
+				const clinchX = entry.clinchWeek      != null ? xFor(entry.clinchWeek)      : null;
+				const clinchY = entry.clinchWeek      != null && rankAt(entry.clinchWeek)      != null ? yFor(rankAt(entry.clinchWeek)!)      : null;
+				const elimX   = entry.eliminationWeek != null ? xFor(entry.eliminationWeek) : null;
+				const elimY   = entry.eliminationWeek != null && rankAt(entry.eliminationWeek) != null ? yFor(rankAt(entry.eliminationWeek)!) : null;
+				return { ...entry, d, color: CHART_COLORS[i % CHART_COLORS.length], clinchX, clinchY, elimX, elimY };
 			})
 		};
 	}
@@ -659,6 +664,8 @@
 		stroke: rgba(255,204,51,0.12);
 		stroke-width: 1;
 	}
+	.chart-marker { font-size: 9px; pointer-events: none; }
+	.chart-marker { font-size: 9px; pointer-events: none; }
 	.chart-playoff-bg {
 		fill: rgba(255,204,51,0.04);
 	}
@@ -1379,6 +1386,16 @@
 									>
 										<title>{team.teamName}</title>
 									</path>
+								{/if}
+							{/each}
+
+							<!-- Clinch / Elimination markers -->
+							{#each c.teams as team}
+								{#if team.clinchX != null && team.clinchY != null}
+									<text class="chart-marker" x={team.clinchX} y={team.clinchY} text-anchor="middle" dominant-baseline="middle">🔒</text>
+								{/if}
+								{#if team.elimX != null && team.elimY != null}
+									<text class="chart-marker" x={team.elimX} y={team.elimY} text-anchor="middle" dominant-baseline="middle">💀</text>
 								{/if}
 							{/each}
 

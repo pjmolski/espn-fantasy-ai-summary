@@ -6,6 +6,8 @@ export interface StandingsEntry {
 	teamName: string;
 	logoUrl?: string;
 	weeklyRanks: Array<{ week: number; rank: number }>;
+	clinchWeek?: number;       // scoringPeriodId when team clinched a top-6 seed
+	eliminationWeek?: number;  // scoringPeriodId when team was eliminated from top-6
 }
 
 /**
@@ -41,6 +43,8 @@ export function computeStandingsHistory(
 	const playoffDocs = sorted.filter((d) => d.isPlayoff);
 
 	// ── Regular season ─────────────────────────────────────────────────────────
+	const winSnapshot = new Map<number, Map<number, number>>(); // scoringPeriodId → teamId → wins
+
 	for (const doc of regularDocs) {
 		for (const m of doc.matchups) {
 			pts.set(m.home.teamId, (pts.get(m.home.teamId) ?? 0) + m.home.totalPoints);
@@ -55,6 +59,48 @@ export function computeStandingsHistory(
 			return wd !== 0 ? wd : (pts.get(b) ?? 0) - (pts.get(a) ?? 0);
 		});
 		ranked.forEach((id, i) => weeklyRanks.get(id)!.push(i + 1));
+
+		// Snapshot wins for clinch/elimination computation
+		const snap = new Map<number, number>();
+		for (const id of teamIds) snap.set(id, wins.get(id) ?? 0);
+		winSnapshot.set(doc.scoringPeriodId, snap);
+	}
+
+	// ── Clinch / Elimination ────────────────────────────────────────────────────
+	// Uses wins only (ignores points-for tiebreaker) — conservative but correct.
+	// Top 6 = winners bracket; bottom 6 = Chumpionship bracket.
+	const winnersCount = Math.floor(totalTeams / 2); // 6 for a 12-team league
+	const totalRegularWeeks = seasonDoc.settings.regularSeasonWeeks;
+	const clinchWeekMap = new Map<number, number>();
+	const elimWeekMap = new Map<number, number>();
+
+	for (const doc of regularDocs) {
+		const sid = doc.scoringPeriodId;
+		const remaining = totalRegularWeeks - sid; // games left after this week
+		const winsNow = winSnapshot.get(sid)!;
+
+		for (const id of teamIds) {
+			const myWins = winsNow.get(id) ?? 0;
+
+			// Clinch: fewer than winnersCount others can still match-or-beat my current wins.
+			// Ties are counted against X (conservative for clinching).
+			if (!clinchWeekMap.has(id)) {
+				const canMatchOrBeat = teamIds.filter(
+					(other) => other !== id && (winsNow.get(other) ?? 0) + remaining >= myWins
+				).length;
+				if (canMatchOrBeat < winnersCount) clinchWeekMap.set(id, sid);
+			}
+
+			// Eliminated: winnersCount or more others already have wins > my maximum possible.
+			// Ties not counted (conservative for elimination).
+			if (!elimWeekMap.has(id)) {
+				const myMax = myWins + remaining;
+				const alreadyAhead = teamIds.filter(
+					(other) => other !== id && (winsNow.get(other) ?? 0) > myMax
+				).length;
+				if (alreadyAhead >= winnersCount) elimWeekMap.set(id, sid);
+			}
+		}
 	}
 
 	// ── Playoffs ───────────────────────────────────────────────────────────────
@@ -134,7 +180,9 @@ export function computeStandingsHistory(
 		teamId: t.teamId,
 		teamName: t.name,
 		logoUrl: t.logoUrl,
-		weeklyRanks: (weeklyRanks.get(t.teamId) ?? []).map((rank, week) => ({ week, rank }))
+		weeklyRanks: (weeklyRanks.get(t.teamId) ?? []).map((rank, week) => ({ week, rank })),
+		clinchWeek: clinchWeekMap.get(t.teamId),
+		eliminationWeek: elimWeekMap.get(t.teamId),
 	}));
 }
 
