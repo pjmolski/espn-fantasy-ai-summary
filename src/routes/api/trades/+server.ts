@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { getAllSeasons } from '$lib/fantasyDataService';
 import { fetchTransactions } from '$lib/espnApi';
-import { LEAGUE_ID, SWID, ESPN_S2 } from '$env/static/private';
+import { LEAGUE_ID } from '$env/static/private';
 
 const POSITION: Record<number, string> = {
 	1: 'QB', 2: 'RB', 3: 'WR', 4: 'TE', 5: 'K', 16: 'D/ST'
@@ -20,7 +20,7 @@ export async function GET({ url }) {
 
 	for (const season of seasons) {
 		try {
-			const raw = await fetchTransactions(LEAGUE_ID, season.seasonId, SWID, ESPN_S2);
+			const raw = await fetchTransactions(LEAGUE_ID, season.seasonId);
 			// ESPN returns transactions at raw.transactions (mTransactions2 view)
 			const transactions: any[] = raw.transactions ?? [];
 
