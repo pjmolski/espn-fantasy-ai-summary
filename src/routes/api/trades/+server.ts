@@ -21,8 +21,14 @@ export async function GET({ url }) {
 	for (const season of seasons) {
 		try {
 			const raw = await fetchTransactions(LEAGUE_ID, season.seasonId);
-			// ESPN returns transactions at raw.transactions (mTransactions2 view)
+			// DEBUG — remove once response shape is confirmed
+			console.log(`[trades] season ${season.seasonId} raw keys:`, Object.keys(raw));
 			const transactions: any[] = raw.transactions ?? [];
+			console.log(`[trades] season ${season.seasonId} transaction count:`, transactions.length);
+			if (transactions.length > 0) {
+				const first = transactions[0];
+				console.log(`[trades] first tx type=${first.type} status=${first.status} keys:`, Object.keys(first));
+			}
 
 			const teamNames = new Map<number, string>(
 				season.teams.map((t) => [t.teamId, t.name])
