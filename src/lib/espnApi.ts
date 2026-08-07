@@ -164,3 +164,17 @@ export function parseWeeklyData(
 		matchups
 	};
 }
+
+export async function fetchTransactions(
+	leagueId: string,
+	year: number,
+	swid?: string,
+	espnS2?: string
+): Promise<any> {
+	const url = `${BASE_URL}/seasons/${year}/segments/0/leagues/${leagueId}?view=mTransactions2`;
+	const headers: Record<string, string> = { ...ESPN_HEADERS };
+	if (swid && espnS2) headers['Cookie'] = `SWID=${swid}; espn_s2=${espnS2}`;
+	const res = await (await import('node-fetch')).default(url, { headers });
+	if (!res.ok) throw new Error(`ESPN transactions ${res.status} for season ${year}`);
+	return res.json();
+}
