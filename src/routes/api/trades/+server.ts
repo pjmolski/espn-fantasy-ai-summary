@@ -21,14 +21,11 @@ export async function GET({ url }) {
 	for (const season of seasons) {
 		try {
 			const raw = await fetchTransactions(LEAGUE_ID, season.seasonId);
-			// DEBUG — remove once response shape is confirmed
-			console.log(`[trades] season ${season.seasonId} raw keys:`, Object.keys(raw));
-			const transactions: any[] = raw.transactions ?? [];
-			console.log(`[trades] season ${season.seasonId} transaction count:`, transactions.length);
-			if (transactions.length > 0) {
-				const first = transactions[0];
-				console.log(`[trades] first tx type=${first.type} status=${first.status} keys:`, Object.keys(first));
+			// DEBUG — log full raw response for first season only
+			if (trades.length === 0) {
+				console.log(`[trades] season ${season.seasonId} full raw:`, JSON.stringify(raw).slice(0, 2000));
 			}
+			const transactions: any[] = raw.transactions ?? [];
 
 			const teamNames = new Map<number, string>(
 				season.teams.map((t) => [t.teamId, t.name])
