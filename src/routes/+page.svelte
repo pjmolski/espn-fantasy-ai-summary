@@ -1477,9 +1477,7 @@
 
 		<!-- ── Trade History ──────────────────────────────────────────────────── -->
 		<div class="section">
-			<h2 class="section-title" role="button" tabindex="0"
-				on:click={() => tradesOpen = !tradesOpen}
-				on:keydown={e => e.key === 'Enter' && (tradesOpen = !tradesOpen)}>
+			<h2 class="section-header" onclick={() => tradesOpen = !tradesOpen}>
 				<span>Trade History</span>
 				<span class="section-chevron" style="transform: rotate({tradesOpen ? 0 : -90}deg)">›</span>
 			</h2>
@@ -1497,7 +1495,7 @@
 						<option value={t.teamId} disabled={t.teamId === tradeTeam1}>{t.teamName}</option>
 					{/each}
 				</select>
-				<button class="trade-btn" disabled={!tradeTeam1 || !tradeTeam2 || tradesLoading} on:click={fetchTrades}>
+				<button class="trade-btn" disabled={!tradeTeam1 || !tradeTeam2 || tradesLoading} onclick={fetchTrades}>
 					{tradesLoading ? 'Loading…' : 'See Trade History'}
 				</button>
 			</div>
