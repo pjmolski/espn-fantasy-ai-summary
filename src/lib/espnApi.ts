@@ -166,6 +166,6 @@ export function parseWeeklyData(
 }
 
 export async function fetchTransactions(leagueId: string, year: number): Promise<any> {
-	const url = `${BASE_URL}/seasons/${year}/segments/0/leagues/${leagueId}?view=mTransactions2`;
+	const url = `${BASE_URL}/seasons/${year}/segments/0/leagues/${leagueId}/transactions/`;
 	return espnGet(url);
 }

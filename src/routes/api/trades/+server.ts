@@ -21,11 +21,10 @@ export async function GET({ url }) {
 	for (const season of seasons) {
 		try {
 			const raw = await fetchTransactions(LEAGUE_ID, season.seasonId);
-			// DEBUG — log full raw response for first season only
-			if (trades.length === 0) {
-				console.log(`[trades] season ${season.seasonId} full raw:`, JSON.stringify(raw).slice(0, 2000));
-			}
-			const transactions: any[] = raw.transactions ?? [];
+			// DEBUG — log response shape
+			const isArray = Array.isArray(raw);
+			console.log(`[trades] season ${season.seasonId} isArray=${isArray} sample:`, JSON.stringify(raw).slice(0, 500));
+			const transactions: any[] = isArray ? raw : (raw.transactions ?? raw.items ?? []);
 
 			const teamNames = new Map<number, string>(
 				season.teams.map((t) => [t.teamId, t.name])
