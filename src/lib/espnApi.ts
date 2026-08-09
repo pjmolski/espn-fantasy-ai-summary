@@ -179,21 +179,36 @@ export async function fetchTransactions(
 		return m ? decodeURIComponent(m[1]) : null;
 	};
 
-	// leagueHistory endpoint — returns more complete historical data
-	const histUrl = `https://fantasy.espn.com/apis/v3/games/ffl/leagueHistory/${leagueId}?view=mTransactions2&seasonId=${year}`;
-	const histHeaders: Record<string, string> = { ...ESPN_HEADERS, Cookie: cookie };
-	const histRes  = await fetch(histUrl, { headers: histHeaders });
-	const histText = await histRes.text();
-	console.log(`[fetchTransactions] ${year} leagueHistory status=${histRes.status} body=${histText.slice(0, 400)}`);
+	// leagueHistory endpoint — try both domains; retry once on 202
+	const domains = [
+		`${BASE_URL}/leagueHistory/${leagueId}?view=mTransactions2&seasonId=${year}`,
+		`https://fantasy.espn.com/apis/v3/games/ffl/leagueHistory/${leagueId}?view=mTransactions2&seasonId=${year}`
+	];
 
-	const newEspnS2 = extractCookie(histRes);
+	let newEspnS2: string | null = null;
 
-	// leagueHistory wraps response in an array of length 1
-	const histData = JSON.parse(histText);
-	const league   = Array.isArray(histData) ? histData[0] : histData;
-	const txns     = league?.transactions ?? league?.items ?? [];
+	for (const histUrl of domains) {
+		let histRes  = await fetch(histUrl, { headers: { ...ESPN_HEADERS, Cookie: cookie } });
+		let histText = await histRes.text();
 
-	console.log(`[fetchTransactions] ${year} found ${txns.length} txns, types: ${[...new Set(txns.map((t: any) => t.type))].join(',')}`);
+		// 202 = async processing — wait and retry once
+		if (histRes.status === 202 && histText.trim().length === 0) {
+			await new Promise(r => setTimeout(r, 1500));
+			histRes  = await fetch(histUrl, { headers: { ...ESPN_HEADERS, Cookie: cookie } });
+			histText = await histRes.text();
+		}
 
-	return { data: txns, newEspnS2 };
+		console.log(`[fetchTransactions] ${year} ${histUrl.includes('lm-api') ? 'lm-api' : 'espn.com'} status=${histRes.status} body=${histText.slice(0, 400)}`);
+		if (!newEspnS2) newEspnS2 = extractCookie(histRes);
+
+		if (histRes.ok && histText.trim().length > 0) {
+			const histData = JSON.parse(histText);
+			const league   = Array.isArray(histData) ? histData[0] : histData;
+			const txns     = league?.transactions ?? league?.items ?? [];
+			console.log(`[fetchTransactions] ${year} found ${txns.length} txns, types: ${[...new Set(txns.map((t: any) => t.type))].join(',') || 'none'}`);
+			return { data: txns, newEspnS2 };
+		}
+	}
+
+	return { data: [], newEspnS2 };
 }
