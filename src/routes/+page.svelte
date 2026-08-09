@@ -21,6 +21,32 @@
 	let tradesError: string | null = null;
 	let tradeResults: any[] | null = null;
 	let tradesOpen = true;
+	let syncLoading = false;
+	let syncMessage: string | null = null;
+	let lastSync: string | null = null;
+
+	async function syncTrades() {
+		syncLoading = true;
+		syncMessage = null;
+		try {
+			const secret = prompt('Enter sync secret:');
+			if (!secret) return;
+			const res = await fetch('/api/admin/sync-trades', {
+				method: 'POST',
+				headers: { Authorization: `Bearer ${secret}` }
+			});
+			const d = await res.json();
+			if (d.error) throw new Error(d.error);
+			lastSync = d.lastSync ? new Date(d.lastSync).toLocaleString() : null;
+			syncMessage = d.added > 0 ? `Synced — ${d.added} new trade${d.added !== 1 ? 's' : ''} added.` : 'Synced — no new trades.';
+			// Refresh trade results if a pair is selected
+			if (tradeTeam1 && tradeTeam2) fetchTrades();
+		} catch (e: any) {
+			syncMessage = e.message ?? 'Sync failed';
+		} finally {
+			syncLoading = false;
+		}
+	}
 
 	$: tradeTeams = standingsHistory.map(e => ({ teamId: e.teamId, teamName: e.teamName }))
 		.sort((a, b) => a.teamName.localeCompare(b.teamName));
@@ -638,6 +664,10 @@
 	.trade-pos { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.35); margin-right: 6px; }
 	.trade-empty { color: rgba(255,255,255,0.25); font-style: italic; font-size: 13px; }
 	.trades-none { color: rgba(255,255,255,0.3); font-size: 14px; text-align: center; padding: 32px 0; }
+	.trade-btn-sync { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.6); }
+	.trade-btn-sync:hover:not(:disabled) { border-color: var(--green); color: var(--green); }
+	.trade-sync-status { display: flex; gap: 16px; align-items: center; font-size: 12px; margin-bottom: 16px; color: rgba(255,255,255,0.45); }
+	.trade-sync-time { margin-left: auto; }
 
 	/* Team award badges */
 	.team-score { display: flex; align-items: center; gap: 4px; }
@@ -1498,7 +1528,16 @@
 				<button class="trade-btn" disabled={!tradeTeam1 || !tradeTeam2 || tradesLoading} onclick={fetchTrades}>
 					{tradesLoading ? 'Loading…' : 'See Trade History'}
 				</button>
+				<button class="trade-btn trade-btn-sync" disabled={syncLoading} onclick={syncTrades}>
+					{syncLoading ? 'Syncing…' : '↻ Sync Trades'}
+				</button>
 			</div>
+			{#if lastSync || syncMessage}
+				<div class="trade-sync-status">
+					{#if syncMessage}<span>{syncMessage}</span>{/if}
+					{#if lastSync}<span class="trade-sync-time">Last sync: {lastSync}</span>{/if}
+				</div>
+			{/if}
 
 			{#if tradesError}
 				<div class="trades-none">{tradesError}</div>

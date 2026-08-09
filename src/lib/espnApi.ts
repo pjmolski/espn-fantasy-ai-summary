@@ -165,7 +165,25 @@ export function parseWeeklyData(
 	};
 }
 
-export async function fetchTransactions(leagueId: string, year: number): Promise<any> {
+export async function fetchTransactions(
+	leagueId: string,
+	year: number,
+	swid: string,
+	espnS2: string
+): Promise<{ data: any; newEspnS2: string | null }> {
 	const url = `${BASE_URL}/seasons/${year}/segments/0/leagues/${leagueId}/transactions/`;
-	return espnGet(url);
+	const headers: Record<string, string> = {
+		...ESPN_HEADERS,
+		Cookie: `SWID=${swid}; espn_s2=${espnS2}`
+	};
+	const res = await fetch(url, { headers });
+	const text = await res.text();
+	console.log(`[fetchTransactions] ${year} status=${res.status} body=${text.slice(0, 200)}`);
+
+	// Capture rotated espn_s2 from Set-Cookie response header
+	const setCookie = res.headers.get('set-cookie') ?? '';
+	const match = setCookie.match(/espn_s2=([^;]+)/);
+	const newEspnS2 = match ? decodeURIComponent(match[1]) : null;
+
+	return { data: JSON.parse(text), newEspnS2 };
 }
