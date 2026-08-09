@@ -171,19 +171,41 @@ export async function fetchTransactions(
 	swid: string,
 	espnS2: string
 ): Promise<{ data: any; newEspnS2: string | null }> {
-	const url = `${BASE_URL}/seasons/${year}/segments/0/leagues/${leagueId}/transactions/`;
-	const headers: Record<string, string> = {
+	const cookie = `SWID=${swid}; espn_s2=${espnS2}`;
+
+	// Attempt 1: /transactions/ sub-path with x-fantasy-filter header
+	const txUrl = `${BASE_URL}/seasons/${year}/segments/0/leagues/${leagueId}/transactions/`;
+	const txHeaders: Record<string, string> = {
 		...ESPN_HEADERS,
-		Cookie: `SWID=${swid}; espn_s2=${espnS2}`
+		Cookie: cookie,
+		'x-fantasy-filter': JSON.stringify({ filterType: { value: ['TRADE_ACCEPT'] } })
 	};
-	const res = await fetch(url, { headers });
-	const text = await res.text();
-	console.log(`[fetchTransactions] ${year} status=${res.status} body=${text.slice(0, 200)}`);
+	const txRes  = await fetch(txUrl, { headers: txHeaders });
+	const txText = await txRes.text();
+	console.log(`[fetchTransactions] ${year} /transactions/ status=${txRes.status} body=${txText.slice(0, 300)}`);
 
-	// Capture rotated espn_s2 from Set-Cookie response header
-	const setCookie = res.headers.get('set-cookie') ?? '';
-	const match = setCookie.match(/espn_s2=([^;]+)/);
-	const newEspnS2 = match ? decodeURIComponent(match[1]) : null;
+	// Capture rotated espn_s2 from whichever response has Set-Cookie
+	const extractCookie = (res: any) => {
+		const sc = res.headers.get('set-cookie') ?? '';
+		const m  = sc.match(/espn_s2=([^;]+)/);
+		return m ? decodeURIComponent(m[1]) : null;
+	};
+	let newEspnS2 = extractCookie(txRes);
 
-	return { data: JSON.parse(text), newEspnS2 };
+	if (txText.trim().length > 0) {
+		return { data: JSON.parse(txText), newEspnS2 };
+	}
+
+	// Attempt 2: main league endpoint with mTransactions2 view
+	const lgUrl = `${BASE_URL}/seasons/${year}/segments/0/leagues/${leagueId}?view=mTransactions2`;
+	const lgHeaders: Record<string, string> = { ...ESPN_HEADERS, Cookie: cookie };
+	const lgRes  = await fetch(lgUrl, { headers: lgHeaders });
+	const lgText = await lgRes.text();
+	console.log(`[fetchTransactions] ${year} mTransactions2 status=${lgRes.status} body=${lgText.slice(0, 300)}`);
+	if (!newEspnS2) newEspnS2 = extractCookie(lgRes);
+
+	const lgData = JSON.parse(lgText);
+	// mTransactions2 nests trades under .transactions
+	const txns = lgData?.transactions ?? lgData?.items ?? lgData;
+	return { data: txns, newEspnS2 };
 }
