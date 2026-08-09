@@ -179,36 +179,23 @@ export async function fetchTransactions(
 		return m ? decodeURIComponent(m[1]) : null;
 	};
 
-	// leagueHistory endpoint — try both domains; retry once on 202
-	const domains = [
-		`${BASE_URL}/leagueHistory/${leagueId}?view=mTransactions2&seasonId=${year}`,
-		`https://fantasy.espn.com/apis/v3/games/ffl/leagueHistory/${leagueId}?view=mTransactions2&seasonId=${year}`
-	];
+	// Communication endpoint — correct domain for trade/transaction history
+	const COMM_BASE = 'https://lm-api-communication.fantasy.espn.com/apis/v3/games/ffl';
+	const commUrl   = `${COMM_BASE}/seasons/${year}/segments/0/leagues/${leagueId}/communication/?view=kona_league_communication`;
+	const commRes   = await fetch(commUrl, { headers: { ...ESPN_HEADERS, Cookie: cookie } });
+	const commText  = await commRes.text();
+	console.log(`[fetchTransactions] ${year} communication status=${commRes.status} body=${commText.slice(0, 500)}`);
 
-	let newEspnS2: string | null = null;
+	const newEspnS2 = extractCookie(commRes);
 
-	for (const histUrl of domains) {
-		let histRes  = await fetch(histUrl, { headers: { ...ESPN_HEADERS, Cookie: cookie } });
-		let histText = await histRes.text();
-
-		// 202 = async processing — wait and retry once
-		if (histRes.status === 202 && histText.trim().length === 0) {
-			await new Promise(r => setTimeout(r, 1500));
-			histRes  = await fetch(histUrl, { headers: { ...ESPN_HEADERS, Cookie: cookie } });
-			histText = await histRes.text();
-		}
-
-		console.log(`[fetchTransactions] ${year} ${histUrl.includes('lm-api') ? 'lm-api' : 'espn.com'} status=${histRes.status} body=${histText.slice(0, 400)}`);
-		if (!newEspnS2) newEspnS2 = extractCookie(histRes);
-
-		if (histRes.ok && histText.trim().length > 0) {
-			const histData = JSON.parse(histText);
-			const league   = Array.isArray(histData) ? histData[0] : histData;
-			console.log(`[fetchTransactions] ${year} top-level keys:`, Object.keys(league).join(', '));
-			const txns     = league?.transactions ?? league?.items ?? [];
-			console.log(`[fetchTransactions] ${year} found ${txns.length} txns, types: ${[...new Set(txns.map((t: any) => t.type))].join(',') || 'none'}`);
-			return { data: txns, newEspnS2 };
-		}
+	if (commRes.ok && commText.trim().length > 0) {
+		const commData = JSON.parse(commText);
+		// Log top-level keys so we can find where trades live
+		console.log(`[fetchTransactions] ${year} keys:`, Object.keys(commData).join(', '));
+		const txns = commData?.transactions ?? commData?.items ?? commData?.topics ?? commData ?? [];
+		const arr  = Array.isArray(txns) ? txns : [];
+		console.log(`[fetchTransactions] ${year} found ${arr.length} items, types: ${[...new Set(arr.map((t: any) => t.type ?? t.topicType))].join(',') || 'none'}`);
+		return { data: arr, newEspnS2 };
 	}
 
 	return { data: [], newEspnS2 };
