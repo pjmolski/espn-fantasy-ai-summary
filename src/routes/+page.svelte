@@ -14,63 +14,6 @@
 	let weekData: ProcessedWeek | null = data.weekData;
 	let standingsHistory: StandingsEntry[] = data.standingsHistory ?? [];
 
-	// Trade history state
-	let tradeTeam1: number | null = null;
-	let tradeTeam2: number | null = null;
-	let tradesLoading = false;
-	let tradesError: string | null = null;
-	let tradeResults: any[] | null = null;
-	let tradesOpen = true;
-	let syncLoading = false;
-	let syncMessage: string | null = null;
-	let lastSync: string | null = null;
-
-	async function syncTrades() {
-		syncLoading = true;
-		syncMessage = null;
-		try {
-			const secret = prompt('Enter sync secret:');
-			if (!secret) return;
-			const res = await fetch('/api/admin/sync-trades', {
-				method: 'POST',
-				headers: { Authorization: `Bearer ${secret}` }
-			});
-			const d = await res.json();
-			if (d.error) throw new Error(d.error);
-			lastSync = d.lastSync ? new Date(d.lastSync).toLocaleString() : null;
-			syncMessage = d.added > 0 ? `Synced — ${d.added} new trade${d.added !== 1 ? 's' : ''} added.` : 'Synced — no new trades.';
-			// Refresh trade results if a pair is selected
-			if (tradeTeam1 && tradeTeam2) fetchTrades();
-		} catch (e: any) {
-			syncMessage = e.message ?? 'Sync failed';
-		} finally {
-			syncLoading = false;
-		}
-	}
-
-	$: tradeTeams = standingsHistory.map(e => ({ teamId: e.teamId, teamName: e.teamName }))
-		.sort((a, b) => a.teamName.localeCompare(b.teamName));
-
-	async function fetchTrades() {
-		if (!tradeTeam1 || !tradeTeam2) return;
-		tradesLoading = true;
-		tradesError = null;
-		tradeResults = null;
-		try {
-			const res = await fetch(`/api/trades?team1=${tradeTeam1}&team2=${tradeTeam2}`);
-			const data = await res.json();
-			if (data.error) throw new Error(data.error);
-			tradeResults = data.trades;
-		} catch (e: any) {
-			tradesError = e.message ?? 'Failed to load trades';
-		} finally {
-			tradesLoading = false;
-		}
-	}
-
-	function formatTradeDate(iso: string) {
-		return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-	}
 
 	let selectedSeason: number = data.weekData?.seasonId ?? data.availableWeeks[0]?.seasonId;
 	let selectedWeek: number = data.weekData?.scoringPeriodId ?? data.availableWeeks[0]?.scoringPeriodId;
@@ -650,24 +593,7 @@
 
 	.empty { text-align: center; padding: 80px 20px; color: rgba(255,255,255,0.25); font-size: 14px; }
 
-	/* Trade History */
-	.trade-controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
-	.trade-select { background: #1e1e1e; color: #fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; padding: 8px 12px; font-size: 13px; font-family: inherit; min-width: 180px; }
-	.trade-select:focus { outline: none; border-color: var(--green); }
-	.trade-btn { background: var(--green); color: #000; border: none; border-radius: 4px; padding: 8px 18px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; letter-spacing: 0.5px; }
-	.trade-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-	.trade-card { background: #1e1e1e; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 16px 20px; margin-bottom: 12px; }
-	.trade-meta { font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 12px; letter-spacing: 0.5px; }
-	.trade-sides { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-	.trade-side-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--green); margin-bottom: 6px; }
-	.trade-player { font-size: 13px; padding: 3px 0; }
-	.trade-pos { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.35); margin-right: 6px; }
-	.trade-empty { color: rgba(255,255,255,0.25); font-style: italic; font-size: 13px; }
-	.trades-none { color: rgba(255,255,255,0.3); font-size: 14px; text-align: center; padding: 32px 0; }
-	.trade-btn-sync { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.6); }
-	.trade-btn-sync:hover:not(:disabled) { border-color: var(--green); color: var(--green); }
-	.trade-sync-status { display: flex; gap: 16px; align-items: center; font-size: 12px; margin-bottom: 16px; color: rgba(255,255,255,0.45); }
-	.trade-sync-time { margin-left: auto; }
+
 
 	/* Team award badges */
 	.team-score { display: flex; align-items: center; gap: 4px; }
@@ -1505,78 +1431,6 @@
 			<div class="empty">No data found. Run the backfill to populate historical data.</div>
 		{/if}
 
-		<!-- ── Trade History ──────────────────────────────────────────────────── -->
-		<div class="section">
-			<h2 class="section-header" onclick={() => tradesOpen = !tradesOpen}>
-				<span>Trade History</span>
-				<span class="section-chevron" style="transform: rotate({tradesOpen ? 0 : -90}deg)">›</span>
-			</h2>
-			{#if tradesOpen}
-			<div class="trade-controls">
-				<select class="trade-select" bind:value={tradeTeam1}>
-					<option value={null} disabled selected>Team 1…</option>
-					{#each tradeTeams as t}
-						<option value={t.teamId}>{t.teamName}</option>
-					{/each}
-				</select>
-				<select class="trade-select" bind:value={tradeTeam2}>
-					<option value={null} disabled selected>Team 2…</option>
-					{#each tradeTeams as t}
-						<option value={t.teamId} disabled={t.teamId === tradeTeam1}>{t.teamName}</option>
-					{/each}
-				</select>
-				<button class="trade-btn" disabled={!tradeTeam1 || !tradeTeam2 || tradesLoading} onclick={fetchTrades}>
-					{tradesLoading ? 'Loading…' : 'See Trade History'}
-				</button>
-				<button class="trade-btn trade-btn-sync" disabled={syncLoading} onclick={syncTrades}>
-					{syncLoading ? 'Syncing…' : '↻ Sync Trades'}
-				</button>
-			</div>
-			{#if lastSync || syncMessage}
-				<div class="trade-sync-status">
-					{#if syncMessage}<span>{syncMessage}</span>{/if}
-					{#if lastSync}<span class="trade-sync-time">Last sync: {lastSync}</span>{/if}
-				</div>
-			{/if}
 
-			{#if tradesError}
-				<div class="trades-none">{tradesError}</div>
-			{:else if tradeResults !== null}
-				{#if tradeResults.length === 0}
-					<div class="trades-none">No trades found between these two teams.</div>
-				{:else}
-					{#each tradeResults as trade}
-					<div class="trade-card">
-						<div class="trade-meta">
-							{formatTradeDate(trade.processDate)} · {trade.seasonId} Season · Week {trade.scoringPeriodId ?? '—'}
-						</div>
-						<div class="trade-sides">
-							<div>
-								<div class="trade-side-label">{trade.team1.teamName} received</div>
-								{#if trade.team1.received.length}
-									{#each trade.team1.received as p}
-										<div class="trade-player"><span class="trade-pos">{p.position}</span>{p.playerName}</div>
-									{/each}
-								{:else}
-									<div class="trade-empty">nothing</div>
-								{/if}
-							</div>
-							<div>
-								<div class="trade-side-label">{trade.team2.teamName} received</div>
-								{#if trade.team2.received.length}
-									{#each trade.team2.received as p}
-										<div class="trade-player"><span class="trade-pos">{p.position}</span>{p.playerName}</div>
-									{/each}
-								{:else}
-									<div class="trade-empty">nothing</div>
-								{/if}
-							</div>
-						</div>
-					</div>
-					{/each}
-				{/if}
-			{/if}
-			{/if}
-		</div>
 	</main>
 </div>
