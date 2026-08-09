@@ -32,6 +32,12 @@ export async function syncTrades(): Promise<{ added: number; error?: string }> {
 			}
 
 			const transactions: any[] = Array.isArray(data) ? data : (data?.transactions ?? data?.items ?? []);
+			// Log first few transactions so we can see the actual shape
+			if (transactions.length > 0) {
+				console.log(`[tradeSync] season ${season.seasonId} sample tx:`, JSON.stringify(transactions[0]).slice(0, 500));
+				const types = [...new Set(transactions.map((t: any) => t.type ?? t.transactionType ?? t.bidType ?? 'UNKNOWN'))];
+				console.log(`[tradeSync] season ${season.seasonId} tx types:`, types);
+			}
 
 			const teamNames = new Map<number, string>(
 				season.teams.map((t) => [t.teamId, t.name])
