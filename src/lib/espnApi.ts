@@ -173,39 +173,27 @@ export async function fetchTransactions(
 ): Promise<{ data: any; newEspnS2: string | null }> {
 	const cookie = `SWID=${swid}; espn_s2=${espnS2}`;
 
-	// Attempt 1: /transactions/ sub-path with x-fantasy-filter header
-	const txUrl = `${BASE_URL}/seasons/${year}/segments/0/leagues/${leagueId}/transactions/`;
-	const txHeaders: Record<string, string> = {
-		...ESPN_HEADERS,
-		Cookie: cookie,
-		'x-fantasy-filter': JSON.stringify({ filterType: { value: ['TRADE_ACCEPT'] } })
-	};
-	const txRes  = await fetch(txUrl, { headers: txHeaders });
-	const txText = await txRes.text();
-	console.log(`[fetchTransactions] ${year} /transactions/ status=${txRes.status} body=${txText.slice(0, 300)}`);
-
-	// Capture rotated espn_s2 from whichever response has Set-Cookie
-	const extractCookie = (res: any) => {
+	const extractCookie = (res: any): string | null => {
 		const sc = res.headers.get('set-cookie') ?? '';
 		const m  = sc.match(/espn_s2=([^;]+)/);
 		return m ? decodeURIComponent(m[1]) : null;
 	};
-	let newEspnS2 = extractCookie(txRes);
 
-	if (txText.trim().length > 0) {
-		return { data: JSON.parse(txText), newEspnS2 };
-	}
+	// leagueHistory endpoint — returns more complete historical data
+	const histUrl = `https://fantasy.espn.com/apis/v3/games/ffl/leagueHistory/${leagueId}?view=mTransactions2&seasonId=${year}`;
+	const histHeaders: Record<string, string> = { ...ESPN_HEADERS, Cookie: cookie };
+	const histRes  = await fetch(histUrl, { headers: histHeaders });
+	const histText = await histRes.text();
+	console.log(`[fetchTransactions] ${year} leagueHistory status=${histRes.status} body=${histText.slice(0, 400)}`);
 
-	// Attempt 2: main league endpoint with mTransactions2 view
-	const lgUrl = `${BASE_URL}/seasons/${year}/segments/0/leagues/${leagueId}?view=mTransactions2`;
-	const lgHeaders: Record<string, string> = { ...ESPN_HEADERS, Cookie: cookie };
-	const lgRes  = await fetch(lgUrl, { headers: lgHeaders });
-	const lgText = await lgRes.text();
-	console.log(`[fetchTransactions] ${year} mTransactions2 status=${lgRes.status} body=${lgText.slice(0, 300)}`);
-	if (!newEspnS2) newEspnS2 = extractCookie(lgRes);
+	const newEspnS2 = extractCookie(histRes);
 
-	const lgData = JSON.parse(lgText);
-	// mTransactions2 nests trades under .transactions
-	const txns = lgData?.transactions ?? lgData?.items ?? lgData;
+	// leagueHistory wraps response in an array of length 1
+	const histData = JSON.parse(histText);
+	const league   = Array.isArray(histData) ? histData[0] : histData;
+	const txns     = league?.transactions ?? league?.items ?? [];
+
+	console.log(`[fetchTransactions] ${year} found ${txns.length} txns, types: ${[...new Set(txns.map((t: any) => t.type))].join(',')}`);
+
 	return { data: txns, newEspnS2 };
 }
