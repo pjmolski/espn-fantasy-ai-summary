@@ -204,6 +204,7 @@ export async function fetchTransactions(
 		if (histRes.ok && histText.trim().length > 0) {
 			const histData = JSON.parse(histText);
 			const league   = Array.isArray(histData) ? histData[0] : histData;
+			console.log(`[fetchTransactions] ${year} top-level keys:`, Object.keys(league).join(', '));
 			const txns     = league?.transactions ?? league?.items ?? [];
 			console.log(`[fetchTransactions] ${year} found ${txns.length} txns, types: ${[...new Set(txns.map((t: any) => t.type))].join(',') || 'none'}`);
 			return { data: txns, newEspnS2 };
