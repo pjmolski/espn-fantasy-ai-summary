@@ -365,6 +365,8 @@
 	}
 	.preview-label { color: rgba(255, 204, 51, 0.6); }
 
+	.empty-slot { opacity: 0.35; pointer-events: none; }
+	.empty-slot .player-name { font-style: italic; }
 	/* Preview matchup card */
 	.preview-proj { color: var(--gold) !important; font-size: 20px !important; }
 	.win-prob-row {
@@ -1286,17 +1288,18 @@
 
 					<!-- Results / Optimal view -->
 					{#if !isOptimal}
+						{@const _rSides = [matchup.home, matchup.away].filter(Boolean).map(x => x as ProcessedTeam)}
+						{@const _rPadded = padLineups(_rSides.map(t => sortPlayers(t.starters)))}
 						<div class="roster-grid">
-							{#each [matchup.home, matchup.away].filter(Boolean) as team}
-								{@const t = team as ProcessedTeam}
+							{#each _rSides as t, ti}
 								<div class="team-col">
 									<div class="col-header">
 										<span class="col-team-name">{t.teamName}</span>
 										{#each (teamAwardMap.get(t.teamId) ?? []) as emoji}<span class="team-award-badge sm">{emoji}</span>{/each}
 									</div>
 
-									{#each sortPlayers(t.starters) as p}
-										<div class="player-row">
+									{#each _rPadded[ti] as p}
+										<div class="player-row {p.isEmpty ? 'empty-slot' : ''}">
 											<div class="player-left">
 												<span class="slot-label">{p.slotName}</span>
 												<span class="player-name">{p.fullName}</span>
@@ -1360,9 +1363,10 @@
 
 					<!-- Optimal view -->
 					{:else}
+						{@const _oSides = [matchup.home, matchup.away].filter(Boolean).map(x => x as ProcessedTeam)}
+						{@const _oPadded = padLineups(_oSides.map(t => sortOptimalPlayers(t.optimalStarters)))}
 						<div class="roster-grid">
-							{#each [matchup.home, matchup.away].filter(Boolean) as team}
-								{@const t = team as ProcessedTeam}
+							{#each _oSides as t, ti}
 								<div class="team-col">
 									<div class="col-header">
 										<span class="col-team-name">{t.teamName}</span>
@@ -1370,9 +1374,9 @@
 										<span class="cake-opt-delta">+{(t.optimalPoints - t.totalPoints).toFixed(1)}</span>
 									</div>
 
-									{#each sortOptimalPlayers(t.optimalStarters) as p}
-										{@const wasStarted = t.starters.some(s => s.playerId === p.playerId)}
-										<div class="player-row {!wasStarted ? 'was-benched' : ''}">
+									{#each _oPadded[ti] as p}
+										{@const wasStarted = !p.isEmpty && t.starters.some(s => s.playerId === p.playerId)}
+										<div class="player-row {p.isEmpty ? 'empty-slot' : !wasStarted ? 'was-benched' : ''}">
 											<div class="player-left">
 												<span class="slot-label">{p.slotName}</span>
 												<span class="player-name">{p.fullName}</span>
@@ -1628,14 +1632,16 @@
 
 					<!-- Lineup view -->
 					{#if !isOptimal}
+						{@const _pSides = [pmatchup.home, pmatchup.away].filter(Boolean)}
+						{@const _pPadded = padLineups(_pSides.map(t => sortPreviewPlayers(t.starters)))}
 						<div class="roster-grid">
-							{#each [pmatchup.home, pmatchup.away].filter(Boolean) as pteam}
+							{#each _pSides as pteam, ti}
 								<div class="team-col">
 									<div class="col-header">
 										<span class="col-team-name">{pteam.teamName}</span>
 									</div>
-									{#each sortPreviewPlayers(pteam.starters) as p}
-										<div class="player-row">
+									{#each _pPadded[ti] as p}
+										<div class="player-row {p.isEmpty ? 'empty-slot' : ''}">
 											<div class="player-left">
 												<span class="slot-label">{p.slotName}</span>
 												<span class="player-name">{p.fullName}</span>
@@ -1684,16 +1690,18 @@
 
 					<!-- Optimal (cake) view — sorted by projected score -->
 					{:else}
+						{@const _poSides = [pmatchup.home, pmatchup.away].filter(Boolean)}
+						{@const _poPadded = padLineups(_poSides.map(t => sortPreviewPlayers(t.optimalStarters)))}
 						<div class="roster-grid">
-							{#each [pmatchup.home, pmatchup.away].filter(Boolean) as pteam}
+							{#each _poSides as pteam, ti}
 								<div class="team-col">
 									<div class="col-header">
 										<span class="col-team-name">{pteam.teamName}</span>
 										<span class="cake-opt-delta">+{(pteam.projectedOptimalPoints - pteam.projectedPoints).toFixed(1)}</span>
 									</div>
-									{#each sortPreviewPlayers(pteam.optimalStarters) as p}
-										{@const wasStarted = pteam.starters.some(s => s.playerId === p.playerId)}
-										<div class="player-row {!wasStarted ? 'was-benched' : ''}">
+									{#each _poPadded[ti] as p}
+										{@const wasStarted = !p.isEmpty && pteam.starters.some(s => s.playerId === p.playerId)}
+										<div class="player-row {p.isEmpty ? 'empty-slot' : !wasStarted ? 'was-benched' : ''}">
 											<div class="player-left">
 												<span class="slot-label">{p.slotName}</span>
 												<span class="player-name">{p.fullName}</span>
