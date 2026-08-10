@@ -56,6 +56,20 @@ export async function load({ url }) {
 			}
 		}
 
+		// Compute W-L record for each team as of the selected week
+		const teamRecords: Record<number, { wins: number; losses: number }> = {};
+		for (const doc of weekDocs) {
+			for (const m of doc.matchups) {
+				if (!m.away || m.winner === 'UNDECIDED') continue;
+				const homeId = m.home.teamId;
+				const awayId = m.away.teamId;
+				if (!teamRecords[homeId]) teamRecords[homeId] = { wins: 0, losses: 0 };
+				if (!teamRecords[awayId]) teamRecords[awayId] = { wins: 0, losses: 0 };
+				if (m.winner === 'HOME') { teamRecords[homeId].wins++; teamRecords[awayId].losses++; }
+				else if (m.winner === 'AWAY') { teamRecords[awayId].wins++; teamRecords[homeId].losses++; }
+			}
+		}
+
 		// Build per-matchup H2H records (serialisable plain object)
 		const matchupH2H: Record<string, { homeWins: number; awayWins: number; ties: number }> = {};
 		if (weekData) {
@@ -66,7 +80,7 @@ export async function load({ url }) {
 			}
 		}
 
-		return { availableWeeks, weekData, standingsHistory, matchupH2H };
+		return { availableWeeks, weekData, standingsHistory, matchupH2H, teamRecords };
 	} catch (error) {
 		console.error('Page load error:', error);
 		return {

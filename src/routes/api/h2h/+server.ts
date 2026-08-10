@@ -34,7 +34,7 @@ export async function GET({ url }) {
 	const db  = await getDb();
 	const all = await db.collection<WeeklyMatchupDoc>('weeklyMatchups')
 		.find({ leagueId: LEAGUE_ID })
-		.sort({ seasonId: 1, scoringPeriodId: 1 })
+		.sort({ seasonId: -1, scoringPeriodId: -1 })
 		.toArray();
 
 	const matchups: {
