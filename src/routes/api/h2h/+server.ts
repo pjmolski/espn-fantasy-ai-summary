@@ -19,12 +19,16 @@ export async function GET({ url }) {
 	const team2 = parseInt(url.searchParams.get('team2') ?? '0');
 	if (!team1 || !team2 || team1 === team2) return json({ error: 'Invalid teams' }, { status: 400 });
 
-	// Build teamId → name map across all seasons (use most recent name)
+	// Build seasonId → teamId → name map so each game uses that season's name
 	const seasons = await getAllSeasons(LEAGUE_ID);
-	const teamNames = new Map<number, string>();
+	const seasonNames = new Map<number, Map<number, string>>();
 	for (const s of seasons) {
-		for (const t of s.teams) teamNames.set(t.teamId, t.name);
+		const m = new Map<number, string>();
+		for (const t of s.teams) m.set(t.teamId, t.name);
+		seasonNames.set(s.seasonId, m);
 	}
+	const nameFor = (seasonId: number, teamId: number) =>
+		seasonNames.get(seasonId)?.get(teamId) ?? `Team ${teamId}`;
 
 	// Fetch all weekly matchup docs that involve these two teams
 	const db  = await getDb();
@@ -49,10 +53,10 @@ export async function GET({ url }) {
 				seasonId:     doc.seasonId,
 				week:         doc.scoringPeriodId,
 				homeTeamId:   m.home.teamId,
-				homeTeamName: teamNames.get(m.home.teamId) ?? `Team ${m.home.teamId}`,
+				homeTeamName: nameFor(doc.seasonId, m.home.teamId),
 				homeScore:    m.home.totalPoints,
 				awayTeamId:   m.away.teamId,
-				awayTeamName: teamNames.get(m.away.teamId) ?? `Team ${m.away.teamId}`,
+				awayTeamName: nameFor(doc.seasonId, m.away.teamId),
 				awayScore:    m.away.totalPoints,
 				winner:       m.winner
 			});
