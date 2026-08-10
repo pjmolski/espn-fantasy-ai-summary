@@ -370,6 +370,7 @@
 		display: flex;
 		align-items: center;
 		gap: 8px;
+		margin: 10px 40px;
 	}
 	.win-prob-bar {
 		flex: 1;
