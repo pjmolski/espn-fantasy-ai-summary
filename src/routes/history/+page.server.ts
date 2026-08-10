@@ -5,59 +5,101 @@ import type { WeeklyMatchupDoc } from '$lib/schema';
 
 export async function load() {
 	const [allSeasons, allDocs] = await Promise.all([
-		getAllSeasons(LEAGUE_ID),
+		getAllSeasons(LEAGUE_ID),   // newest first
 		getAllMatchupsAllSeasons(LEAGUE_ID),
 	]);
 
-	// Build seasonId → teamId → name map
-	const seasonNameMap = new Map<number, Map<number, string>>();
+	// ── Name + logo maps ──────────────────────────────────────────────────────
+	type TeamMeta = { name: string; logoUrl?: string };
+	const seasonMetaMap = new Map<number, Map<number, TeamMeta>>();
 	for (const s of allSeasons) {
-		const m = new Map<number, string>();
-		for (const t of s.teams) m.set(t.teamId, t.name);
-		seasonNameMap.set(s.seasonId, m);
+		const m = new Map<number, TeamMeta>();
+		for (const t of s.teams) m.set(t.teamId, { name: t.name, logoUrl: t.logoUrl });
+		seasonMetaMap.set(s.seasonId, m);
 	}
 
-	// Current team list = most recent season (allSeasons sorted desc)
 	const currentTeams = (allSeasons[0]?.teams ?? [])
-		.map(t => ({ teamId: t.teamId, name: t.name }))
+		.map(t => ({ teamId: t.teamId, name: t.name, logoUrl: t.logoUrl }))
 		.sort((a, b) => a.teamId - b.teamId);
 
 	const nameFor = (seasonId: number, teamId: number) =>
-		seasonNameMap.get(seasonId)?.get(teamId)
+		seasonMetaMap.get(seasonId)?.get(teamId)?.name
 		?? currentTeams.find(t => t.teamId === teamId)?.name
 		?? `Team ${teamId}`;
 
-	// Group docs by season
+	const logoFor = (seasonId: number, teamId: number) =>
+		seasonMetaMap.get(seasonId)?.get(teamId)?.logoUrl
+		?? currentTeams.find(t => t.teamId === teamId)?.logoUrl;
+
+	// ── Group docs by season ──────────────────────────────────────────────────
 	const docsBySeason = new Map<number, WeeklyMatchupDoc[]>();
 	for (const doc of allDocs) {
 		if (!docsBySeason.has(doc.seasonId)) docsBySeason.set(doc.seasonId, []);
 		docsBySeason.get(doc.seasonId)!.push(doc);
 	}
 
-	// Champions & chumpions per completed season
-	type SeasonWinner = { seasonId: number; teamId: number; teamName: string; championshipWeek: number };
-	const champions: SeasonWinner[] = [];
-	const chumpions: SeasonWinner[] = [];
+	// ── Season results (champions + chumpions per season) ────────────────────
+	type Finisher = { teamId: number; teamName: string; logoUrl?: string };
+	type SeasonResult = {
+		seasonId: number;
+		championshipWeek: number;
+		first?: Finisher;
+		second?: Finisher;
+		third?: Finisher;
+		chumpion?: Finisher;
+	};
 
+	const seasonResults: SeasonResult[] = [];
 	for (const seasonDoc of allSeasons) {
 		const docs = docsBySeason.get(seasonDoc.seasonId) ?? [];
 		try {
 			const bracket = computePlayoffBracket(docs, seasonDoc);
-			const finalRound = bracket.rounds.at(-1);
-			if (!finalRound) continue;
-			const champWeek = finalRound.week;
-			for (const m of finalRound.matchups) {
-				if (!m.winner) continue;
-				if (m.placesAtStake[0] === 1) {
-					champions.push({ seasonId: seasonDoc.seasonId, teamId: m.winner, teamName: nameFor(seasonDoc.seasonId, m.winner), championshipWeek: champWeek });
-				} else if (m.placesAtStake[0] === 7) {
-					chumpions.push({ seasonId: seasonDoc.seasonId, teamId: m.winner, teamName: nameFor(seasonDoc.seasonId, m.winner), championshipWeek: champWeek });
-				}
-			}
-		} catch { /* skip seasons with incomplete bracket data */ }
+			const r3 = bracket.rounds.at(-1);
+			if (!r3) continue;
+
+			// R3 matchups: [Championship, 3rd Place, Chumpionship, 9th/10th]
+			const [champGame, thirdGame, chumpGame] = r3.matchups;
+
+			const finisher = (id: number | null, sId: number): Finisher | undefined =>
+				id ? { teamId: id, teamName: nameFor(sId, id), logoUrl: logoFor(sId, id) } : undefined;
+
+			const loserOf = (m: typeof champGame) =>
+				m.winner && m.teamIdA && m.teamIdB
+					? (m.winner === m.teamIdA ? m.teamIdB : m.teamIdA)
+					: null;
+
+			const result: SeasonResult = {
+				seasonId: seasonDoc.seasonId,
+				championshipWeek: r3.week,
+				first:    finisher(champGame?.winner ?? null, seasonDoc.seasonId),
+				second:   finisher(loserOf(champGame), seasonDoc.seasonId),
+				third:    finisher(thirdGame?.winner ?? null, seasonDoc.seasonId),
+				chumpion: finisher(chumpGame?.winner ?? null, seasonDoc.seasonId),
+			};
+			// Only include seasons with at least a champion
+			if (result.first) seasonResults.push(result);
+		} catch { /* skip incomplete seasons */ }
 	}
 
-	// All-time H2H records
+	// ── Winningest & chumpiest tallies ────────────────────────────────────────
+	const champCount = new Map<number, number>();
+	const chumpCount = new Map<number, number>();
+	for (const sr of seasonResults) {
+		if (sr.first) champCount.set(sr.first.teamId, (champCount.get(sr.first.teamId) ?? 0) + 1);
+		if (sr.chumpion) chumpCount.set(sr.chumpion.teamId, (chumpCount.get(sr.chumpion.teamId) ?? 0) + 1);
+	}
+	const currentLogoFor = (teamId: number) => currentTeams.find(t => t.teamId === teamId)?.logoUrl;
+	const currentNameFor = (teamId: number) => currentTeams.find(t => t.teamId === teamId)?.name ?? `Team ${teamId}`;
+
+	const winniestTeams = [...champCount.entries()]
+		.sort((a, b) => b[1] - a[1])
+		.map(([teamId, count]) => ({ teamId, teamName: currentNameFor(teamId), logoUrl: currentLogoFor(teamId), count }));
+
+	const chumpiestTeams = [...chumpCount.entries()]
+		.sort((a, b) => b[1] - a[1])
+		.map(([teamId, count]) => ({ teamId, teamName: currentNameFor(teamId), logoUrl: currentLogoFor(teamId), count }));
+
+	// ── All-time H2H records ──────────────────────────────────────────────────
 	type H2HRec = { t1w: number; t2w: number; ties: number };
 	const h2hMap = new Map<string, H2HRec>();
 	for (const doc of allDocs) {
@@ -77,14 +119,18 @@ export async function load() {
 	}
 	const h2hSerialized: Record<string, H2HRec> = Object.fromEntries(h2hMap);
 
-	// Rivalry lists
+	// ── Rivalry lists ─────────────────────────────────────────────────────────
 	const allPairs = [...h2hMap.entries()]
 		.map(([key, rec]) => {
 			const [lo, hi] = key.split('-').map(Number);
 			const total = rec.t1w + rec.t2w + rec.ties;
 			return {
-				team1Id: lo, team1Name: currentTeams.find(t => t.teamId === lo)?.name ?? `Team ${lo}`,
-				team2Id: hi, team2Name: currentTeams.find(t => t.teamId === hi)?.name ?? `Team ${hi}`,
+				team1Id: lo,
+				team1Name: currentNameFor(lo),
+				team1Logo: currentLogoFor(lo),
+				team2Id: hi,
+				team2Name: currentNameFor(hi),
+				team2Logo: currentLogoFor(hi),
 				wins1: rec.t1w, wins2: rec.t2w, ties: rec.ties, total,
 			};
 		})
@@ -105,11 +151,11 @@ export async function load() {
 		})
 		.slice(0, 10);
 
-	// Blowouts & barn burners
+	// ── Blowouts & barn burners ───────────────────────────────────────────────
 	type GameStat = {
 		seasonId: number; week: number;
-		winnerName: string; winnerScore: number;
-		loserName: string; loserScore: number;
+		winnerName: string; winnerScore: number; winnerLogo?: string;
+		loserName: string; loserScore: number; loserLogo?: string;
 		delta: number; combined: number;
 	};
 
@@ -118,24 +164,28 @@ export async function load() {
 		for (const m of doc.matchups) {
 			if (!m.away || m.winner === 'UNDECIDED' || m.winner === 'TIE') continue;
 			const homeWon = m.winner.toLowerCase() === 'home';
-			const [winnerId, loserId] = homeWon ? [m.home.teamId, m.away.teamId] : [m.away.teamId, m.home.teamId];
+			const [wId, lId] = homeWon ? [m.home.teamId, m.away.teamId] : [m.away.teamId, m.home.teamId];
 			const [wScore, lScore] = homeWon ? [m.home.totalPoints, m.away.totalPoints] : [m.away.totalPoints, m.home.totalPoints];
 			gameStats.push({
 				seasonId: doc.seasonId, week: doc.scoringPeriodId,
-				winnerName: nameFor(doc.seasonId, winnerId), winnerScore: wScore,
-				loserName: nameFor(doc.seasonId, loserId), loserScore: lScore,
+				winnerName: nameFor(doc.seasonId, wId), winnerScore: wScore, winnerLogo: logoFor(doc.seasonId, wId),
+				loserName:  nameFor(doc.seasonId, lId), loserScore: lScore, loserLogo:  logoFor(doc.seasonId, lId),
 				delta: wScore - lScore, combined: wScore + lScore,
 			});
 		}
 	}
 
-	const blowouts = [...gameStats].sort((a, b) => b.delta - a.delta).slice(0, 10);
+	const blowouts    = [...gameStats].sort((a, b) => b.delta    - a.delta).slice(0, 10);
 	const barnBurners = [...gameStats].sort((a, b) => b.combined - a.combined).slice(0, 10);
+
+	const earliestSeason = allSeasons.length ? Math.min(...allSeasons.map(s => s.seasonId)) : null;
 
 	return {
 		currentTeams,
-		champions,
-		chumpions,
+		earliestSeason,
+		seasonResults,
+		winniestTeams,
+		chumpiestTeams,
 		h2hSerialized,
 		tightestRivalries,
 		lopsidedRivalries,
