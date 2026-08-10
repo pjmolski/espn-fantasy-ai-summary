@@ -96,10 +96,10 @@
 		<h2 class="section-label">🏆 Season Results</h2>
 		<div class="seasons-list">
 			{#each seasonResults as sr}
+				{@const recapHref = sr.historical ? undefined : `/?season=${sr.seasonId}&week=${sr.championshipWeek}`}
 				<div class="season-block">
 					<div class="season-year">{sr.seasonId}</div>
 					<div class="season-places">
-						{@const recapHref = sr.historical ? undefined : `/?season=${sr.seasonId}&week=${sr.championshipWeek}`}
 						{#if sr.first}
 							<a class="place-row first" href={recapHref}>
 								<span class="place-emoji">🔩</span>
