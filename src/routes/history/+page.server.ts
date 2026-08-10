@@ -43,6 +43,7 @@ export async function load() {
 	type SeasonResult = {
 		seasonId: number;
 		championshipWeek: number;
+		historical?: boolean;
 		first?: Finisher;
 		second?: Finisher;
 		third?: Finisher;
@@ -81,12 +82,53 @@ export async function load() {
 		} catch { /* skip incomplete seasons */ }
 	}
 
+	// ── Static historical seasons (pre-2019, no API data) ────────────────────
+	const STATIC_HISTORICAL: SeasonResult[] = [
+		{ seasonId: 2018, championshipWeek: 17, historical: true,
+		  first:  { teamId: 0, teamName: 'Dave The Dad' },
+		  second: { teamId: 0, teamName: 'GLUEY GIANT SLAYER' },
+		  third:  { teamId: 0, teamName: 'Team French' },
+		},
+		{ seasonId: 2017, championshipWeek: 17, historical: true,
+		  first:  { teamId: 0, teamName: 'King of the Wind' },
+		  second: { teamId: 0, teamName: 'Julio Franco, Chipper Jones' },
+		  third:  { teamId: 0, teamName: 'Quarterback Sneak' },
+		},
+		{ seasonId: 2016, championshipWeek: 17, historical: true,
+		  first:  { teamId: 0, teamName: 'Team French' },
+		  second: { teamId: 0, teamName: 'Matthew "Ice" Bounty Hunter' },
+		  third:  { teamId: 0, teamName: 'King of the Wind' },
+		},
+		{ seasonId: 2015, championshipWeek: 17, historical: true,
+		  first:  { teamId: 0, teamName: 'Julio "Franco, Chipper" Jones' },
+		  second: { teamId: 0, teamName: 'Taming of the Glue' },
+		  third:  { teamId: 0, teamName: "Stafford's Staff" },
+		},
+		{ seasonId: 2014, championshipWeek: 17, historical: true,
+		  first:  { teamId: 0, teamName: 'Hash Driveway' },
+		  second: { teamId: 0, teamName: 'Dead Wrong Dave' },
+		  third:  { teamId: 0, teamName: 'Eleven Angry Men' },
+		},
+		{ seasonId: 2013, championshipWeek: 17, historical: true,
+		  first:  { teamId: 0, teamName: 'Caught Red Hernandez' },
+		  second: { teamId: 0, teamName: 'Churchill Polar Bears' },
+		  third:  { teamId: 0, teamName: 'Clowny McQuestion' },
+		},
+		{ seasonId: 2012, championshipWeek: 17, historical: true,
+		  first:  { teamId: 0, teamName: 'Cloney McStudent' },
+		  second: { teamId: 0, teamName: 'Don Cheadle and the Rice Beds' },
+		  third:  { teamId: 0, teamName: "My Couch Pulls Out But I Don't" },
+		},
+	];
+	seasonResults.push(...STATIC_HISTORICAL);
+	seasonResults.sort((a, b) => b.seasonId - a.seasonId);
+
 	// ── Winningest & chumpiest tallies ────────────────────────────────────────
 	const champCount = new Map<number, number>();
 	const chumpCount = new Map<number, number>();
 	for (const sr of seasonResults) {
-		if (sr.first) champCount.set(sr.first.teamId, (champCount.get(sr.first.teamId) ?? 0) + 1);
-		if (sr.chumpion) chumpCount.set(sr.chumpion.teamId, (chumpCount.get(sr.chumpion.teamId) ?? 0) + 1);
+		if (sr.first && sr.first.teamId !== 0) champCount.set(sr.first.teamId, (champCount.get(sr.first.teamId) ?? 0) + 1);
+		if (sr.chumpion && sr.chumpion.teamId !== 0) chumpCount.set(sr.chumpion.teamId, (chumpCount.get(sr.chumpion.teamId) ?? 0) + 1);
 	}
 	const currentLogoFor = (teamId: number) => currentTeams.find(t => t.teamId === teamId)?.logoUrl;
 	const currentNameFor = (teamId: number) => currentTeams.find(t => t.teamId === teamId)?.name ?? `Team ${teamId}`;
@@ -178,7 +220,7 @@ export async function load() {
 	const blowouts    = [...gameStats].sort((a, b) => b.delta    - a.delta).slice(0, 10);
 	const barnBurners = [...gameStats].sort((a, b) => b.combined - a.combined).slice(0, 10);
 
-	const earliestSeason = allSeasons.length ? Math.min(...allSeasons.map(s => s.seasonId)) : null;
+	const earliestSeason = null; // Full history back to 2012 via static data
 
 	return {
 		currentTeams,

@@ -3,7 +3,7 @@
 		currentTeams: { teamId: number; name: string; logoUrl?: string }[];
 		earliestSeason: number | null;
 		seasonResults: {
-			seasonId: number; championshipWeek: number;
+			seasonId: number; championshipWeek: number; historical?: boolean;
 			first?:   { teamId: number; teamName: string; logoUrl?: string };
 			second?:  { teamId: number; teamName: string; logoUrl?: string };
 			third?:   { teamId: number; teamName: string; logoUrl?: string };
@@ -91,10 +91,6 @@
 <div class="page">
 <main>
 
-	{#if earliestSeason}
-		<p class="disclaimer">League data available from {earliestSeason} through present. Pre-{earliestSeason} champion history will be added manually.</p>
-	{/if}
-
 	<!-- ── Champions + Chumpions ──────────────────────────────────────────── -->
 	<section class="history-section">
 		<h2 class="section-label">🏆 Season Results</h2>
@@ -103,29 +99,30 @@
 				<div class="season-block">
 					<div class="season-year">{sr.seasonId}</div>
 					<div class="season-places">
+						{@const recapHref = sr.historical ? undefined : `/?season=${sr.seasonId}&week=${sr.championshipWeek}`}
 						{#if sr.first}
-							<a class="place-row first" href="/?season={sr.seasonId}&week={sr.championshipWeek}">
+							<a class="place-row first" href={recapHref}>
 								<span class="place-emoji">🔩</span>
 								{#if sr.first.logoUrl}<img src={sr.first.logoUrl} alt="" class="team-logo" />{/if}
 								<span class="place-name gold">{sr.first.teamName}</span>
 							</a>
 						{/if}
 						{#if sr.second}
-							<a class="place-row" href="/?season={sr.seasonId}&week={sr.championshipWeek}">
+							<a class="place-row" href={recapHref}>
 								<span class="place-emoji">🥈</span>
 								{#if sr.second.logoUrl}<img src={sr.second.logoUrl} alt="" class="team-logo" />{/if}
 								<span class="place-name">{sr.second.teamName}</span>
 							</a>
 						{/if}
 						{#if sr.third}
-							<a class="place-row" href="/?season={sr.seasonId}&week={sr.championshipWeek}">
+							<a class="place-row" href={recapHref}>
 								<span class="place-emoji">🥉</span>
 								{#if sr.third.logoUrl}<img src={sr.third.logoUrl} alt="" class="team-logo" />{/if}
 								<span class="place-name">{sr.third.teamName}</span>
 							</a>
 						{/if}
 						{#if sr.chumpion}
-							<a class="place-row chump" href="/?season={sr.seasonId}&week={sr.championshipWeek}">
+							<a class="place-row chump" href={recapHref}>
 								<span class="place-emoji">🪠</span>
 								{#if sr.chumpion.logoUrl}<img src={sr.chumpion.logoUrl} alt="" class="team-logo" />{/if}
 								<span class="place-name dim">{sr.chumpion.teamName}</span>
