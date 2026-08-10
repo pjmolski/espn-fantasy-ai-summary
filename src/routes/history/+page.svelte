@@ -77,11 +77,6 @@
 </svelte:head>
 
 <div class="page">
-	<div class="top-bar">
-		<a href="/" class="back-link">← Week Recap</a>
-		<h1 class="page-title">League History</h1>
-	</div>
-
 	<main>
 
 		<!-- ── Champions ──────────────────────────────────────── -->
@@ -303,28 +298,6 @@
 
 	.page { min-height: 100vh; }
 
-	.top-bar {
-		background: #1e1e1e;
-		border-bottom: 1px solid rgba(255,255,255,0.08);
-		padding: 12px 40px;
-		display: flex;
-		align-items: center;
-		gap: 20px;
-	}
-	.back-link {
-		color: rgba(255,255,255,0.45);
-		text-decoration: none;
-		font-size: 12px;
-		font-weight: 600;
-		white-space: nowrap;
-	}
-	.back-link:hover { color: rgba(255,255,255,0.8); }
-	.page-title {
-		font-size: 14px;
-		font-weight: 700;
-		letter-spacing: 0.5px;
-		color: #fff;
-	}
 
 	main { max-width: 900px; margin: 0 auto; padding: 32px 24px 80px; }
 
