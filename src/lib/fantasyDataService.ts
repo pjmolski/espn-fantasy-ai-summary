@@ -423,3 +423,63 @@ export async function getAllSeasonDocs(
 		.sort({ scoringPeriodId: 1 })
 		.toArray();
 }
+
+/** H2H record for a pair of teams across all seasons/weeks. */
+export interface H2HRecord {
+	team1Wins: number;
+	team2Wins: number;
+	ties: number;
+}
+
+/**
+ * Compute all-time head-to-head records across every stored week.
+ * Returns a Map keyed by "lowerId-higherId" → { team1Wins, team2Wins, ties }
+ * where team1 is always the lower teamId.
+ */
+export async function computeAllTimeH2H(leagueId: string): Promise<Map<string, H2HRecord>> {
+	const db  = await getDb();
+	const all = await db
+		.collection<WeeklyMatchupDoc>(WEEKLY_MATCHUPS_COLLECTION)
+		.find({ leagueId })
+		.toArray();
+
+	const records = new Map<string, H2HRecord>();
+
+	for (const doc of all) {
+		for (const matchup of doc.matchups) {
+			const { home, away, winner } = matchup;
+			if (!away) continue; // bye week
+			if (winner === 'UNDECIDED') continue;
+
+			const lo = Math.min(home.teamId, away.teamId);
+			const hi = Math.max(home.teamId, away.teamId);
+			const key = `${lo}-${hi}`;
+
+			if (!records.has(key)) records.set(key, { team1Wins: 0, team2Wins: 0, ties: 0 });
+			const rec = records.get(key)!;
+
+			if (winner === 'TIE') {
+				rec.ties++;
+			} else {
+				const winnerId = winner === 'home' ? home.teamId : away.teamId;
+				if (winnerId === lo) rec.team1Wins++; else rec.team2Wins++;
+			}
+		}
+	}
+
+	return records;
+}
+
+/** Look up H2H record between two specific teams (order doesn't matter). */
+export function getH2H(
+	records: Map<string, H2HRecord>,
+	teamAId: number,
+	teamBId: number
+): { aWins: number; bWins: number; ties: number } {
+	const lo  = Math.min(teamAId, teamBId);
+	const hi  = Math.max(teamAId, teamBId);
+	const rec = records.get(`${lo}-${hi}`) ?? { team1Wins: 0, team2Wins: 0, ties: 0 };
+	const aWins = teamAId === lo ? rec.team1Wins : rec.team2Wins;
+	const bWins = teamAId === lo ? rec.team2Wins : rec.team1Wins;
+	return { aWins, bWins, ties: rec.ties };
+}

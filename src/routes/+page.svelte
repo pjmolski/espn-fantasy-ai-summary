@@ -8,11 +8,13 @@
 		availableWeeks: Array<{ seasonId: number; scoringPeriodId: number; isPlayoff: boolean }>;
 		weekData: ProcessedWeek | null;
 		standingsHistory: StandingsEntry[];
+		matchupH2H: Record<string, { homeWins: number; awayWins: number; ties: number }>;
 		error?: string;
 	};
 
 	let weekData: ProcessedWeek | null = data.weekData;
 	let standingsHistory: StandingsEntry[] = data.standingsHistory ?? [];
+	$: matchupH2H = data.matchupH2H ?? {};
 
 
 	let selectedSeason: number = data.weekData?.seasonId ?? data.availableWeeks[0]?.seasonId;
@@ -515,7 +517,8 @@
 	}
 	.bench-row:nth-child(odd) { background: rgba(255,255,255,0.02); }
 
-	.matchup-card.optimal-mode { background: rgba(255,204,51,0.04); border-color: rgba(255,204,51,0.25); }
+	.h2h-record { text-align: center; font-size: 11px; color: rgba(255,255,255,0.35); letter-spacing: 0.4px; padding: 4px 0 6px; }
+		.matchup-card.optimal-mode { background: rgba(255,204,51,0.04); border-color: rgba(255,204,51,0.25); }
 	.matchup-card.optimal-mode .matchup-header { background: rgba(40,30,0,0.7); border-bottom-color: rgba(255,204,51,0.15); }
 	.bracket-label { font-size: 10px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--dim); opacity: 0.7; margin-bottom: 6px; }
 	.vacation-section { margin-bottom: 20px; }
@@ -1167,6 +1170,22 @@
 								</div>
 							{/if}
 						</div>
+
+						{#if matchup.away && matchupH2H[matchup.matchupId]}
+							{@const h2h = matchupH2H[matchup.matchupId]}
+							{@const total = h2h.homeWins + h2h.awayWins + h2h.ties}
+							{#if total > 0}
+								<div class="h2h-record">
+									{#if h2h.homeWins === h2h.awayWins}
+										Tied {h2h.homeWins}–{h2h.awayWins} all time{h2h.ties ? ` (${h2h.ties}T)` : ''}
+									{:else if h2h.homeWins > h2h.awayWins}
+										{matchup.home.teamName} leads {h2h.homeWins}–{h2h.awayWins}{h2h.ties ? `–${h2h.ties}` : ''} all time
+									{:else}
+										{matchup.away.teamName} leads {h2h.awayWins}–{h2h.homeWins}{h2h.ties ? `–${h2h.ties}` : ''} all time
+									{/if}
+								</div>
+							{/if}
+						{/if}
 
 						<button
 							class="cake-btn {isOptimal ? 'active' : ''}"

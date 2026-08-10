@@ -1,4 +1,4 @@
-import { getAvailableWeeks, getWeeklyMatchupDoc, getSeasonDoc, getCumulativeScoresByWeek, getAllWeeklyDocs, getAllSeasonDocs } from '$lib/fantasyDataService';
+import { getAvailableWeeks, getWeeklyMatchupDoc, getSeasonDoc, getCumulativeScoresByWeek, getAllWeeklyDocs, getAllSeasonDocs, computeAllTimeH2H, getH2H } from '$lib/fantasyDataService';
 import { processWeek } from '$lib/weekProcessor';
 import { computeStandingsHistory, computeStreaks } from '$lib/standingsHistory';
 import { computePlayoffBracket, getPlayoffRoundForWeek } from '$lib/playoffBracket';
@@ -18,12 +18,13 @@ export async function load({ url }) {
 			) ?? availableWeeks[0]
 			: availableWeeks[0];
 
-		const [weekDoc, seasonDoc, prevScores, weekDocs, allSeasonDocs] = await Promise.all([
+		const [weekDoc, seasonDoc, prevScores, weekDocs, allSeasonDocs, h2hRecords] = await Promise.all([
 			getWeeklyMatchupDoc(LEAGUE_ID, target.seasonId, target.scoringPeriodId),
 			getSeasonDoc(LEAGUE_ID, target.seasonId),
 			getCumulativeScoresByWeek(LEAGUE_ID, target.seasonId, target.scoringPeriodId),
 			getAllWeeklyDocs(LEAGUE_ID, target.seasonId, target.scoringPeriodId),
-			getAllSeasonDocs(LEAGUE_ID, target.seasonId)
+			getAllSeasonDocs(LEAGUE_ID, target.seasonId),
+			computeAllTimeH2H(LEAGUE_ID)
 		]);
 
 		const ownerDict: Record<string, string> = JSON.parse(OWNER_DICT || '{}');
@@ -55,7 +56,17 @@ export async function load({ url }) {
 			}
 		}
 
-		return { availableWeeks, weekData, standingsHistory };
+		// Build per-matchup H2H records (serialisable plain object)
+		const matchupH2H: Record<string, { homeWins: number; awayWins: number; ties: number }> = {};
+		if (weekData) {
+			for (const m of weekData.matchups) {
+				if (!m.away) continue;
+				const { aWins, bWins, ties } = getH2H(h2hRecords, m.home.teamId, m.away.teamId);
+				matchupH2H[m.matchupId] = { homeWins: aWins, awayWins: bWins, ties };
+			}
+		}
+
+		return { availableWeeks, weekData, standingsHistory, matchupH2H };
 	} catch (error) {
 		console.error('Page load error:', error);
 		return {
