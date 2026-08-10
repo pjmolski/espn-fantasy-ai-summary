@@ -1,4 +1,5 @@
 import { getAllSeasons, getAllMatchupsAllSeasons } from '$lib/fantasyDataService';
+import historicalMatchups from '$lib/historicalMatchups.json';
 import { computePlayoffBracket } from '$lib/playoffBracket';
 import { LEAGUE_ID } from '$env/static/private';
 import type { WeeklyMatchupDoc } from '$lib/schema';
@@ -17,6 +18,17 @@ export async function load() {
 		for (const t of s.teams) m.set(t.teamId, { name: t.name, logoUrl: t.logoUrl });
 		seasonMetaMap.set(s.seasonId, m);
 	}
+	// Inject historical season team name maps (2013–2018)
+	for (const [seasonStr, data] of Object.entries(historicalMatchups as Record<string, { teams: Record<string, string>; matchups: unknown[] }>)) {
+		const seasonId = parseInt(seasonStr);
+		if (!seasonMetaMap.has(seasonId)) {
+			const m = new Map<number, TeamMeta>();
+			for (const [idStr, name] of Object.entries(data.teams)) {
+				m.set(parseInt(idStr), { name });
+			}
+			seasonMetaMap.set(seasonId, m);
+		}
+	}
 
 	const currentTeams = (allSeasons[0]?.teams ?? [])
 		.map(t => ({ teamId: t.teamId, name: t.name, logoUrl: t.logoUrl }))
@@ -32,6 +44,25 @@ export async function load() {
 		seasonMetaMap.get(seasonId)?.get(teamId)?.logoUrl
 		?? currentTeams.find(t => t.teamId === teamId)?.logoUrl
 		?? DEFAULT_LOGO;
+
+	// ── Synthetic docs from historical HTML matchup data ────────────────────
+	type SyntheticMatchup = { away: { teamId: number; totalPoints: number }; home: { teamId: number; totalPoints: number }; winner: string };
+	type SyntheticDoc = { seasonId: number; leagueId: string; scoringPeriodId: number; matchups: SyntheticMatchup[] };
+	const historicalDocs: SyntheticDoc[] = [];
+	for (const [seasonStr, data] of Object.entries(historicalMatchups as Record<string, { teams: Record<string, string>; matchups: { week: number; awayId: number; awayScore: number; homeId: number; homeScore: number; winner: string }[] }>)) {
+		const seasonId = parseInt(seasonStr);
+		// Group by week
+		const byWeek = new Map<number, SyntheticMatchup[]>();
+		for (const m of data.matchups) {
+			if (!byWeek.has(m.week)) byWeek.set(m.week, []);
+			byWeek.get(m.week)!.push({ away: { teamId: m.awayId, totalPoints: m.awayScore }, home: { teamId: m.homeId, totalPoints: m.homeScore }, winner: m.winner });
+		}
+		for (const [week, matchups] of byWeek) {
+			historicalDocs.push({ seasonId, leagueId: LEAGUE_ID, scoringPeriodId: week, matchups });
+		}
+	}
+	// Merge: historical first, then MongoDB docs (MongoDB wins for 2019+)
+	const allDocsExtended = [...historicalDocs, ...allDocs];
 
 	// ── Group docs by season ──────────────────────────────────────────────────
 	const docsBySeason = new Map<number, WeeklyMatchupDoc[]>();
@@ -159,7 +190,7 @@ export async function load() {
 	// ── All-time H2H records ──────────────────────────────────────────────────
 	type H2HRec = { t1w: number; t2w: number; ties: number };
 	const h2hMap = new Map<string, H2HRec>();
-	for (const doc of allDocs) {
+	for (const doc of allDocsExtended) {
 		for (const m of doc.matchups) {
 			if (!m.away || m.winner === 'UNDECIDED') continue;
 			const lo = Math.min(m.home.teamId, m.away.teamId);
@@ -217,7 +248,7 @@ export async function load() {
 	};
 
 	const gameStats: GameStat[] = [];
-	for (const doc of allDocs) {
+	for (const doc of allDocsExtended) {
 		for (const m of doc.matchups) {
 			if (!m.away || m.winner === 'UNDECIDED' || m.winner === 'TIE') continue;
 			const homeWon = m.winner.toLowerCase() === 'home';

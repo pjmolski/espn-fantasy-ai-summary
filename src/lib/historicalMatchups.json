@@ -1,0 +1,4670 @@
+{
+  "2013": {
+    "teams": {
+      "1": "Clowny McQuestion",
+      "2": "Tyrannosaurs in F-14s",
+      "3": "Heisenberg's Hard Knocks",
+      "4": "Higgins' Plum Pudding",
+      "5": "Churchill Polar Bears",
+      "6": "Farmfula Glue",
+      "7": "David Stoddard",
+      "8": "Evl Manning and the Red Letters",
+      "9": "Caught Red Hernandez",
+      "10": "Beast a la Mode",
+      "11": "Schrodinger's Kaepernick",
+      "12": "Team French"
+    },
+    "matchups": [
+      {
+        "week": 1,
+        "awayId": 1,
+        "awayScore": 138.87,
+        "homeId": 2,
+        "homeScore": 116.22,
+        "winner": "AWAY"
+      },
+      {
+        "week": 1,
+        "awayId": 3,
+        "awayScore": 147.38,
+        "homeId": 4,
+        "homeScore": 114.08,
+        "winner": "AWAY"
+      },
+      {
+        "week": 1,
+        "awayId": 12,
+        "awayScore": 124.8,
+        "homeId": 8,
+        "homeScore": 129.78,
+        "winner": "HOME"
+      },
+      {
+        "week": 1,
+        "awayId": 5,
+        "awayScore": 123.17,
+        "homeId": 9,
+        "homeScore": 124.76,
+        "winner": "HOME"
+      },
+      {
+        "week": 1,
+        "awayId": 6,
+        "awayScore": 159.17,
+        "homeId": 10,
+        "homeScore": 102.75,
+        "winner": "AWAY"
+      },
+      {
+        "week": 1,
+        "awayId": 7,
+        "awayScore": 138.11,
+        "homeId": 11,
+        "homeScore": 117.08,
+        "winner": "AWAY"
+      },
+      {
+        "week": 2,
+        "awayId": 3,
+        "awayScore": 87.68,
+        "homeId": 1,
+        "homeScore": 121.59,
+        "winner": "HOME"
+      },
+      {
+        "week": 2,
+        "awayId": 2,
+        "awayScore": 143.57,
+        "homeId": 4,
+        "homeScore": 151.67,
+        "winner": "HOME"
+      },
+      {
+        "week": 2,
+        "awayId": 10,
+        "awayScore": 112.53,
+        "homeId": 5,
+        "homeScore": 134.05,
+        "winner": "HOME"
+      },
+      {
+        "week": 2,
+        "awayId": 11,
+        "awayScore": 86.98,
+        "homeId": 6,
+        "homeScore": 93.15,
+        "winner": "HOME"
+      },
+      {
+        "week": 2,
+        "awayId": 12,
+        "awayScore": 91.81,
+        "homeId": 7,
+        "homeScore": 101.1,
+        "winner": "HOME"
+      },
+      {
+        "week": 2,
+        "awayId": 9,
+        "awayScore": 167.26,
+        "homeId": 8,
+        "homeScore": 151.88,
+        "winner": "AWAY"
+      },
+      {
+        "week": 3,
+        "awayId": 1,
+        "awayScore": 123.26,
+        "homeId": 4,
+        "homeScore": 120.1,
+        "winner": "AWAY"
+      },
+      {
+        "week": 3,
+        "awayId": 2,
+        "awayScore": 94.35,
+        "homeId": 3,
+        "homeScore": 111.93,
+        "winner": "HOME"
+      },
+      {
+        "week": 3,
+        "awayId": 11,
+        "awayScore": 127.7,
+        "homeId": 5,
+        "homeScore": 116.01,
+        "winner": "AWAY"
+      },
+      {
+        "week": 3,
+        "awayId": 6,
+        "awayScore": 71.66,
+        "homeId": 12,
+        "homeScore": 131.52,
+        "winner": "HOME"
+      },
+      {
+        "week": 3,
+        "awayId": 9,
+        "awayScore": 115.28,
+        "homeId": 7,
+        "homeScore": 96.81,
+        "winner": "AWAY"
+      },
+      {
+        "week": 3,
+        "awayId": 8,
+        "awayScore": 106.71,
+        "homeId": 10,
+        "homeScore": 81.58,
+        "winner": "AWAY"
+      },
+      {
+        "week": 4,
+        "awayId": 5,
+        "awayScore": 98.69,
+        "homeId": 1,
+        "homeScore": 158.28,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 2,
+        "awayScore": 100.79,
+        "homeId": 6,
+        "homeScore": 125.04,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 3,
+        "awayScore": 153.47,
+        "homeId": 7,
+        "homeScore": 190.08,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 4,
+        "awayScore": 113.03,
+        "homeId": 8,
+        "homeScore": 120.33,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 10,
+        "awayScore": 108.42,
+        "homeId": 9,
+        "homeScore": 110.59,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 11,
+        "awayScore": 112.53,
+        "homeId": 12,
+        "homeScore": 116.68,
+        "winner": "HOME"
+      },
+      {
+        "week": 5,
+        "awayId": 1,
+        "awayScore": 144.49,
+        "homeId": 6,
+        "homeScore": 119.13,
+        "winner": "AWAY"
+      },
+      {
+        "week": 5,
+        "awayId": 2,
+        "awayScore": 168.14,
+        "homeId": 5,
+        "homeScore": 98.51,
+        "winner": "AWAY"
+      },
+      {
+        "week": 5,
+        "awayId": 8,
+        "awayScore": 174.71,
+        "homeId": 3,
+        "homeScore": 116.02,
+        "winner": "AWAY"
+      },
+      {
+        "week": 5,
+        "awayId": 4,
+        "awayScore": 100.18,
+        "homeId": 7,
+        "homeScore": 98.49,
+        "winner": "AWAY"
+      },
+      {
+        "week": 5,
+        "awayId": 11,
+        "awayScore": 124.22,
+        "homeId": 9,
+        "homeScore": 114.11,
+        "winner": "AWAY"
+      },
+      {
+        "week": 5,
+        "awayId": 10,
+        "awayScore": 97.71,
+        "homeId": 12,
+        "homeScore": 86.72,
+        "winner": "AWAY"
+      },
+      {
+        "week": 6,
+        "awayId": 7,
+        "awayScore": 72.79,
+        "homeId": 1,
+        "homeScore": 144.73,
+        "winner": "HOME"
+      },
+      {
+        "week": 6,
+        "awayId": 6,
+        "awayScore": 85.96,
+        "homeId": 9,
+        "homeScore": 113.82,
+        "winner": "HOME"
+      },
+      {
+        "week": 6,
+        "awayId": 5,
+        "awayScore": 123.5,
+        "homeId": 3,
+        "homeScore": 112.99,
+        "winner": "AWAY"
+      },
+      {
+        "week": 6,
+        "awayId": 2,
+        "awayScore": 73.5,
+        "homeId": 10,
+        "homeScore": 146.63,
+        "winner": "HOME"
+      },
+      {
+        "week": 6,
+        "awayId": 8,
+        "awayScore": 59.05,
+        "homeId": 11,
+        "homeScore": 128.28,
+        "winner": "HOME"
+      },
+      {
+        "week": 6,
+        "awayId": 4,
+        "awayScore": 101.12,
+        "homeId": 12,
+        "homeScore": 129.58,
+        "winner": "HOME"
+      },
+      {
+        "week": 7,
+        "awayId": 1,
+        "awayScore": 118.12,
+        "homeId": 8,
+        "homeScore": 113.54,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 6,
+        "awayScore": 89.3,
+        "homeId": 3,
+        "homeScore": 118.26,
+        "winner": "HOME"
+      },
+      {
+        "week": 7,
+        "awayId": 10,
+        "awayScore": 146.25,
+        "homeId": 11,
+        "homeScore": 82.82,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 4,
+        "awayScore": 142.13,
+        "homeId": 5,
+        "homeScore": 112.55,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 12,
+        "awayScore": 118.51,
+        "homeId": 9,
+        "homeScore": 108.87,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 2,
+        "awayScore": 96.98,
+        "homeId": 7,
+        "homeScore": 89.1,
+        "winner": "AWAY"
+      },
+      {
+        "week": 8,
+        "awayId": 9,
+        "awayScore": 114.24,
+        "homeId": 1,
+        "homeScore": 110.24,
+        "winner": "AWAY"
+      },
+      {
+        "week": 8,
+        "awayId": 8,
+        "awayScore": 95.81,
+        "homeId": 2,
+        "homeScore": 120.54,
+        "winner": "HOME"
+      },
+      {
+        "week": 8,
+        "awayId": 3,
+        "awayScore": 138.23,
+        "homeId": 11,
+        "homeScore": 107.21,
+        "winner": "AWAY"
+      },
+      {
+        "week": 8,
+        "awayId": 6,
+        "awayScore": 112.84,
+        "homeId": 4,
+        "homeScore": 157.02,
+        "winner": "HOME"
+      },
+      {
+        "week": 8,
+        "awayId": 5,
+        "awayScore": 82.6,
+        "homeId": 12,
+        "homeScore": 137.19,
+        "winner": "HOME"
+      },
+      {
+        "week": 8,
+        "awayId": 10,
+        "awayScore": 92.76,
+        "homeId": 7,
+        "homeScore": 111.63,
+        "winner": "HOME"
+      },
+      {
+        "week": 9,
+        "awayId": 1,
+        "awayScore": 122.69,
+        "homeId": 10,
+        "homeScore": 112.08,
+        "winner": "AWAY"
+      },
+      {
+        "week": 9,
+        "awayId": 2,
+        "awayScore": 121.23,
+        "homeId": 9,
+        "homeScore": 96.21,
+        "winner": "AWAY"
+      },
+      {
+        "week": 9,
+        "awayId": 12,
+        "awayScore": 132.81,
+        "homeId": 3,
+        "homeScore": 137.53,
+        "winner": "HOME"
+      },
+      {
+        "week": 9,
+        "awayId": 11,
+        "awayScore": 102.97,
+        "homeId": 4,
+        "homeScore": 108.88,
+        "winner": "HOME"
+      },
+      {
+        "week": 9,
+        "awayId": 5,
+        "awayScore": 117.58,
+        "homeId": 6,
+        "homeScore": 109.07,
+        "winner": "AWAY"
+      },
+      {
+        "week": 9,
+        "awayId": 7,
+        "awayScore": 130.64,
+        "homeId": 8,
+        "homeScore": 85.8,
+        "winner": "AWAY"
+      },
+      {
+        "week": 10,
+        "awayId": 11,
+        "awayScore": 77.34,
+        "homeId": 1,
+        "homeScore": 140.42,
+        "winner": "HOME"
+      },
+      {
+        "week": 10,
+        "awayId": 2,
+        "awayScore": 113.92,
+        "homeId": 12,
+        "homeScore": 61.96,
+        "winner": "AWAY"
+      },
+      {
+        "week": 10,
+        "awayId": 9,
+        "awayScore": 112.77,
+        "homeId": 3,
+        "homeScore": 154.98,
+        "winner": "HOME"
+      },
+      {
+        "week": 10,
+        "awayId": 4,
+        "awayScore": 130.31,
+        "homeId": 10,
+        "homeScore": 113.13,
+        "winner": "AWAY"
+      },
+      {
+        "week": 10,
+        "awayId": 7,
+        "awayScore": 107.67,
+        "homeId": 5,
+        "homeScore": 110.34,
+        "winner": "HOME"
+      },
+      {
+        "week": 10,
+        "awayId": 6,
+        "awayScore": 102.56,
+        "homeId": 8,
+        "homeScore": 98.4,
+        "winner": "AWAY"
+      },
+      {
+        "week": 11,
+        "awayId": 1,
+        "awayScore": 145.53,
+        "homeId": 12,
+        "homeScore": 119.86,
+        "winner": "AWAY"
+      },
+      {
+        "week": 11,
+        "awayId": 2,
+        "awayScore": 93.13,
+        "homeId": 11,
+        "homeScore": 117.83,
+        "winner": "HOME"
+      },
+      {
+        "week": 11,
+        "awayId": 3,
+        "awayScore": 88.95,
+        "homeId": 10,
+        "homeScore": 124.35,
+        "winner": "HOME"
+      },
+      {
+        "week": 11,
+        "awayId": 4,
+        "awayScore": 134.68,
+        "homeId": 9,
+        "homeScore": 135.57,
+        "winner": "HOME"
+      },
+      {
+        "week": 11,
+        "awayId": 5,
+        "awayScore": 89.75,
+        "homeId": 8,
+        "homeScore": 82.47,
+        "winner": "AWAY"
+      },
+      {
+        "week": 11,
+        "awayId": 6,
+        "awayScore": 85.99,
+        "homeId": 7,
+        "homeScore": 98.02,
+        "winner": "HOME"
+      },
+      {
+        "week": 12,
+        "awayId": 2,
+        "awayScore": 88.91,
+        "homeId": 1,
+        "homeScore": 153.72,
+        "winner": "HOME"
+      },
+      {
+        "week": 12,
+        "awayId": 4,
+        "awayScore": 106.18,
+        "homeId": 3,
+        "homeScore": 92.37,
+        "winner": "AWAY"
+      },
+      {
+        "week": 12,
+        "awayId": 8,
+        "awayScore": 144.55,
+        "homeId": 12,
+        "homeScore": 117.81,
+        "winner": "AWAY"
+      },
+      {
+        "week": 12,
+        "awayId": 9,
+        "awayScore": 101.93,
+        "homeId": 5,
+        "homeScore": 103.26,
+        "winner": "HOME"
+      },
+      {
+        "week": 12,
+        "awayId": 10,
+        "awayScore": 95.51,
+        "homeId": 6,
+        "homeScore": 104.46,
+        "winner": "HOME"
+      },
+      {
+        "week": 12,
+        "awayId": 11,
+        "awayScore": 115.75,
+        "homeId": 7,
+        "homeScore": 113.88,
+        "winner": "AWAY"
+      },
+      {
+        "week": 13,
+        "awayId": 1,
+        "awayScore": 129.55,
+        "homeId": 3,
+        "homeScore": 144.68,
+        "winner": "HOME"
+      },
+      {
+        "week": 13,
+        "awayId": 4,
+        "awayScore": 95.8,
+        "homeId": 2,
+        "homeScore": 89.75,
+        "winner": "AWAY"
+      },
+      {
+        "week": 13,
+        "awayId": 5,
+        "awayScore": 156.67,
+        "homeId": 10,
+        "homeScore": 95.65,
+        "winner": "AWAY"
+      },
+      {
+        "week": 13,
+        "awayId": 6,
+        "awayScore": 110.49,
+        "homeId": 11,
+        "homeScore": 171.05,
+        "winner": "HOME"
+      },
+      {
+        "week": 13,
+        "awayId": 7,
+        "awayScore": 128.93,
+        "homeId": 12,
+        "homeScore": 124.32,
+        "winner": "AWAY"
+      },
+      {
+        "week": 13,
+        "awayId": 8,
+        "awayScore": 157.37,
+        "homeId": 9,
+        "homeScore": 116.08,
+        "winner": "AWAY"
+      },
+      {
+        "week": 14,
+        "awayId": 7,
+        "awayScore": 106.86,
+        "homeId": 9,
+        "homeScore": 107.71,
+        "winner": "HOME"
+      },
+      {
+        "week": 14,
+        "awayId": 5,
+        "awayScore": 161.27,
+        "homeId": 3,
+        "homeScore": 151.47,
+        "winner": "AWAY"
+      },
+      {
+        "week": 14,
+        "awayId": 10,
+        "awayScore": 81.96,
+        "homeId": 12,
+        "homeScore": 134.8,
+        "winner": "HOME"
+      },
+      {
+        "week": 14,
+        "awayId": 6,
+        "awayScore": 144.77,
+        "homeId": 2,
+        "homeScore": 120.65,
+        "winner": "AWAY"
+      },
+      {
+        "week": 14,
+        "awayId": 11,
+        "awayScore": 132.4,
+        "homeId": 8,
+        "homeScore": 115.18,
+        "winner": "AWAY"
+      },
+      {
+        "week": 15,
+        "awayId": 9,
+        "awayScore": 190.02,
+        "homeId": 1,
+        "homeScore": 116.55,
+        "winner": "AWAY"
+      },
+      {
+        "week": 15,
+        "awayId": 5,
+        "awayScore": 151.1,
+        "homeId": 4,
+        "homeScore": 88.65,
+        "winner": "AWAY"
+      },
+      {
+        "week": 15,
+        "awayId": 7,
+        "awayScore": 98.49,
+        "homeId": 3,
+        "homeScore": 95.07,
+        "winner": "AWAY"
+      },
+      {
+        "week": 15,
+        "awayId": 12,
+        "awayScore": 124.02,
+        "homeId": 11,
+        "homeScore": 158.17,
+        "winner": "HOME"
+      },
+      {
+        "week": 15,
+        "awayId": 6,
+        "awayScore": 114.3,
+        "homeId": 8,
+        "homeScore": 127.46,
+        "winner": "HOME"
+      },
+      {
+        "week": 15,
+        "awayId": 2,
+        "awayScore": 122.27,
+        "homeId": 10,
+        "homeScore": 97.14,
+        "winner": "AWAY"
+      },
+      {
+        "week": 16,
+        "awayId": 5,
+        "awayScore": 102.77,
+        "homeId": 9,
+        "homeScore": 107.4,
+        "winner": "HOME"
+      },
+      {
+        "week": 16,
+        "awayId": 4,
+        "awayScore": 99.58,
+        "homeId": 1,
+        "homeScore": 126.94,
+        "winner": "HOME"
+      },
+      {
+        "week": 16,
+        "awayId": 7,
+        "awayScore": 91.44,
+        "homeId": 3,
+        "homeScore": 91.19,
+        "winner": "AWAY"
+      },
+      {
+        "week": 16,
+        "awayId": 11,
+        "awayScore": 154.23,
+        "homeId": 8,
+        "homeScore": 106.3,
+        "winner": "AWAY"
+      },
+      {
+        "week": 16,
+        "awayId": 6,
+        "awayScore": 150.49,
+        "homeId": 12,
+        "homeScore": 105.34,
+        "winner": "AWAY"
+      },
+      {
+        "week": 16,
+        "awayId": 10,
+        "awayScore": 59.22,
+        "homeId": 2,
+        "homeScore": 142.84,
+        "winner": "HOME"
+      }
+    ]
+  },
+  "2014": {
+    "teams": {
+      "1": "Cluny MacPherson",
+      "2": "Intentional Grounding",
+      "3": "It's My Way 'Til Pey Day",
+      "4": "Holland  Keeshonds",
+      "5": "Zero Degrees Calvin",
+      "6": "Taming of the Glue",
+      "7": "Dead Wrong Dave",
+      "8": "Hash Driveway",
+      "9": "These Hoes Aint Royal",
+      "10": "Demaryius Targaryen",
+      "11": "Eleven Angry Men",
+      "12": "Team French"
+    },
+    "matchups": [
+      {
+        "week": 1,
+        "awayId": 1,
+        "awayScore": 102.36,
+        "homeId": 2,
+        "homeScore": 141.64,
+        "winner": "HOME"
+      },
+      {
+        "week": 1,
+        "awayId": 3,
+        "awayScore": 110.26,
+        "homeId": 12,
+        "homeScore": 104.17,
+        "winner": "AWAY"
+      },
+      {
+        "week": 1,
+        "awayId": 4,
+        "awayScore": 110.94,
+        "homeId": 11,
+        "homeScore": 123.96,
+        "winner": "HOME"
+      },
+      {
+        "week": 1,
+        "awayId": 5,
+        "awayScore": 139.33,
+        "homeId": 10,
+        "homeScore": 105.26,
+        "winner": "AWAY"
+      },
+      {
+        "week": 1,
+        "awayId": 6,
+        "awayScore": 123.45,
+        "homeId": 9,
+        "homeScore": 150.89,
+        "winner": "HOME"
+      },
+      {
+        "week": 1,
+        "awayId": 7,
+        "awayScore": 129.51,
+        "homeId": 8,
+        "homeScore": 122.97,
+        "winner": "AWAY"
+      },
+      {
+        "week": 2,
+        "awayId": 3,
+        "awayScore": 139.13,
+        "homeId": 1,
+        "homeScore": 97.21,
+        "winner": "AWAY"
+      },
+      {
+        "week": 2,
+        "awayId": 2,
+        "awayScore": 95.18,
+        "homeId": 4,
+        "homeScore": 125.62,
+        "winner": "HOME"
+      },
+      {
+        "week": 2,
+        "awayId": 12,
+        "awayScore": 118.08,
+        "homeId": 5,
+        "homeScore": 117.24,
+        "winner": "AWAY"
+      },
+      {
+        "week": 2,
+        "awayId": 11,
+        "awayScore": 136.04,
+        "homeId": 6,
+        "homeScore": 79.48,
+        "winner": "AWAY"
+      },
+      {
+        "week": 2,
+        "awayId": 10,
+        "awayScore": 126.79,
+        "homeId": 7,
+        "homeScore": 117.09,
+        "winner": "AWAY"
+      },
+      {
+        "week": 2,
+        "awayId": 9,
+        "awayScore": 94.89,
+        "homeId": 8,
+        "homeScore": 97.79,
+        "winner": "HOME"
+      },
+      {
+        "week": 3,
+        "awayId": 1,
+        "awayScore": 123.69,
+        "homeId": 4,
+        "homeScore": 127.75,
+        "winner": "HOME"
+      },
+      {
+        "week": 3,
+        "awayId": 5,
+        "awayScore": 96.8,
+        "homeId": 3,
+        "homeScore": 101.37,
+        "winner": "HOME"
+      },
+      {
+        "week": 3,
+        "awayId": 6,
+        "awayScore": 147.67,
+        "homeId": 2,
+        "homeScore": 139.32,
+        "winner": "AWAY"
+      },
+      {
+        "week": 3,
+        "awayId": 7,
+        "awayScore": 95.85,
+        "homeId": 12,
+        "homeScore": 112.77,
+        "winner": "HOME"
+      },
+      {
+        "week": 3,
+        "awayId": 8,
+        "awayScore": 124.09,
+        "homeId": 11,
+        "homeScore": 86.1,
+        "winner": "AWAY"
+      },
+      {
+        "week": 3,
+        "awayId": 9,
+        "awayScore": 106.74,
+        "homeId": 10,
+        "homeScore": 97.48,
+        "winner": "AWAY"
+      },
+      {
+        "week": 4,
+        "awayId": 5,
+        "awayScore": 109.6,
+        "homeId": 1,
+        "homeScore": 131.21,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 4,
+        "awayScore": 134.92,
+        "homeId": 6,
+        "homeScore": 160.97,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 3,
+        "awayScore": 116.03,
+        "homeId": 7,
+        "homeScore": 124.61,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 2,
+        "awayScore": 153.8,
+        "homeId": 8,
+        "homeScore": 116.17,
+        "winner": "AWAY"
+      },
+      {
+        "week": 4,
+        "awayId": 12,
+        "awayScore": 123.5,
+        "homeId": 9,
+        "homeScore": 129.97,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 11,
+        "awayScore": 105.94,
+        "homeId": 10,
+        "homeScore": 127.28,
+        "winner": "HOME"
+      },
+      {
+        "week": 5,
+        "awayId": 1,
+        "awayScore": 117.92,
+        "homeId": 6,
+        "homeScore": 110.38,
+        "winner": "AWAY"
+      },
+      {
+        "week": 5,
+        "awayId": 7,
+        "awayScore": 157.92,
+        "homeId": 5,
+        "homeScore": 69.88,
+        "winner": "AWAY"
+      },
+      {
+        "week": 5,
+        "awayId": 8,
+        "awayScore": 84.69,
+        "homeId": 4,
+        "homeScore": 91.04,
+        "winner": "HOME"
+      },
+      {
+        "week": 5,
+        "awayId": 9,
+        "awayScore": 93.79,
+        "homeId": 3,
+        "homeScore": 124.66,
+        "winner": "HOME"
+      },
+      {
+        "week": 5,
+        "awayId": 10,
+        "awayScore": 140.89,
+        "homeId": 2,
+        "homeScore": 147.04,
+        "winner": "HOME"
+      },
+      {
+        "week": 5,
+        "awayId": 11,
+        "awayScore": 137.96,
+        "homeId": 12,
+        "homeScore": 117.54,
+        "winner": "AWAY"
+      },
+      {
+        "week": 6,
+        "awayId": 7,
+        "awayScore": 124.52,
+        "homeId": 1,
+        "homeScore": 122.97,
+        "winner": "AWAY"
+      },
+      {
+        "week": 6,
+        "awayId": 6,
+        "awayScore": 125.3,
+        "homeId": 8,
+        "homeScore": 141.59,
+        "winner": "HOME"
+      },
+      {
+        "week": 6,
+        "awayId": 5,
+        "awayScore": 75.17,
+        "homeId": 9,
+        "homeScore": 96.6,
+        "winner": "HOME"
+      },
+      {
+        "week": 6,
+        "awayId": 4,
+        "awayScore": 112.27,
+        "homeId": 10,
+        "homeScore": 122.01,
+        "winner": "HOME"
+      },
+      {
+        "week": 6,
+        "awayId": 3,
+        "awayScore": 138.53,
+        "homeId": 11,
+        "homeScore": 150.74,
+        "winner": "HOME"
+      },
+      {
+        "week": 6,
+        "awayId": 2,
+        "awayScore": 128.14,
+        "homeId": 12,
+        "homeScore": 111.79,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 1,
+        "awayScore": 91.72,
+        "homeId": 8,
+        "homeScore": 104.32,
+        "winner": "HOME"
+      },
+      {
+        "week": 7,
+        "awayId": 9,
+        "awayScore": 116.71,
+        "homeId": 7,
+        "homeScore": 109.35,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 10,
+        "awayScore": 192.75,
+        "homeId": 6,
+        "homeScore": 92.06,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 11,
+        "awayScore": 92.5,
+        "homeId": 5,
+        "homeScore": 68.64,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 12,
+        "awayScore": 130.88,
+        "homeId": 4,
+        "homeScore": 97.47,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 2,
+        "awayScore": 137.67,
+        "homeId": 3,
+        "homeScore": 121.92,
+        "winner": "AWAY"
+      },
+      {
+        "week": 8,
+        "awayId": 9,
+        "awayScore": 108.26,
+        "homeId": 1,
+        "homeScore": 117.48,
+        "winner": "HOME"
+      },
+      {
+        "week": 8,
+        "awayId": 8,
+        "awayScore": 147.02,
+        "homeId": 10,
+        "homeScore": 139.87,
+        "winner": "AWAY"
+      },
+      {
+        "week": 8,
+        "awayId": 7,
+        "awayScore": 112.89,
+        "homeId": 11,
+        "homeScore": 152.78,
+        "winner": "HOME"
+      },
+      {
+        "week": 8,
+        "awayId": 6,
+        "awayScore": 135.0,
+        "homeId": 12,
+        "homeScore": 154.99,
+        "winner": "HOME"
+      },
+      {
+        "week": 8,
+        "awayId": 5,
+        "awayScore": 127.44,
+        "homeId": 2,
+        "homeScore": 139.66,
+        "winner": "HOME"
+      },
+      {
+        "week": 8,
+        "awayId": 4,
+        "awayScore": 67.64,
+        "homeId": 3,
+        "homeScore": 126.64,
+        "winner": "HOME"
+      },
+      {
+        "week": 9,
+        "awayId": 1,
+        "awayScore": 113.82,
+        "homeId": 10,
+        "homeScore": 110.02,
+        "winner": "AWAY"
+      },
+      {
+        "week": 9,
+        "awayId": 11,
+        "awayScore": 132.96,
+        "homeId": 9,
+        "homeScore": 112.57,
+        "winner": "AWAY"
+      },
+      {
+        "week": 9,
+        "awayId": 12,
+        "awayScore": 144.88,
+        "homeId": 8,
+        "homeScore": 135.84,
+        "winner": "AWAY"
+      },
+      {
+        "week": 9,
+        "awayId": 2,
+        "awayScore": 114.01,
+        "homeId": 7,
+        "homeScore": 153.75,
+        "winner": "HOME"
+      },
+      {
+        "week": 9,
+        "awayId": 3,
+        "awayScore": 90.12,
+        "homeId": 6,
+        "homeScore": 145.71,
+        "winner": "HOME"
+      },
+      {
+        "week": 9,
+        "awayId": 4,
+        "awayScore": 83.83,
+        "homeId": 5,
+        "homeScore": 65.76,
+        "winner": "AWAY"
+      },
+      {
+        "week": 10,
+        "awayId": 11,
+        "awayScore": 123.68,
+        "homeId": 1,
+        "homeScore": 128.78,
+        "winner": "HOME"
+      },
+      {
+        "week": 10,
+        "awayId": 10,
+        "awayScore": 118.0,
+        "homeId": 12,
+        "homeScore": 140.78,
+        "winner": "HOME"
+      },
+      {
+        "week": 10,
+        "awayId": 9,
+        "awayScore": 147.0,
+        "homeId": 2,
+        "homeScore": 132.88,
+        "winner": "AWAY"
+      },
+      {
+        "week": 10,
+        "awayId": 8,
+        "awayScore": 114.91,
+        "homeId": 3,
+        "homeScore": 128.2,
+        "winner": "HOME"
+      },
+      {
+        "week": 10,
+        "awayId": 7,
+        "awayScore": 105.37,
+        "homeId": 4,
+        "homeScore": 100.8,
+        "winner": "AWAY"
+      },
+      {
+        "week": 10,
+        "awayId": 6,
+        "awayScore": 113.44,
+        "homeId": 5,
+        "homeScore": 73.59,
+        "winner": "AWAY"
+      },
+      {
+        "week": 11,
+        "awayId": 1,
+        "awayScore": 118.23,
+        "homeId": 12,
+        "homeScore": 141.3,
+        "winner": "HOME"
+      },
+      {
+        "week": 11,
+        "awayId": 2,
+        "awayScore": 108.52,
+        "homeId": 11,
+        "homeScore": 154.7,
+        "winner": "HOME"
+      },
+      {
+        "week": 11,
+        "awayId": 3,
+        "awayScore": 110.41,
+        "homeId": 10,
+        "homeScore": 122.74,
+        "winner": "HOME"
+      },
+      {
+        "week": 11,
+        "awayId": 4,
+        "awayScore": 86.17,
+        "homeId": 9,
+        "homeScore": 86.57,
+        "winner": "HOME"
+      },
+      {
+        "week": 11,
+        "awayId": 5,
+        "awayScore": 101.55,
+        "homeId": 8,
+        "homeScore": 96.48,
+        "winner": "AWAY"
+      },
+      {
+        "week": 11,
+        "awayId": 6,
+        "awayScore": 86.52,
+        "homeId": 7,
+        "homeScore": 95.83,
+        "winner": "HOME"
+      },
+      {
+        "week": 12,
+        "awayId": 2,
+        "awayScore": 127.39,
+        "homeId": 1,
+        "homeScore": 142.46,
+        "winner": "HOME"
+      },
+      {
+        "week": 12,
+        "awayId": 12,
+        "awayScore": 146.35,
+        "homeId": 3,
+        "homeScore": 96.53,
+        "winner": "AWAY"
+      },
+      {
+        "week": 12,
+        "awayId": 11,
+        "awayScore": 135.5,
+        "homeId": 4,
+        "homeScore": 93.04,
+        "winner": "AWAY"
+      },
+      {
+        "week": 12,
+        "awayId": 10,
+        "awayScore": 130.91,
+        "homeId": 5,
+        "homeScore": 70.62,
+        "winner": "AWAY"
+      },
+      {
+        "week": 12,
+        "awayId": 9,
+        "awayScore": 149.6,
+        "homeId": 6,
+        "homeScore": 114.12,
+        "winner": "AWAY"
+      },
+      {
+        "week": 12,
+        "awayId": 8,
+        "awayScore": 121.67,
+        "homeId": 7,
+        "homeScore": 97.02,
+        "winner": "AWAY"
+      },
+      {
+        "week": 13,
+        "awayId": 1,
+        "awayScore": 135.6,
+        "homeId": 3,
+        "homeScore": 103.21,
+        "winner": "AWAY"
+      },
+      {
+        "week": 13,
+        "awayId": 4,
+        "awayScore": 92.3,
+        "homeId": 2,
+        "homeScore": 90.14,
+        "winner": "AWAY"
+      },
+      {
+        "week": 13,
+        "awayId": 5,
+        "awayScore": 120.51,
+        "homeId": 12,
+        "homeScore": 159.78,
+        "winner": "HOME"
+      },
+      {
+        "week": 13,
+        "awayId": 6,
+        "awayScore": 104.95,
+        "homeId": 11,
+        "homeScore": 144.5,
+        "winner": "HOME"
+      },
+      {
+        "week": 13,
+        "awayId": 7,
+        "awayScore": 124.65,
+        "homeId": 10,
+        "homeScore": 121.72,
+        "winner": "AWAY"
+      },
+      {
+        "week": 13,
+        "awayId": 8,
+        "awayScore": 173.04,
+        "homeId": 9,
+        "homeScore": 104.81,
+        "winner": "AWAY"
+      },
+      {
+        "week": 14,
+        "awayId": 8,
+        "awayScore": 147.45,
+        "homeId": 9,
+        "homeScore": 120.04,
+        "winner": "AWAY"
+      },
+      {
+        "week": 14,
+        "awayId": 1,
+        "awayScore": 118.23,
+        "homeId": 7,
+        "homeScore": 186.7,
+        "winner": "HOME"
+      },
+      {
+        "week": 14,
+        "awayId": 2,
+        "awayScore": 135.52,
+        "homeId": 10,
+        "homeScore": 138.33,
+        "winner": "HOME"
+      },
+      {
+        "week": 14,
+        "awayId": 5,
+        "awayScore": 115.64,
+        "homeId": 3,
+        "homeScore": 90.87,
+        "winner": "AWAY"
+      },
+      {
+        "week": 14,
+        "awayId": 4,
+        "awayScore": 110.73,
+        "homeId": 6,
+        "homeScore": 115.06,
+        "winner": "HOME"
+      },
+      {
+        "week": 15,
+        "awayId": 8,
+        "awayScore": 115.4,
+        "homeId": 11,
+        "homeScore": 114.96,
+        "winner": "AWAY"
+      },
+      {
+        "week": 15,
+        "awayId": 7,
+        "awayScore": 117.1,
+        "homeId": 12,
+        "homeScore": 110.15,
+        "winner": "AWAY"
+      },
+      {
+        "week": 15,
+        "awayId": 1,
+        "awayScore": 105.73,
+        "homeId": 9,
+        "homeScore": 124.47,
+        "winner": "HOME"
+      },
+      {
+        "week": 15,
+        "awayId": 5,
+        "awayScore": 62.03,
+        "homeId": 2,
+        "homeScore": 127.37,
+        "winner": "HOME"
+      },
+      {
+        "week": 15,
+        "awayId": 6,
+        "awayScore": 99.73,
+        "homeId": 10,
+        "homeScore": 89.55,
+        "winner": "AWAY"
+      },
+      {
+        "week": 15,
+        "awayId": 4,
+        "awayScore": 86.54,
+        "homeId": 3,
+        "homeScore": 92.67,
+        "winner": "HOME"
+      },
+      {
+        "week": 16,
+        "awayId": 8,
+        "awayScore": 99.53,
+        "homeId": 7,
+        "homeScore": 91.1,
+        "winner": "AWAY"
+      },
+      {
+        "week": 16,
+        "awayId": 12,
+        "awayScore": 115.32,
+        "homeId": 11,
+        "homeScore": 152.31,
+        "winner": "HOME"
+      },
+      {
+        "week": 16,
+        "awayId": 1,
+        "awayScore": 106.93,
+        "homeId": 9,
+        "homeScore": 82.07,
+        "winner": "AWAY"
+      },
+      {
+        "week": 16,
+        "awayId": 6,
+        "awayScore": 56.76,
+        "homeId": 2,
+        "homeScore": 145.66,
+        "winner": "HOME"
+      },
+      {
+        "week": 16,
+        "awayId": 5,
+        "awayScore": 87.89,
+        "homeId": 10,
+        "homeScore": 90.22,
+        "winner": "HOME"
+      },
+      {
+        "week": 16,
+        "awayId": 4,
+        "awayScore": 108.94,
+        "homeId": 3,
+        "homeScore": 121.04,
+        "winner": "HOME"
+      }
+    ]
+  },
+  "2015": {
+    "teams": {
+      "1": "Clooney McPerson",
+      "2": "Face Masking",
+      "3": "Tomlin's All Stars",
+      "4": "Stafford's Staff",
+      "5": "Hooloober Gaboobers",
+      "6": "Taming of the Glue",
+      "7": "Dave Stoddard The Homeowner",
+      "8": "Julio \"Franco,  Chipper\" Jones",
+      "9": "As Impressive As Declan",
+      "10": "Cooper Troopers",
+      "11": "Trust The Process",
+      "12": "Team French"
+    },
+    "matchups": [
+      {
+        "week": 1,
+        "awayId": 1,
+        "awayScore": 97.16,
+        "homeId": 4,
+        "homeScore": 118.39,
+        "winner": "HOME"
+      },
+      {
+        "week": 1,
+        "awayId": 2,
+        "awayScore": 101.74,
+        "homeId": 10,
+        "homeScore": 89.27,
+        "winner": "AWAY"
+      },
+      {
+        "week": 1,
+        "awayId": 3,
+        "awayScore": 87.39,
+        "homeId": 6,
+        "homeScore": 113.5,
+        "winner": "HOME"
+      },
+      {
+        "week": 1,
+        "awayId": 7,
+        "awayScore": 117.75,
+        "homeId": 12,
+        "homeScore": 170.47,
+        "winner": "HOME"
+      },
+      {
+        "week": 1,
+        "awayId": 11,
+        "awayScore": 109.74,
+        "homeId": 5,
+        "homeScore": 117.57,
+        "winner": "HOME"
+      },
+      {
+        "week": 1,
+        "awayId": 9,
+        "awayScore": 104.82,
+        "homeId": 8,
+        "homeScore": 136.34,
+        "winner": "HOME"
+      },
+      {
+        "week": 2,
+        "awayId": 6,
+        "awayScore": 97.19,
+        "homeId": 1,
+        "homeScore": 125.51,
+        "winner": "HOME"
+      },
+      {
+        "week": 2,
+        "awayId": 2,
+        "awayScore": 129.29,
+        "homeId": 8,
+        "homeScore": 136.75,
+        "winner": "HOME"
+      },
+      {
+        "week": 2,
+        "awayId": 3,
+        "awayScore": 120.15,
+        "homeId": 4,
+        "homeScore": 87.0,
+        "winner": "AWAY"
+      },
+      {
+        "week": 2,
+        "awayId": 9,
+        "awayScore": 97.19,
+        "homeId": 12,
+        "homeScore": 124.52,
+        "winner": "HOME"
+      },
+      {
+        "week": 2,
+        "awayId": 11,
+        "awayScore": 75.01,
+        "homeId": 10,
+        "homeScore": 104.85,
+        "winner": "HOME"
+      },
+      {
+        "week": 2,
+        "awayId": 7,
+        "awayScore": 109.35,
+        "homeId": 5,
+        "homeScore": 127.24,
+        "winner": "HOME"
+      },
+      {
+        "week": 3,
+        "awayId": 1,
+        "awayScore": 165.42,
+        "homeId": 3,
+        "homeScore": 144.98,
+        "winner": "AWAY"
+      },
+      {
+        "week": 3,
+        "awayId": 12,
+        "awayScore": 117.8,
+        "homeId": 2,
+        "homeScore": 95.5,
+        "winner": "AWAY"
+      },
+      {
+        "week": 3,
+        "awayId": 5,
+        "awayScore": 99.07,
+        "homeId": 4,
+        "homeScore": 130.9,
+        "winner": "HOME"
+      },
+      {
+        "week": 3,
+        "awayId": 11,
+        "awayScore": 94.84,
+        "homeId": 6,
+        "homeScore": 131.01,
+        "winner": "HOME"
+      },
+      {
+        "week": 3,
+        "awayId": 9,
+        "awayScore": 123.61,
+        "homeId": 10,
+        "homeScore": 138.7,
+        "winner": "HOME"
+      },
+      {
+        "week": 3,
+        "awayId": 8,
+        "awayScore": 159.98,
+        "homeId": 7,
+        "homeScore": 102.03,
+        "winner": "AWAY"
+      },
+      {
+        "week": 4,
+        "awayId": 5,
+        "awayScore": 91.46,
+        "homeId": 1,
+        "homeScore": 96.81,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 4,
+        "awayScore": 100.36,
+        "homeId": 12,
+        "homeScore": 96.19,
+        "winner": "AWAY"
+      },
+      {
+        "week": 4,
+        "awayId": 3,
+        "awayScore": 108.06,
+        "homeId": 7,
+        "homeScore": 110.19,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 2,
+        "awayScore": 86.93,
+        "homeId": 11,
+        "homeScore": 134.73,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 6,
+        "awayScore": 124.42,
+        "homeId": 9,
+        "homeScore": 102.72,
+        "winner": "AWAY"
+      },
+      {
+        "week": 4,
+        "awayId": 8,
+        "awayScore": 141.19,
+        "homeId": 10,
+        "homeScore": 88.35,
+        "winner": "AWAY"
+      },
+      {
+        "week": 5,
+        "awayId": 1,
+        "awayScore": 86.19,
+        "homeId": 7,
+        "homeScore": 134.41,
+        "winner": "HOME"
+      },
+      {
+        "week": 5,
+        "awayId": 6,
+        "awayScore": 85.19,
+        "homeId": 10,
+        "homeScore": 130.67,
+        "winner": "HOME"
+      },
+      {
+        "week": 5,
+        "awayId": 8,
+        "awayScore": 135.71,
+        "homeId": 4,
+        "homeScore": 85.82,
+        "winner": "AWAY"
+      },
+      {
+        "week": 5,
+        "awayId": 5,
+        "awayScore": 126.05,
+        "homeId": 3,
+        "homeScore": 137.68,
+        "winner": "HOME"
+      },
+      {
+        "week": 5,
+        "awayId": 9,
+        "awayScore": 130.6,
+        "homeId": 2,
+        "homeScore": 91.82,
+        "winner": "AWAY"
+      },
+      {
+        "week": 5,
+        "awayId": 11,
+        "awayScore": 153.44,
+        "homeId": 12,
+        "homeScore": 95.41,
+        "winner": "AWAY"
+      },
+      {
+        "week": 6,
+        "awayId": 10,
+        "awayScore": 138.93,
+        "homeId": 1,
+        "homeScore": 100.55,
+        "winner": "AWAY"
+      },
+      {
+        "week": 6,
+        "awayId": 6,
+        "awayScore": 79.2,
+        "homeId": 2,
+        "homeScore": 139.44,
+        "winner": "HOME"
+      },
+      {
+        "week": 6,
+        "awayId": 3,
+        "awayScore": 106.97,
+        "homeId": 9,
+        "homeScore": 103.96,
+        "winner": "AWAY"
+      },
+      {
+        "week": 6,
+        "awayId": 4,
+        "awayScore": 129.36,
+        "homeId": 7,
+        "homeScore": 153.42,
+        "winner": "HOME"
+      },
+      {
+        "week": 6,
+        "awayId": 5,
+        "awayScore": 126.78,
+        "homeId": 12,
+        "homeScore": 144.65,
+        "winner": "HOME"
+      },
+      {
+        "week": 6,
+        "awayId": 8,
+        "awayScore": 146.82,
+        "homeId": 11,
+        "homeScore": 77.44,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 1,
+        "awayScore": 102.85,
+        "homeId": 11,
+        "homeScore": 98.45,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 9,
+        "awayScore": 141.44,
+        "homeId": 4,
+        "homeScore": 143.63,
+        "winner": "HOME"
+      },
+      {
+        "week": 7,
+        "awayId": 12,
+        "awayScore": 127.54,
+        "homeId": 6,
+        "homeScore": 76.4,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 2,
+        "awayScore": 105.3,
+        "homeId": 5,
+        "homeScore": 111.65,
+        "winner": "HOME"
+      },
+      {
+        "week": 7,
+        "awayId": 10,
+        "awayScore": 143.42,
+        "homeId": 7,
+        "homeScore": 109.63,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 8,
+        "awayScore": 123.31,
+        "homeId": 3,
+        "homeScore": 107.88,
+        "winner": "AWAY"
+      },
+      {
+        "week": 8,
+        "awayId": 2,
+        "awayScore": 107.6,
+        "homeId": 1,
+        "homeScore": 80.43,
+        "winner": "AWAY"
+      },
+      {
+        "week": 8,
+        "awayId": 5,
+        "awayScore": 133.74,
+        "homeId": 10,
+        "homeScore": 104.99,
+        "winner": "AWAY"
+      },
+      {
+        "week": 8,
+        "awayId": 4,
+        "awayScore": 116.37,
+        "homeId": 11,
+        "homeScore": 124.51,
+        "winner": "HOME"
+      },
+      {
+        "week": 8,
+        "awayId": 3,
+        "awayScore": 122.5,
+        "homeId": 12,
+        "homeScore": 132.63,
+        "winner": "HOME"
+      },
+      {
+        "week": 8,
+        "awayId": 8,
+        "awayScore": 161.09,
+        "homeId": 6,
+        "homeScore": 38.39,
+        "winner": "AWAY"
+      },
+      {
+        "week": 8,
+        "awayId": 7,
+        "awayScore": 123.48,
+        "homeId": 9,
+        "homeScore": 129.74,
+        "winner": "HOME"
+      },
+      {
+        "week": 9,
+        "awayId": 1,
+        "awayScore": 117.33,
+        "homeId": 12,
+        "homeScore": 164.31,
+        "winner": "HOME"
+      },
+      {
+        "week": 9,
+        "awayId": 11,
+        "awayScore": 107.5,
+        "homeId": 9,
+        "homeScore": 150.8,
+        "winner": "HOME"
+      },
+      {
+        "week": 9,
+        "awayId": 10,
+        "awayScore": 171.74,
+        "homeId": 4,
+        "homeScore": 136.18,
+        "winner": "AWAY"
+      },
+      {
+        "week": 9,
+        "awayId": 2,
+        "awayScore": 92.13,
+        "homeId": 3,
+        "homeScore": 131.16,
+        "winner": "HOME"
+      },
+      {
+        "week": 9,
+        "awayId": 7,
+        "awayScore": 111.66,
+        "homeId": 6,
+        "homeScore": 136.84,
+        "winner": "HOME"
+      },
+      {
+        "week": 9,
+        "awayId": 8,
+        "awayScore": 111.21,
+        "homeId": 5,
+        "homeScore": 78.51,
+        "winner": "AWAY"
+      },
+      {
+        "week": 10,
+        "awayId": 9,
+        "awayScore": 107.54,
+        "homeId": 1,
+        "homeScore": 147.81,
+        "winner": "HOME"
+      },
+      {
+        "week": 10,
+        "awayId": 10,
+        "awayScore": 117.02,
+        "homeId": 3,
+        "homeScore": 114.88,
+        "winner": "AWAY"
+      },
+      {
+        "week": 10,
+        "awayId": 4,
+        "awayScore": 111.98,
+        "homeId": 2,
+        "homeScore": 95.85,
+        "winner": "AWAY"
+      },
+      {
+        "week": 10,
+        "awayId": 8,
+        "awayScore": 74.43,
+        "homeId": 12,
+        "homeScore": 153.32,
+        "winner": "HOME"
+      },
+      {
+        "week": 10,
+        "awayId": 7,
+        "awayScore": 96.29,
+        "homeId": 11,
+        "homeScore": 104.67,
+        "winner": "HOME"
+      },
+      {
+        "week": 10,
+        "awayId": 6,
+        "awayScore": 47.25,
+        "homeId": 5,
+        "homeScore": 140.61,
+        "winner": "HOME"
+      },
+      {
+        "week": 11,
+        "awayId": 1,
+        "awayScore": 117.6,
+        "homeId": 8,
+        "homeScore": 139.8,
+        "winner": "HOME"
+      },
+      {
+        "week": 11,
+        "awayId": 2,
+        "awayScore": 112.45,
+        "homeId": 7,
+        "homeScore": 92.11,
+        "winner": "AWAY"
+      },
+      {
+        "week": 11,
+        "awayId": 3,
+        "awayScore": 125.82,
+        "homeId": 11,
+        "homeScore": 127.78,
+        "winner": "HOME"
+      },
+      {
+        "week": 11,
+        "awayId": 4,
+        "awayScore": 92.94,
+        "homeId": 6,
+        "homeScore": 49.51,
+        "winner": "AWAY"
+      },
+      {
+        "week": 11,
+        "awayId": 10,
+        "awayScore": 62.68,
+        "homeId": 12,
+        "homeScore": 105.53,
+        "winner": "HOME"
+      },
+      {
+        "week": 11,
+        "awayId": 9,
+        "awayScore": 78.57,
+        "homeId": 5,
+        "homeScore": 67.38,
+        "winner": "AWAY"
+      },
+      {
+        "week": 12,
+        "awayId": 4,
+        "awayScore": 124.52,
+        "homeId": 1,
+        "homeScore": 104.45,
+        "winner": "AWAY"
+      },
+      {
+        "week": 12,
+        "awayId": 6,
+        "awayScore": 119.7,
+        "homeId": 3,
+        "homeScore": 110.19,
+        "winner": "AWAY"
+      },
+      {
+        "week": 12,
+        "awayId": 10,
+        "awayScore": 165.66,
+        "homeId": 2,
+        "homeScore": 140.45,
+        "winner": "AWAY"
+      },
+      {
+        "week": 12,
+        "awayId": 11,
+        "awayScore": 96.84,
+        "homeId": 5,
+        "homeScore": 146.15,
+        "winner": "HOME"
+      },
+      {
+        "week": 12,
+        "awayId": 7,
+        "awayScore": 99.79,
+        "homeId": 12,
+        "homeScore": 111.78,
+        "winner": "HOME"
+      },
+      {
+        "week": 12,
+        "awayId": 8,
+        "awayScore": 120.67,
+        "homeId": 9,
+        "homeScore": 99.09,
+        "winner": "AWAY"
+      },
+      {
+        "week": 13,
+        "awayId": 1,
+        "awayScore": 74.01,
+        "homeId": 6,
+        "homeScore": 115.55,
+        "winner": "HOME"
+      },
+      {
+        "week": 13,
+        "awayId": 8,
+        "awayScore": 129.35,
+        "homeId": 2,
+        "homeScore": 136.76,
+        "winner": "HOME"
+      },
+      {
+        "week": 13,
+        "awayId": 9,
+        "awayScore": 111.08,
+        "homeId": 12,
+        "homeScore": 121.97,
+        "winner": "HOME"
+      },
+      {
+        "week": 13,
+        "awayId": 3,
+        "awayScore": 115.79,
+        "homeId": 4,
+        "homeScore": 116.39,
+        "winner": "HOME"
+      },
+      {
+        "week": 13,
+        "awayId": 11,
+        "awayScore": 125.54,
+        "homeId": 10,
+        "homeScore": 157.73,
+        "winner": "HOME"
+      },
+      {
+        "week": 13,
+        "awayId": 7,
+        "awayScore": 146.41,
+        "homeId": 5,
+        "homeScore": 127.58,
+        "winner": "AWAY"
+      },
+      {
+        "week": 14,
+        "awayId": 5,
+        "awayScore": 147.34,
+        "homeId": 4,
+        "homeScore": 159.75,
+        "winner": "HOME"
+      },
+      {
+        "week": 14,
+        "awayId": 6,
+        "awayScore": 138.67,
+        "homeId": 10,
+        "homeScore": 126.75,
+        "winner": "AWAY"
+      },
+      {
+        "week": 14,
+        "awayId": 11,
+        "awayScore": 123.75,
+        "homeId": 2,
+        "homeScore": 118.93,
+        "winner": "AWAY"
+      },
+      {
+        "week": 14,
+        "awayId": 9,
+        "awayScore": 147.93,
+        "homeId": 1,
+        "homeScore": 90.03,
+        "winner": "AWAY"
+      },
+      {
+        "week": 14,
+        "awayId": 3,
+        "awayScore": 75.54,
+        "homeId": 7,
+        "homeScore": 95.88,
+        "winner": "HOME"
+      },
+      {
+        "week": 15,
+        "awayId": 4,
+        "awayScore": 115.85,
+        "homeId": 8,
+        "homeScore": 155.5,
+        "winner": "HOME"
+      },
+      {
+        "week": 15,
+        "awayId": 6,
+        "awayScore": 103.06,
+        "homeId": 12,
+        "homeScore": 99.51,
+        "winner": "AWAY"
+      },
+      {
+        "week": 15,
+        "awayId": 5,
+        "awayScore": 112.38,
+        "homeId": 10,
+        "homeScore": 183.23,
+        "winner": "HOME"
+      },
+      {
+        "week": 15,
+        "awayId": 9,
+        "awayScore": 145.04,
+        "homeId": 11,
+        "homeScore": 99.06,
+        "winner": "AWAY"
+      },
+      {
+        "week": 15,
+        "awayId": 7,
+        "awayScore": 146.7,
+        "homeId": 2,
+        "homeScore": 138.46,
+        "winner": "AWAY"
+      },
+      {
+        "week": 15,
+        "awayId": 3,
+        "awayScore": 121.14,
+        "homeId": 1,
+        "homeScore": 112.19,
+        "winner": "AWAY"
+      },
+      {
+        "week": 16,
+        "awayId": 6,
+        "awayScore": 125.45,
+        "homeId": 8,
+        "homeScore": 138.21,
+        "winner": "HOME"
+      },
+      {
+        "week": 16,
+        "awayId": 4,
+        "awayScore": 114.93,
+        "homeId": 12,
+        "homeScore": 92.04,
+        "winner": "AWAY"
+      },
+      {
+        "week": 16,
+        "awayId": 5,
+        "awayScore": 101.24,
+        "homeId": 10,
+        "homeScore": 154.62,
+        "winner": "HOME"
+      },
+      {
+        "week": 16,
+        "awayId": 9,
+        "awayScore": 147.93,
+        "homeId": 7,
+        "homeScore": 102.6,
+        "winner": "AWAY"
+      },
+      {
+        "week": 16,
+        "awayId": 3,
+        "awayScore": 82.95,
+        "homeId": 1,
+        "homeScore": 86.1,
+        "winner": "HOME"
+      },
+      {
+        "week": 16,
+        "awayId": 11,
+        "awayScore": 118.45,
+        "homeId": 2,
+        "homeScore": 97.46,
+        "winner": "AWAY"
+      }
+    ]
+  },
+  "2016": {
+    "teams": {
+      "1": "Clinty McEastwood",
+      "2": "Backfield in Motion",
+      "3": "King of the Wind",
+      "4": "Stevenz Staff",
+      "5": "Drat, Dagnabbit!",
+      "6": "Stuck in the Middle w/ Glue",
+      "7": "Dave Stoddard The Newlywed",
+      "8": "Julio Franco, Chipper Jones",
+      "9": "Laces Out",
+      "10": "I Am Score",
+      "11": "Matthew \"Ice\" Bounty Hunter",
+      "12": "Team French"
+    },
+    "matchups": [
+      {
+        "week": 1,
+        "awayId": 1,
+        "awayScore": 139.35,
+        "homeId": 6,
+        "homeScore": 123.34,
+        "winner": "AWAY"
+      },
+      {
+        "week": 1,
+        "awayId": 2,
+        "awayScore": 187.62,
+        "homeId": 12,
+        "homeScore": 111.66,
+        "winner": "AWAY"
+      },
+      {
+        "week": 1,
+        "awayId": 3,
+        "awayScore": 136.8,
+        "homeId": 10,
+        "homeScore": 118.97,
+        "winner": "AWAY"
+      },
+      {
+        "week": 1,
+        "awayId": 8,
+        "awayScore": 94.4,
+        "homeId": 4,
+        "homeScore": 119.01,
+        "winner": "HOME"
+      },
+      {
+        "week": 1,
+        "awayId": 7,
+        "awayScore": 134.15,
+        "homeId": 5,
+        "homeScore": 145.11,
+        "winner": "HOME"
+      },
+      {
+        "week": 1,
+        "awayId": 9,
+        "awayScore": 114.93,
+        "homeId": 11,
+        "homeScore": 113.96,
+        "winner": "AWAY"
+      },
+      {
+        "week": 2,
+        "awayId": 12,
+        "awayScore": 114.22,
+        "homeId": 1,
+        "homeScore": 76.9,
+        "winner": "AWAY"
+      },
+      {
+        "week": 2,
+        "awayId": 2,
+        "awayScore": 118.97,
+        "homeId": 5,
+        "homeScore": 139.46,
+        "winner": "HOME"
+      },
+      {
+        "week": 2,
+        "awayId": 3,
+        "awayScore": 112.23,
+        "homeId": 8,
+        "homeScore": 134.16,
+        "winner": "HOME"
+      },
+      {
+        "week": 2,
+        "awayId": 9,
+        "awayScore": 148.37,
+        "homeId": 6,
+        "homeScore": 106.51,
+        "winner": "AWAY"
+      },
+      {
+        "week": 2,
+        "awayId": 7,
+        "awayScore": 103.31,
+        "homeId": 10,
+        "homeScore": 114.66,
+        "winner": "HOME"
+      },
+      {
+        "week": 2,
+        "awayId": 11,
+        "awayScore": 120.24,
+        "homeId": 4,
+        "homeScore": 107.37,
+        "winner": "AWAY"
+      },
+      {
+        "week": 3,
+        "awayId": 1,
+        "awayScore": 118.4,
+        "homeId": 9,
+        "homeScore": 137.8,
+        "winner": "HOME"
+      },
+      {
+        "week": 3,
+        "awayId": 10,
+        "awayScore": 159.47,
+        "homeId": 2,
+        "homeScore": 117.34,
+        "winner": "AWAY"
+      },
+      {
+        "week": 3,
+        "awayId": 6,
+        "awayScore": 113.58,
+        "homeId": 4,
+        "homeScore": 76.98,
+        "winner": "AWAY"
+      },
+      {
+        "week": 3,
+        "awayId": 12,
+        "awayScore": 136.35,
+        "homeId": 5,
+        "homeScore": 128.01,
+        "winner": "AWAY"
+      },
+      {
+        "week": 3,
+        "awayId": 3,
+        "awayScore": 119.39,
+        "homeId": 11,
+        "homeScore": 118.15,
+        "winner": "AWAY"
+      },
+      {
+        "week": 3,
+        "awayId": 8,
+        "awayScore": 132.61,
+        "homeId": 7,
+        "homeScore": 81.53,
+        "winner": "AWAY"
+      },
+      {
+        "week": 4,
+        "awayId": 5,
+        "awayScore": 93.41,
+        "homeId": 1,
+        "homeScore": 73.12,
+        "winner": "AWAY"
+      },
+      {
+        "week": 4,
+        "awayId": 4,
+        "awayScore": 109.9,
+        "homeId": 9,
+        "homeScore": 64.54,
+        "winner": "AWAY"
+      },
+      {
+        "week": 4,
+        "awayId": 3,
+        "awayScore": 108.31,
+        "homeId": 6,
+        "homeScore": 110.82,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 2,
+        "awayScore": 112.33,
+        "homeId": 8,
+        "homeScore": 154.03,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 7,
+        "awayScore": 125.65,
+        "homeId": 11,
+        "homeScore": 128.57,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 12,
+        "awayScore": 78.67,
+        "homeId": 10,
+        "homeScore": 146.99,
+        "winner": "HOME"
+      },
+      {
+        "week": 5,
+        "awayId": 1,
+        "awayScore": 133.34,
+        "homeId": 4,
+        "homeScore": 113.81,
+        "winner": "AWAY"
+      },
+      {
+        "week": 5,
+        "awayId": 6,
+        "awayScore": 76.73,
+        "homeId": 7,
+        "homeScore": 153.4,
+        "winner": "HOME"
+      },
+      {
+        "week": 5,
+        "awayId": 8,
+        "awayScore": 108.88,
+        "homeId": 12,
+        "homeScore": 97.01,
+        "winner": "AWAY"
+      },
+      {
+        "week": 5,
+        "awayId": 9,
+        "awayScore": 113.91,
+        "homeId": 3,
+        "homeScore": 123.83,
+        "winner": "HOME"
+      },
+      {
+        "week": 5,
+        "awayId": 11,
+        "awayScore": 113.98,
+        "homeId": 2,
+        "homeScore": 160.37,
+        "winner": "HOME"
+      },
+      {
+        "week": 5,
+        "awayId": 5,
+        "awayScore": 136.58,
+        "homeId": 10,
+        "homeScore": 115.4,
+        "winner": "AWAY"
+      },
+      {
+        "week": 6,
+        "awayId": 10,
+        "awayScore": 72.75,
+        "homeId": 1,
+        "homeScore": 126.69,
+        "winner": "HOME"
+      },
+      {
+        "week": 6,
+        "awayId": 6,
+        "awayScore": 100.88,
+        "homeId": 2,
+        "homeScore": 107.8,
+        "winner": "HOME"
+      },
+      {
+        "week": 6,
+        "awayId": 3,
+        "awayScore": 125.43,
+        "homeId": 4,
+        "homeScore": 148.98,
+        "winner": "HOME"
+      },
+      {
+        "week": 6,
+        "awayId": 9,
+        "awayScore": 100.22,
+        "homeId": 7,
+        "homeScore": 77.81,
+        "winner": "AWAY"
+      },
+      {
+        "week": 6,
+        "awayId": 5,
+        "awayScore": 99.05,
+        "homeId": 8,
+        "homeScore": 93.94,
+        "winner": "AWAY"
+      },
+      {
+        "week": 6,
+        "awayId": 12,
+        "awayScore": 155.56,
+        "homeId": 11,
+        "homeScore": 120.4,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 1,
+        "awayScore": 122.18,
+        "homeId": 3,
+        "homeScore": 137.47,
+        "winner": "HOME"
+      },
+      {
+        "week": 7,
+        "awayId": 7,
+        "awayScore": 124.89,
+        "homeId": 4,
+        "homeScore": 82.04,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 12,
+        "awayScore": 126.09,
+        "homeId": 6,
+        "homeScore": 123.98,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 2,
+        "awayScore": 143.98,
+        "homeId": 9,
+        "homeScore": 159.02,
+        "winner": "HOME"
+      },
+      {
+        "week": 7,
+        "awayId": 11,
+        "awayScore": 98.72,
+        "homeId": 5,
+        "homeScore": 104.65,
+        "winner": "HOME"
+      },
+      {
+        "week": 7,
+        "awayId": 8,
+        "awayScore": 107.09,
+        "homeId": 10,
+        "homeScore": 107.6,
+        "winner": "HOME"
+      },
+      {
+        "week": 8,
+        "awayId": 8,
+        "awayScore": 120.23,
+        "homeId": 1,
+        "homeScore": 114.3,
+        "winner": "AWAY"
+      },
+      {
+        "week": 8,
+        "awayId": 5,
+        "awayScore": 132.77,
+        "homeId": 6,
+        "homeScore": 74.25,
+        "winner": "AWAY"
+      },
+      {
+        "week": 8,
+        "awayId": 10,
+        "awayScore": 95.27,
+        "homeId": 11,
+        "homeScore": 98.47,
+        "winner": "HOME"
+      },
+      {
+        "week": 8,
+        "awayId": 3,
+        "awayScore": 115.0,
+        "homeId": 7,
+        "homeScore": 147.92,
+        "winner": "HOME"
+      },
+      {
+        "week": 8,
+        "awayId": 2,
+        "awayScore": 95.05,
+        "homeId": 4,
+        "homeScore": 108.03,
+        "winner": "HOME"
+      },
+      {
+        "week": 8,
+        "awayId": 12,
+        "awayScore": 151.39,
+        "homeId": 9,
+        "homeScore": 112.81,
+        "winner": "AWAY"
+      },
+      {
+        "week": 9,
+        "awayId": 1,
+        "awayScore": 102.86,
+        "homeId": 7,
+        "homeScore": 140.21,
+        "winner": "HOME"
+      },
+      {
+        "week": 9,
+        "awayId": 11,
+        "awayScore": 123.16,
+        "homeId": 8,
+        "homeScore": 140.98,
+        "winner": "HOME"
+      },
+      {
+        "week": 9,
+        "awayId": 12,
+        "awayScore": 125.48,
+        "homeId": 4,
+        "homeScore": 82.4,
+        "winner": "AWAY"
+      },
+      {
+        "week": 9,
+        "awayId": 2,
+        "awayScore": 109.37,
+        "homeId": 3,
+        "homeScore": 91.99,
+        "winner": "AWAY"
+      },
+      {
+        "week": 9,
+        "awayId": 10,
+        "awayScore": 102.08,
+        "homeId": 6,
+        "homeScore": 125.18,
+        "winner": "HOME"
+      },
+      {
+        "week": 9,
+        "awayId": 9,
+        "awayScore": 151.93,
+        "homeId": 5,
+        "homeScore": 103.06,
+        "winner": "AWAY"
+      },
+      {
+        "week": 10,
+        "awayId": 11,
+        "awayScore": 135.73,
+        "homeId": 1,
+        "homeScore": 95.84,
+        "winner": "AWAY"
+      },
+      {
+        "week": 10,
+        "awayId": 12,
+        "awayScore": 116.39,
+        "homeId": 3,
+        "homeScore": 121.69,
+        "winner": "HOME"
+      },
+      {
+        "week": 10,
+        "awayId": 7,
+        "awayScore": 117.27,
+        "homeId": 2,
+        "homeScore": 142.37,
+        "winner": "HOME"
+      },
+      {
+        "week": 10,
+        "awayId": 9,
+        "awayScore": 126.95,
+        "homeId": 10,
+        "homeScore": 143.22,
+        "winner": "HOME"
+      },
+      {
+        "week": 10,
+        "awayId": 4,
+        "awayScore": 104.29,
+        "homeId": 5,
+        "homeScore": 96.73,
+        "winner": "AWAY"
+      },
+      {
+        "week": 10,
+        "awayId": 6,
+        "awayScore": 133.6,
+        "homeId": 8,
+        "homeScore": 110.05,
+        "winner": "AWAY"
+      },
+      {
+        "week": 11,
+        "awayId": 1,
+        "awayScore": 154.55,
+        "homeId": 2,
+        "homeScore": 113.3,
+        "winner": "AWAY"
+      },
+      {
+        "week": 11,
+        "awayId": 12,
+        "awayScore": 130.99,
+        "homeId": 7,
+        "homeScore": 85.38,
+        "winner": "AWAY"
+      },
+      {
+        "week": 11,
+        "awayId": 3,
+        "awayScore": 130.48,
+        "homeId": 5,
+        "homeScore": 109.55,
+        "winner": "AWAY"
+      },
+      {
+        "week": 11,
+        "awayId": 4,
+        "awayScore": 77.13,
+        "homeId": 10,
+        "homeScore": 95.73,
+        "winner": "HOME"
+      },
+      {
+        "week": 11,
+        "awayId": 6,
+        "awayScore": 115.05,
+        "homeId": 11,
+        "homeScore": 136.8,
+        "winner": "HOME"
+      },
+      {
+        "week": 11,
+        "awayId": 9,
+        "awayScore": 115.78,
+        "homeId": 8,
+        "homeScore": 78.18,
+        "winner": "AWAY"
+      },
+      {
+        "week": 12,
+        "awayId": 6,
+        "awayScore": 146.2,
+        "homeId": 1,
+        "homeScore": 145.19,
+        "winner": "AWAY"
+      },
+      {
+        "week": 12,
+        "awayId": 10,
+        "awayScore": 88.99,
+        "homeId": 3,
+        "homeScore": 139.2,
+        "winner": "HOME"
+      },
+      {
+        "week": 12,
+        "awayId": 12,
+        "awayScore": 131.97,
+        "homeId": 2,
+        "homeScore": 131.7,
+        "winner": "AWAY"
+      },
+      {
+        "week": 12,
+        "awayId": 7,
+        "awayScore": 134.44,
+        "homeId": 5,
+        "homeScore": 106.85,
+        "winner": "AWAY"
+      },
+      {
+        "week": 12,
+        "awayId": 8,
+        "awayScore": 112.28,
+        "homeId": 4,
+        "homeScore": 122.71,
+        "winner": "HOME"
+      },
+      {
+        "week": 12,
+        "awayId": 11,
+        "awayScore": 112.41,
+        "homeId": 9,
+        "homeScore": 119.46,
+        "winner": "HOME"
+      },
+      {
+        "week": 13,
+        "awayId": 1,
+        "awayScore": 115.21,
+        "homeId": 12,
+        "homeScore": 126.31,
+        "winner": "HOME"
+      },
+      {
+        "week": 13,
+        "awayId": 5,
+        "awayScore": 127.85,
+        "homeId": 2,
+        "homeScore": 98.89,
+        "winner": "AWAY"
+      },
+      {
+        "week": 13,
+        "awayId": 9,
+        "awayScore": 89.49,
+        "homeId": 6,
+        "homeScore": 103.76,
+        "winner": "HOME"
+      },
+      {
+        "week": 13,
+        "awayId": 3,
+        "awayScore": 142.27,
+        "homeId": 8,
+        "homeScore": 108.25,
+        "winner": "AWAY"
+      },
+      {
+        "week": 13,
+        "awayId": 7,
+        "awayScore": 150.06,
+        "homeId": 10,
+        "homeScore": 82.98,
+        "winner": "AWAY"
+      },
+      {
+        "week": 13,
+        "awayId": 11,
+        "awayScore": 130.68,
+        "homeId": 4,
+        "homeScore": 97.7,
+        "winner": "AWAY"
+      },
+      {
+        "week": 14,
+        "awayId": 7,
+        "awayScore": 83.65,
+        "homeId": 5,
+        "homeScore": 85.58,
+        "winner": "HOME"
+      },
+      {
+        "week": 14,
+        "awayId": 11,
+        "awayScore": 112.73,
+        "homeId": 9,
+        "homeScore": 88.72,
+        "winner": "AWAY"
+      },
+      {
+        "week": 14,
+        "awayId": 6,
+        "awayScore": 74.55,
+        "homeId": 8,
+        "homeScore": 84.84,
+        "winner": "HOME"
+      },
+      {
+        "week": 14,
+        "awayId": 4,
+        "awayScore": 123.1,
+        "homeId": 2,
+        "homeScore": 73.38,
+        "winner": "AWAY"
+      },
+      {
+        "week": 14,
+        "awayId": 1,
+        "awayScore": 168.19,
+        "homeId": 10,
+        "homeScore": 98.15,
+        "winner": "AWAY"
+      },
+      {
+        "week": 15,
+        "awayId": 5,
+        "awayScore": 83.13,
+        "homeId": 12,
+        "homeScore": 114.18,
+        "winner": "HOME"
+      },
+      {
+        "week": 15,
+        "awayId": 11,
+        "awayScore": 150.44,
+        "homeId": 3,
+        "homeScore": 119.15,
+        "winner": "AWAY"
+      },
+      {
+        "week": 15,
+        "awayId": 7,
+        "awayScore": 104.54,
+        "homeId": 9,
+        "homeScore": 63.89,
+        "winner": "AWAY"
+      },
+      {
+        "week": 15,
+        "awayId": 4,
+        "awayScore": 98.42,
+        "homeId": 8,
+        "homeScore": 112.49,
+        "winner": "HOME"
+      },
+      {
+        "week": 15,
+        "awayId": 1,
+        "awayScore": 126.62,
+        "homeId": 6,
+        "homeScore": 105.11,
+        "winner": "AWAY"
+      },
+      {
+        "week": 15,
+        "awayId": 2,
+        "awayScore": 112.41,
+        "homeId": 10,
+        "homeScore": 126.29,
+        "winner": "HOME"
+      },
+      {
+        "week": 16,
+        "awayId": 11,
+        "awayScore": 117.13,
+        "homeId": 12,
+        "homeScore": 178.73,
+        "winner": "HOME"
+      },
+      {
+        "week": 16,
+        "awayId": 5,
+        "awayScore": 99.58,
+        "homeId": 3,
+        "homeScore": 145.02,
+        "winner": "HOME"
+      },
+      {
+        "week": 16,
+        "awayId": 7,
+        "awayScore": 95.11,
+        "homeId": 9,
+        "homeScore": 135.29,
+        "winner": "HOME"
+      },
+      {
+        "week": 16,
+        "awayId": 1,
+        "awayScore": 129.96,
+        "homeId": 8,
+        "homeScore": 96.83,
+        "winner": "AWAY"
+      },
+      {
+        "week": 16,
+        "awayId": 4,
+        "awayScore": 57.31,
+        "homeId": 6,
+        "homeScore": 161.93,
+        "winner": "HOME"
+      },
+      {
+        "week": 16,
+        "awayId": 2,
+        "awayScore": 105.31,
+        "homeId": 10,
+        "homeScore": 84.23,
+        "winner": "AWAY"
+      }
+    ]
+  },
+  "2017": {
+    "teams": {
+      "1": "Clowney McQuestion",
+      "2": "Quarterback Sneak",
+      "3": "King of the Wind",
+      "4": "Stevenz Staff",
+      "5": "Rocky Mountain Oysters",
+      "6": "GLUE IF BY SEA",
+      "7": "Dead Wrong Dave",
+      "8": "Julio Franco, Chipper Jones",
+      "9": "Ajayi-Ooh Killer Tofu",
+      "10": "I Am Score",
+      "11": "A Song of Matty Ice and Fire",
+      "12": "Team French"
+    },
+    "matchups": [
+      {
+        "week": 1,
+        "awayId": 1,
+        "awayScore": 68.73,
+        "homeId": 4,
+        "homeScore": 125.53,
+        "winner": "HOME"
+      },
+      {
+        "week": 1,
+        "awayId": 2,
+        "awayScore": 99.02,
+        "homeId": 11,
+        "homeScore": 137.99,
+        "winner": "HOME"
+      },
+      {
+        "week": 1,
+        "awayId": 3,
+        "awayScore": 128.92,
+        "homeId": 9,
+        "homeScore": 106.74,
+        "winner": "AWAY"
+      },
+      {
+        "week": 1,
+        "awayId": 8,
+        "awayScore": 99.24,
+        "homeId": 12,
+        "homeScore": 96.99,
+        "winner": "AWAY"
+      },
+      {
+        "week": 1,
+        "awayId": 7,
+        "awayScore": 111.83,
+        "homeId": 6,
+        "homeScore": 99.5,
+        "winner": "AWAY"
+      },
+      {
+        "week": 1,
+        "awayId": 10,
+        "awayScore": 75.34,
+        "homeId": 5,
+        "homeScore": 122.32,
+        "winner": "HOME"
+      },
+      {
+        "week": 2,
+        "awayId": 12,
+        "awayScore": 102.02,
+        "homeId": 11,
+        "homeScore": 133.08,
+        "winner": "HOME"
+      },
+      {
+        "week": 2,
+        "awayId": 2,
+        "awayScore": 106.27,
+        "homeId": 6,
+        "homeScore": 93.16,
+        "winner": "AWAY"
+      },
+      {
+        "week": 2,
+        "awayId": 3,
+        "awayScore": 99.02,
+        "homeId": 4,
+        "homeScore": 132.55,
+        "winner": "HOME"
+      },
+      {
+        "week": 2,
+        "awayId": 9,
+        "awayScore": 111.85,
+        "homeId": 7,
+        "homeScore": 96.79,
+        "winner": "AWAY"
+      },
+      {
+        "week": 2,
+        "awayId": 5,
+        "awayScore": 84.87,
+        "homeId": 8,
+        "homeScore": 128.77,
+        "winner": "HOME"
+      },
+      {
+        "week": 2,
+        "awayId": 1,
+        "awayScore": 144.68,
+        "homeId": 10,
+        "homeScore": 76.49,
+        "winner": "AWAY"
+      },
+      {
+        "week": 3,
+        "awayId": 1,
+        "awayScore": 98.12,
+        "homeId": 3,
+        "homeScore": 161.55,
+        "winner": "HOME"
+      },
+      {
+        "week": 3,
+        "awayId": 10,
+        "awayScore": 95.55,
+        "homeId": 8,
+        "homeScore": 81.63,
+        "winner": "AWAY"
+      },
+      {
+        "week": 3,
+        "awayId": 6,
+        "awayScore": 111.86,
+        "homeId": 12,
+        "homeScore": 134.42,
+        "winner": "HOME"
+      },
+      {
+        "week": 3,
+        "awayId": 4,
+        "awayScore": 79.22,
+        "homeId": 7,
+        "homeScore": 96.28,
+        "winner": "HOME"
+      },
+      {
+        "week": 3,
+        "awayId": 9,
+        "awayScore": 117.11,
+        "homeId": 2,
+        "homeScore": 97.07,
+        "winner": "AWAY"
+      },
+      {
+        "week": 3,
+        "awayId": 11,
+        "awayScore": 84.16,
+        "homeId": 5,
+        "homeScore": 108.2,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 5,
+        "awayScore": 106.03,
+        "homeId": 6,
+        "homeScore": 145.4,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 12,
+        "awayScore": 111.86,
+        "homeId": 9,
+        "homeScore": 126.94,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 3,
+        "awayScore": 136.9,
+        "homeId": 7,
+        "homeScore": 93.88,
+        "winner": "AWAY"
+      },
+      {
+        "week": 4,
+        "awayId": 1,
+        "awayScore": 98.58,
+        "homeId": 8,
+        "homeScore": 129.27,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 2,
+        "awayScore": 78.28,
+        "homeId": 4,
+        "homeScore": 81.17,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 11,
+        "awayScore": 96.33,
+        "homeId": 10,
+        "homeScore": 80.12,
+        "winner": "AWAY"
+      },
+      {
+        "week": 5,
+        "awayId": 1,
+        "awayScore": 107.17,
+        "homeId": 7,
+        "homeScore": 139.91,
+        "winner": "HOME"
+      },
+      {
+        "week": 5,
+        "awayId": 6,
+        "awayScore": 118.02,
+        "homeId": 10,
+        "homeScore": 90.55,
+        "winner": "AWAY"
+      },
+      {
+        "week": 5,
+        "awayId": 8,
+        "awayScore": 128.4,
+        "homeId": 11,
+        "homeScore": 113.01,
+        "winner": "AWAY"
+      },
+      {
+        "week": 5,
+        "awayId": 9,
+        "awayScore": 94.21,
+        "homeId": 5,
+        "homeScore": 97.79,
+        "winner": "HOME"
+      },
+      {
+        "week": 5,
+        "awayId": 12,
+        "awayScore": 113.79,
+        "homeId": 4,
+        "homeScore": 100.16,
+        "winner": "AWAY"
+      },
+      {
+        "week": 5,
+        "awayId": 3,
+        "awayScore": 92.72,
+        "homeId": 2,
+        "homeScore": 126.49,
+        "winner": "HOME"
+      },
+      {
+        "week": 6,
+        "awayId": 10,
+        "awayScore": 87.54,
+        "homeId": 9,
+        "homeScore": 130.93,
+        "winner": "HOME"
+      },
+      {
+        "week": 6,
+        "awayId": 6,
+        "awayScore": 116.45,
+        "homeId": 8,
+        "homeScore": 117.51,
+        "winner": "HOME"
+      },
+      {
+        "week": 6,
+        "awayId": 3,
+        "awayScore": 155.35,
+        "homeId": 12,
+        "homeScore": 92.87,
+        "winner": "AWAY"
+      },
+      {
+        "week": 6,
+        "awayId": 1,
+        "awayScore": 105.52,
+        "homeId": 11,
+        "homeScore": 79.22,
+        "winner": "AWAY"
+      },
+      {
+        "week": 6,
+        "awayId": 5,
+        "awayScore": 85.07,
+        "homeId": 4,
+        "homeScore": 85.16,
+        "winner": "HOME"
+      },
+      {
+        "week": 6,
+        "awayId": 2,
+        "awayScore": 128.38,
+        "homeId": 7,
+        "homeScore": 90.49,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 1,
+        "awayScore": 111.01,
+        "homeId": 2,
+        "homeScore": 122.06,
+        "winner": "HOME"
+      },
+      {
+        "week": 7,
+        "awayId": 7,
+        "awayScore": 136.92,
+        "homeId": 12,
+        "homeScore": 120.55,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 4,
+        "awayScore": 115.18,
+        "homeId": 10,
+        "homeScore": 72.74,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 3,
+        "awayScore": 134.01,
+        "homeId": 5,
+        "homeScore": 51.23,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 11,
+        "awayScore": 94.47,
+        "homeId": 6,
+        "homeScore": 102.77,
+        "winner": "HOME"
+      },
+      {
+        "week": 7,
+        "awayId": 8,
+        "awayScore": 88.74,
+        "homeId": 9,
+        "homeScore": 99.87,
+        "winner": "HOME"
+      },
+      {
+        "week": 8,
+        "awayId": 8,
+        "awayScore": 145.76,
+        "homeId": 4,
+        "homeScore": 83.97,
+        "winner": "AWAY"
+      },
+      {
+        "week": 8,
+        "awayId": 5,
+        "awayScore": 107.18,
+        "homeId": 7,
+        "homeScore": 105.58,
+        "winner": "AWAY"
+      },
+      {
+        "week": 8,
+        "awayId": 10,
+        "awayScore": 59.11,
+        "homeId": 3,
+        "homeScore": 121.88,
+        "winner": "HOME"
+      },
+      {
+        "week": 8,
+        "awayId": 11,
+        "awayScore": 131.64,
+        "homeId": 9,
+        "homeScore": 106.15,
+        "winner": "AWAY"
+      },
+      {
+        "week": 8,
+        "awayId": 2,
+        "awayScore": 103.12,
+        "homeId": 12,
+        "homeScore": 106.02,
+        "winner": "HOME"
+      },
+      {
+        "week": 8,
+        "awayId": 1,
+        "awayScore": 110.92,
+        "homeId": 6,
+        "homeScore": 120.37,
+        "winner": "HOME"
+      },
+      {
+        "week": 9,
+        "awayId": 1,
+        "awayScore": 114.64,
+        "homeId": 12,
+        "homeScore": 68.64,
+        "winner": "AWAY"
+      },
+      {
+        "week": 9,
+        "awayId": 11,
+        "awayScore": 125.76,
+        "homeId": 4,
+        "homeScore": 70.2,
+        "winner": "AWAY"
+      },
+      {
+        "week": 9,
+        "awayId": 7,
+        "awayScore": 94.53,
+        "homeId": 10,
+        "homeScore": 112.07,
+        "winner": "HOME"
+      },
+      {
+        "week": 9,
+        "awayId": 2,
+        "awayScore": 123.21,
+        "homeId": 5,
+        "homeScore": 105.31,
+        "winner": "AWAY"
+      },
+      {
+        "week": 9,
+        "awayId": 8,
+        "awayScore": 131.12,
+        "homeId": 3,
+        "homeScore": 111.18,
+        "winner": "AWAY"
+      },
+      {
+        "week": 9,
+        "awayId": 9,
+        "awayScore": 135.0,
+        "homeId": 6,
+        "homeScore": 110.58,
+        "winner": "AWAY"
+      },
+      {
+        "week": 10,
+        "awayId": 11,
+        "awayScore": 99.65,
+        "homeId": 3,
+        "homeScore": 117.82,
+        "winner": "HOME"
+      },
+      {
+        "week": 10,
+        "awayId": 12,
+        "awayScore": 87.5,
+        "homeId": 5,
+        "homeScore": 93.29,
+        "winner": "HOME"
+      },
+      {
+        "week": 10,
+        "awayId": 7,
+        "awayScore": 96.35,
+        "homeId": 8,
+        "homeScore": 140.16,
+        "winner": "HOME"
+      },
+      {
+        "week": 10,
+        "awayId": 9,
+        "awayScore": 150.56,
+        "homeId": 1,
+        "homeScore": 88.84,
+        "winner": "AWAY"
+      },
+      {
+        "week": 10,
+        "awayId": 4,
+        "awayScore": 109.3,
+        "homeId": 6,
+        "homeScore": 114.33,
+        "winner": "HOME"
+      },
+      {
+        "week": 10,
+        "awayId": 10,
+        "awayScore": 110.81,
+        "homeId": 2,
+        "homeScore": 149.39,
+        "winner": "HOME"
+      },
+      {
+        "week": 11,
+        "awayId": 1,
+        "awayScore": 105.5,
+        "homeId": 5,
+        "homeScore": 115.46,
+        "winner": "HOME"
+      },
+      {
+        "week": 11,
+        "awayId": 12,
+        "awayScore": 133.26,
+        "homeId": 10,
+        "homeScore": 97.85,
+        "winner": "AWAY"
+      },
+      {
+        "week": 11,
+        "awayId": 3,
+        "awayScore": 159.12,
+        "homeId": 6,
+        "homeScore": 151.13,
+        "winner": "AWAY"
+      },
+      {
+        "week": 11,
+        "awayId": 4,
+        "awayScore": 106.0,
+        "homeId": 9,
+        "homeScore": 140.66,
+        "winner": "HOME"
+      },
+      {
+        "week": 11,
+        "awayId": 2,
+        "awayScore": 96.2,
+        "homeId": 8,
+        "homeScore": 112.65,
+        "winner": "HOME"
+      },
+      {
+        "week": 11,
+        "awayId": 7,
+        "awayScore": 122.34,
+        "homeId": 11,
+        "homeScore": 100.87,
+        "winner": "AWAY"
+      },
+      {
+        "week": 12,
+        "awayId": 6,
+        "awayScore": 81.33,
+        "homeId": 7,
+        "homeScore": 94.11,
+        "winner": "HOME"
+      },
+      {
+        "week": 12,
+        "awayId": 10,
+        "awayScore": 77.89,
+        "homeId": 5,
+        "homeScore": 122.04,
+        "winner": "HOME"
+      },
+      {
+        "week": 12,
+        "awayId": 12,
+        "awayScore": 114.76,
+        "homeId": 8,
+        "homeScore": 171.67,
+        "winner": "HOME"
+      },
+      {
+        "week": 12,
+        "awayId": 1,
+        "awayScore": 134.42,
+        "homeId": 4,
+        "homeScore": 152.07,
+        "winner": "HOME"
+      },
+      {
+        "week": 12,
+        "awayId": 2,
+        "awayScore": 62.06,
+        "homeId": 11,
+        "homeScore": 104.73,
+        "winner": "HOME"
+      },
+      {
+        "week": 12,
+        "awayId": 3,
+        "awayScore": 183.32,
+        "homeId": 9,
+        "homeScore": 126.2,
+        "winner": "AWAY"
+      },
+      {
+        "week": 13,
+        "awayId": 1,
+        "awayScore": 124.12,
+        "homeId": 10,
+        "homeScore": 88.31,
+        "winner": "AWAY"
+      },
+      {
+        "week": 13,
+        "awayId": 5,
+        "awayScore": 98.45,
+        "homeId": 8,
+        "homeScore": 109.77,
+        "winner": "HOME"
+      },
+      {
+        "week": 13,
+        "awayId": 9,
+        "awayScore": 147.09,
+        "homeId": 7,
+        "homeScore": 127.81,
+        "winner": "AWAY"
+      },
+      {
+        "week": 13,
+        "awayId": 3,
+        "awayScore": 151.38,
+        "homeId": 4,
+        "homeScore": 101.08,
+        "winner": "AWAY"
+      },
+      {
+        "week": 13,
+        "awayId": 6,
+        "awayScore": 79.14,
+        "homeId": 2,
+        "homeScore": 119.85,
+        "winner": "HOME"
+      },
+      {
+        "week": 13,
+        "awayId": 11,
+        "awayScore": 104.52,
+        "homeId": 12,
+        "homeScore": 152.66,
+        "winner": "HOME"
+      },
+      {
+        "week": 14,
+        "awayId": 5,
+        "awayScore": 110.64,
+        "homeId": 2,
+        "homeScore": 128.68,
+        "winner": "HOME"
+      },
+      {
+        "week": 14,
+        "awayId": 7,
+        "awayScore": 132.26,
+        "homeId": 9,
+        "homeScore": 129.74,
+        "winner": "AWAY"
+      },
+      {
+        "week": 14,
+        "awayId": 4,
+        "awayScore": 106.99,
+        "homeId": 11,
+        "homeScore": 137.84,
+        "winner": "HOME"
+      },
+      {
+        "week": 14,
+        "awayId": 12,
+        "awayScore": 97.29,
+        "homeId": 1,
+        "homeScore": 114.87,
+        "winner": "HOME"
+      },
+      {
+        "week": 14,
+        "awayId": 10,
+        "awayScore": 75.44,
+        "homeId": 6,
+        "homeScore": 147.0,
+        "winner": "HOME"
+      },
+      {
+        "week": 15,
+        "awayId": 2,
+        "awayScore": 111.23,
+        "homeId": 8,
+        "homeScore": 140.33,
+        "winner": "HOME"
+      },
+      {
+        "week": 15,
+        "awayId": 7,
+        "awayScore": 106.93,
+        "homeId": 3,
+        "homeScore": 115.78,
+        "winner": "HOME"
+      },
+      {
+        "week": 15,
+        "awayId": 5,
+        "awayScore": 91.54,
+        "homeId": 9,
+        "homeScore": 127.13,
+        "winner": "HOME"
+      },
+      {
+        "week": 15,
+        "awayId": 1,
+        "awayScore": 114.47,
+        "homeId": 11,
+        "homeScore": 109.28,
+        "winner": "AWAY"
+      },
+      {
+        "week": 15,
+        "awayId": 6,
+        "awayScore": 125.59,
+        "homeId": 4,
+        "homeScore": 129.0,
+        "winner": "HOME"
+      },
+      {
+        "week": 15,
+        "awayId": 10,
+        "awayScore": 67.14,
+        "homeId": 12,
+        "homeScore": 111.6,
+        "winner": "HOME"
+      },
+      {
+        "week": 16,
+        "awayId": 3,
+        "awayScore": 121.67,
+        "homeId": 8,
+        "homeScore": 97.1,
+        "winner": "AWAY"
+      },
+      {
+        "week": 16,
+        "awayId": 7,
+        "awayScore": 98.85,
+        "homeId": 2,
+        "homeScore": 109.49,
+        "winner": "HOME"
+      },
+      {
+        "week": 16,
+        "awayId": 5,
+        "awayScore": 87.24,
+        "homeId": 9,
+        "homeScore": 129.21,
+        "winner": "HOME"
+      },
+      {
+        "week": 16,
+        "awayId": 1,
+        "awayScore": 99.96,
+        "homeId": 4,
+        "homeScore": 97.39,
+        "winner": "AWAY"
+      },
+      {
+        "week": 16,
+        "awayId": 6,
+        "awayScore": 115.56,
+        "homeId": 11,
+        "homeScore": 125.42,
+        "winner": "HOME"
+      },
+      {
+        "week": 16,
+        "awayId": 10,
+        "awayScore": 59.41,
+        "homeId": 12,
+        "homeScore": 104.67,
+        "winner": "HOME"
+      }
+    ]
+  },
+  "2018": {
+    "teams": {
+      "1": "Phoney McStudent",
+      "2": "Rollin With  Mahomies",
+      "3": "Carlos Danger",
+      "4": "Stevenz Staff",
+      "5": "Spangalang a BangBang",
+      "6": "GLUEY GIANT SLAYER",
+      "7": "Dave  The Dad",
+      "8": "Kenyan Drake:  Tank Commander",
+      "9": "Gurl Just Wants To Have Fun",
+      "10": "Blood Sweat and Tiers",
+      "11": "The Ertz Liker",
+      "12": "Team French"
+    },
+    "matchups": [
+      {
+        "week": 1,
+        "awayId": 1,
+        "awayScore": 116.54,
+        "homeId": 2,
+        "homeScore": 115.94,
+        "winner": "AWAY"
+      },
+      {
+        "week": 1,
+        "awayId": 4,
+        "awayScore": 135.84,
+        "homeId": 10,
+        "homeScore": 125.29,
+        "winner": "AWAY"
+      },
+      {
+        "week": 1,
+        "awayId": 3,
+        "awayScore": 90.86,
+        "homeId": 5,
+        "homeScore": 106.51,
+        "winner": "HOME"
+      },
+      {
+        "week": 1,
+        "awayId": 8,
+        "awayScore": 108.62,
+        "homeId": 9,
+        "homeScore": 120.43,
+        "winner": "HOME"
+      },
+      {
+        "week": 1,
+        "awayId": 7,
+        "awayScore": 155.06,
+        "homeId": 12,
+        "homeScore": 149.84,
+        "winner": "AWAY"
+      },
+      {
+        "week": 1,
+        "awayId": 11,
+        "awayScore": 89.53,
+        "homeId": 6,
+        "homeScore": 100.9,
+        "winner": "HOME"
+      },
+      {
+        "week": 2,
+        "awayId": 9,
+        "awayScore": 128.16,
+        "homeId": 11,
+        "homeScore": 116.96,
+        "winner": "AWAY"
+      },
+      {
+        "week": 2,
+        "awayId": 2,
+        "awayScore": 138.49,
+        "homeId": 12,
+        "homeScore": 89.84,
+        "winner": "AWAY"
+      },
+      {
+        "week": 2,
+        "awayId": 7,
+        "awayScore": 134.31,
+        "homeId": 5,
+        "homeScore": 121.07,
+        "winner": "AWAY"
+      },
+      {
+        "week": 2,
+        "awayId": 6,
+        "awayScore": 155.28,
+        "homeId": 1,
+        "homeScore": 91.53,
+        "winner": "AWAY"
+      },
+      {
+        "week": 2,
+        "awayId": 4,
+        "awayScore": 145.0,
+        "homeId": 8,
+        "homeScore": 116.14,
+        "winner": "AWAY"
+      },
+      {
+        "week": 2,
+        "awayId": 3,
+        "awayScore": 129.87,
+        "homeId": 10,
+        "homeScore": 114.78,
+        "winner": "AWAY"
+      },
+      {
+        "week": 3,
+        "awayId": 1,
+        "awayScore": 113.8,
+        "homeId": 12,
+        "homeScore": 123.25,
+        "winner": "HOME"
+      },
+      {
+        "week": 3,
+        "awayId": 3,
+        "awayScore": 84.94,
+        "homeId": 8,
+        "homeScore": 80.83,
+        "winner": "AWAY"
+      },
+      {
+        "week": 3,
+        "awayId": 6,
+        "awayScore": 127.59,
+        "homeId": 9,
+        "homeScore": 86.17,
+        "winner": "AWAY"
+      },
+      {
+        "week": 3,
+        "awayId": 10,
+        "awayScore": 110.68,
+        "homeId": 7,
+        "homeScore": 134.11,
+        "winner": "HOME"
+      },
+      {
+        "week": 3,
+        "awayId": 5,
+        "awayScore": 143.24,
+        "homeId": 2,
+        "homeScore": 132.46,
+        "winner": "AWAY"
+      },
+      {
+        "week": 3,
+        "awayId": 11,
+        "awayScore": 101.2,
+        "homeId": 4,
+        "homeScore": 147.6,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 9,
+        "awayScore": 106.21,
+        "homeId": 1,
+        "homeScore": 154.2,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 12,
+        "awayScore": 115.62,
+        "homeId": 5,
+        "homeScore": 63.38,
+        "winner": "AWAY"
+      },
+      {
+        "week": 4,
+        "awayId": 8,
+        "awayScore": 103.48,
+        "homeId": 7,
+        "homeScore": 157.05,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 2,
+        "awayScore": 143.41,
+        "homeId": 10,
+        "homeScore": 153.73,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 6,
+        "awayScore": 129.51,
+        "homeId": 4,
+        "homeScore": 152.95,
+        "winner": "HOME"
+      },
+      {
+        "week": 4,
+        "awayId": 11,
+        "awayScore": 170.22,
+        "homeId": 3,
+        "homeScore": 131.83,
+        "winner": "AWAY"
+      },
+      {
+        "week": 5,
+        "awayId": 1,
+        "awayScore": 134.05,
+        "homeId": 5,
+        "homeScore": 137.45,
+        "winner": "HOME"
+      },
+      {
+        "week": 5,
+        "awayId": 9,
+        "awayScore": 147.74,
+        "homeId": 4,
+        "homeScore": 123.88,
+        "winner": "AWAY"
+      },
+      {
+        "week": 5,
+        "awayId": 7,
+        "awayScore": 141.81,
+        "homeId": 11,
+        "homeScore": 104.74,
+        "winner": "AWAY"
+      },
+      {
+        "week": 5,
+        "awayId": 2,
+        "awayScore": 99.55,
+        "homeId": 8,
+        "homeScore": 109.47,
+        "winner": "HOME"
+      },
+      {
+        "week": 5,
+        "awayId": 12,
+        "awayScore": 150.08,
+        "homeId": 10,
+        "homeScore": 108.79,
+        "winner": "AWAY"
+      },
+      {
+        "week": 5,
+        "awayId": 3,
+        "awayScore": 94.69,
+        "homeId": 6,
+        "homeScore": 105.55,
+        "winner": "HOME"
+      },
+      {
+        "week": 6,
+        "awayId": 10,
+        "awayScore": 131.69,
+        "homeId": 5,
+        "homeScore": 94.87,
+        "winner": "AWAY"
+      },
+      {
+        "week": 6,
+        "awayId": 6,
+        "awayScore": 132.11,
+        "homeId": 7,
+        "homeScore": 131.93,
+        "winner": "AWAY"
+      },
+      {
+        "week": 6,
+        "awayId": 8,
+        "awayScore": 120.68,
+        "homeId": 12,
+        "homeScore": 121.5,
+        "winner": "HOME"
+      },
+      {
+        "week": 6,
+        "awayId": 1,
+        "awayScore": 96.23,
+        "homeId": 4,
+        "homeScore": 142.3,
+        "winner": "HOME"
+      },
+      {
+        "week": 6,
+        "awayId": 9,
+        "awayScore": 148.6,
+        "homeId": 3,
+        "homeScore": 106.92,
+        "winner": "AWAY"
+      },
+      {
+        "week": 6,
+        "awayId": 2,
+        "awayScore": 135.88,
+        "homeId": 11,
+        "homeScore": 124.87,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 1,
+        "awayScore": 92.65,
+        "homeId": 10,
+        "homeScore": 125.23,
+        "winner": "HOME"
+      },
+      {
+        "week": 7,
+        "awayId": 3,
+        "awayScore": 122.59,
+        "homeId": 4,
+        "homeScore": 168.33,
+        "winner": "HOME"
+      },
+      {
+        "week": 7,
+        "awayId": 12,
+        "awayScore": 123.71,
+        "homeId": 11,
+        "homeScore": 94.25,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 8,
+        "awayScore": 109.52,
+        "homeId": 5,
+        "homeScore": 120.93,
+        "winner": "HOME"
+      },
+      {
+        "week": 7,
+        "awayId": 2,
+        "awayScore": 152.92,
+        "homeId": 6,
+        "homeScore": 148.67,
+        "winner": "AWAY"
+      },
+      {
+        "week": 7,
+        "awayId": 7,
+        "awayScore": 121.89,
+        "homeId": 9,
+        "homeScore": 80.52,
+        "winner": "AWAY"
+      },
+      {
+        "week": 8,
+        "awayId": 6,
+        "awayScore": 141.5,
+        "homeId": 12,
+        "homeScore": 100.94,
+        "winner": "AWAY"
+      },
+      {
+        "week": 8,
+        "awayId": 5,
+        "awayScore": 141.65,
+        "homeId": 11,
+        "homeScore": 105.09,
+        "winner": "AWAY"
+      },
+      {
+        "week": 8,
+        "awayId": 10,
+        "awayScore": 96.1,
+        "homeId": 8,
+        "homeScore": 126.12,
+        "winner": "HOME"
+      },
+      {
+        "week": 8,
+        "awayId": 2,
+        "awayScore": 154.72,
+        "homeId": 9,
+        "homeScore": 142.46,
+        "winner": "AWAY"
+      },
+      {
+        "week": 8,
+        "awayId": 7,
+        "awayScore": 137.91,
+        "homeId": 4,
+        "homeScore": 126.51,
+        "winner": "AWAY"
+      },
+      {
+        "week": 8,
+        "awayId": 1,
+        "awayScore": 98.69,
+        "homeId": 3,
+        "homeScore": 130.51,
+        "winner": "HOME"
+      },
+      {
+        "week": 9,
+        "awayId": 9,
+        "awayScore": 92.84,
+        "homeId": 12,
+        "homeScore": 113.86,
+        "winner": "HOME"
+      },
+      {
+        "week": 9,
+        "awayId": 11,
+        "awayScore": 65.94,
+        "homeId": 10,
+        "homeScore": 147.04,
+        "winner": "HOME"
+      },
+      {
+        "week": 9,
+        "awayId": 2,
+        "awayScore": 109.3,
+        "homeId": 4,
+        "homeScore": 129.83,
+        "winner": "HOME"
+      },
+      {
+        "week": 9,
+        "awayId": 6,
+        "awayScore": 127.52,
+        "homeId": 5,
+        "homeScore": 102.74,
+        "winner": "AWAY"
+      },
+      {
+        "week": 9,
+        "awayId": 7,
+        "awayScore": 163.97,
+        "homeId": 3,
+        "homeScore": 105.01,
+        "winner": "AWAY"
+      },
+      {
+        "week": 9,
+        "awayId": 1,
+        "awayScore": 109.42,
+        "homeId": 8,
+        "homeScore": 160.15,
+        "winner": "HOME"
+      },
+      {
+        "week": 10,
+        "awayId": 9,
+        "awayScore": 121.75,
+        "homeId": 5,
+        "homeScore": 109.05,
+        "winner": "AWAY"
+      },
+      {
+        "week": 10,
+        "awayId": 12,
+        "awayScore": 140.11,
+        "homeId": 4,
+        "homeScore": 126.32,
+        "winner": "AWAY"
+      },
+      {
+        "week": 10,
+        "awayId": 11,
+        "awayScore": 130.45,
+        "homeId": 8,
+        "homeScore": 122.29,
+        "winner": "AWAY"
+      },
+      {
+        "week": 10,
+        "awayId": 7,
+        "awayScore": 144.12,
+        "homeId": 1,
+        "homeScore": 127.65,
+        "winner": "AWAY"
+      },
+      {
+        "week": 10,
+        "awayId": 10,
+        "awayScore": 96.12,
+        "homeId": 6,
+        "homeScore": 127.99,
+        "winner": "HOME"
+      },
+      {
+        "week": 10,
+        "awayId": 3,
+        "awayScore": 153.7,
+        "homeId": 2,
+        "homeScore": 139.46,
+        "winner": "AWAY"
+      },
+      {
+        "week": 11,
+        "awayId": 1,
+        "awayScore": 81.77,
+        "homeId": 11,
+        "homeScore": 61.74,
+        "winner": "AWAY"
+      },
+      {
+        "week": 11,
+        "awayId": 9,
+        "awayScore": 87.27,
+        "homeId": 10,
+        "homeScore": 134.62,
+        "winner": "HOME"
+      },
+      {
+        "week": 11,
+        "awayId": 8,
+        "awayScore": 123.1,
+        "homeId": 6,
+        "homeScore": 161.63,
+        "winner": "HOME"
+      },
+      {
+        "week": 11,
+        "awayId": 7,
+        "awayScore": 104.04,
+        "homeId": 2,
+        "homeScore": 158.87,
+        "winner": "HOME"
+      },
+      {
+        "week": 11,
+        "awayId": 12,
+        "awayScore": 137.93,
+        "homeId": 3,
+        "homeScore": 120.33,
+        "winner": "AWAY"
+      },
+      {
+        "week": 11,
+        "awayId": 4,
+        "awayScore": 171.18,
+        "homeId": 5,
+        "homeScore": 146.27,
+        "winner": "AWAY"
+      },
+      {
+        "week": 12,
+        "awayId": 12,
+        "awayScore": 121.67,
+        "homeId": 7,
+        "homeScore": 152.32,
+        "winner": "HOME"
+      },
+      {
+        "week": 12,
+        "awayId": 11,
+        "awayScore": 106.29,
+        "homeId": 6,
+        "homeScore": 127.98,
+        "winner": "HOME"
+      },
+      {
+        "week": 12,
+        "awayId": 9,
+        "awayScore": 118.73,
+        "homeId": 8,
+        "homeScore": 142.13,
+        "winner": "HOME"
+      },
+      {
+        "week": 12,
+        "awayId": 1,
+        "awayScore": 123.4,
+        "homeId": 2,
+        "homeScore": 125.03,
+        "winner": "HOME"
+      },
+      {
+        "week": 12,
+        "awayId": 4,
+        "awayScore": 114.69,
+        "homeId": 10,
+        "homeScore": 111.69,
+        "winner": "AWAY"
+      },
+      {
+        "week": 12,
+        "awayId": 3,
+        "awayScore": 125.38,
+        "homeId": 5,
+        "homeScore": 126.64,
+        "winner": "HOME"
+      },
+      {
+        "week": 13,
+        "awayId": 3,
+        "awayScore": 106.8,
+        "homeId": 10,
+        "homeScore": 75.98,
+        "winner": "AWAY"
+      },
+      {
+        "week": 13,
+        "awayId": 4,
+        "awayScore": 148.1,
+        "homeId": 8,
+        "homeScore": 91.25,
+        "winner": "AWAY"
+      },
+      {
+        "week": 13,
+        "awayId": 6,
+        "awayScore": 140.64,
+        "homeId": 1,
+        "homeScore": 119.81,
+        "winner": "AWAY"
+      },
+      {
+        "week": 13,
+        "awayId": 7,
+        "awayScore": 126.47,
+        "homeId": 5,
+        "homeScore": 105.54,
+        "winner": "AWAY"
+      },
+      {
+        "week": 13,
+        "awayId": 12,
+        "awayScore": 103.07,
+        "homeId": 2,
+        "homeScore": 139.54,
+        "winner": "HOME"
+      },
+      {
+        "week": 13,
+        "awayId": 11,
+        "awayScore": 90.49,
+        "homeId": 9,
+        "homeScore": 132.86,
+        "winner": "HOME"
+      },
+      {
+        "week": 14,
+        "awayId": 2,
+        "awayScore": 101.03,
+        "homeId": 12,
+        "homeScore": 155.24,
+        "winner": "HOME"
+      },
+      {
+        "week": 14,
+        "awayId": 5,
+        "awayScore": 91.24,
+        "homeId": 4,
+        "homeScore": 114.9,
+        "winner": "HOME"
+      },
+      {
+        "week": 14,
+        "awayId": 10,
+        "awayScore": 119.55,
+        "homeId": 9,
+        "homeScore": 99.52,
+        "winner": "AWAY"
+      },
+      {
+        "week": 14,
+        "awayId": 11,
+        "awayScore": 107.67,
+        "homeId": 3,
+        "homeScore": 82.63,
+        "winner": "AWAY"
+      },
+      {
+        "week": 14,
+        "awayId": 8,
+        "awayScore": 121.28,
+        "homeId": 1,
+        "homeScore": 76.28,
+        "winner": "AWAY"
+      },
+      {
+        "week": 15,
+        "awayId": 12,
+        "awayScore": 112.46,
+        "homeId": 7,
+        "homeScore": 150.96,
+        "winner": "HOME"
+      },
+      {
+        "week": 15,
+        "awayId": 4,
+        "awayScore": 94.39,
+        "homeId": 6,
+        "homeScore": 104.15,
+        "winner": "HOME"
+      },
+      {
+        "week": 15,
+        "awayId": 5,
+        "awayScore": 59.72,
+        "homeId": 2,
+        "homeScore": 106.42,
+        "winner": "HOME"
+      },
+      {
+        "week": 15,
+        "awayId": 11,
+        "awayScore": 81.15,
+        "homeId": 10,
+        "homeScore": 162.36,
+        "winner": "HOME"
+      },
+      {
+        "week": 15,
+        "awayId": 8,
+        "awayScore": 97.73,
+        "homeId": 9,
+        "homeScore": 117.61,
+        "winner": "HOME"
+      },
+      {
+        "week": 15,
+        "awayId": 1,
+        "awayScore": 122.66,
+        "homeId": 3,
+        "homeScore": 72.89,
+        "winner": "AWAY"
+      },
+      {
+        "week": 16,
+        "awayId": 6,
+        "awayScore": 124.7,
+        "homeId": 7,
+        "homeScore": 161.33,
+        "winner": "HOME"
+      },
+      {
+        "week": 16,
+        "awayId": 12,
+        "awayScore": 155.18,
+        "homeId": 4,
+        "homeScore": 126.34,
+        "winner": "AWAY"
+      },
+      {
+        "week": 16,
+        "awayId": 5,
+        "awayScore": 111.09,
+        "homeId": 2,
+        "homeScore": 129.55,
+        "winner": "HOME"
+      },
+      {
+        "week": 16,
+        "awayId": 10,
+        "awayScore": 97.69,
+        "homeId": 9,
+        "homeScore": 112.44,
+        "winner": "HOME"
+      },
+      {
+        "week": 16,
+        "awayId": 11,
+        "awayScore": 159.94,
+        "homeId": 8,
+        "homeScore": 104.94,
+        "winner": "AWAY"
+      },
+      {
+        "week": 16,
+        "awayId": 1,
+        "awayScore": 138.16,
+        "homeId": 3,
+        "homeScore": 103.66,
+        "winner": "AWAY"
+      }
+    ]
+  }
+}
