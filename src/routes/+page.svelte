@@ -161,6 +161,14 @@
 		});
 	}
 
+	function sortPreviewPlayers<T extends { slotName: string }>(players: T[]) {
+		return [...players].sort((a, b) => {
+			const ai = SLOT_ORDER.indexOf(a.slotName);
+			const bi = SLOT_ORDER.indexOf(b.slotName);
+			return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+		});
+	}
+
 	// Muscle 💪 = highest scorer across all starters this week
 	// Poop 💩 = lowest scorer (DST excluded) across all starters this week
 
@@ -357,7 +365,6 @@
 	.preview-label { color: rgba(255, 204, 51, 0.6); }
 
 	/* Preview matchup card */
-	.preview-card .matchup-header { flex-direction: column; align-items: stretch; gap: 10px; }
 	.preview-proj { color: var(--gold) !important; font-size: 20px !important; }
 	.win-prob-row {
 		display: flex;
@@ -1574,13 +1581,13 @@
 			{#each data.previewMatchups as pmatchup}
 				{@const isOptimal = showOptimal[pmatchup.matchupId] ?? false}
 				{@const isBenchOpen = benchOpen[pmatchup.matchupId] ?? false}
-				<div class="matchup-card preview-card {isOptimal ? 'optimal-mode' : ''}">
+				{@const h2hKey = pmatchup.away ? `${Math.min(pmatchup.home.teamId, pmatchup.away.teamId)}-${Math.max(pmatchup.home.teamId, pmatchup.away.teamId)}` : null}
+				<div id={h2hKey ? `matchup-${h2hKey}` : undefined} class="matchup-card {isOptimal ? 'optimal-mode' : ''}">
 					<div class="matchup-header">
 						<div class="score-line">
 							<!-- Home -->
 							<div class="team-score">
-								<span class="team-name">{pmatchup.home.teamName}</span>
-								<span class="team-record"> ({data.teamRecords[pmatchup.home.teamId]?.wins ?? 0}-{data.teamRecords[pmatchup.home.teamId]?.losses ?? 0})</span>
+								<span class="team-name">{pmatchup.home.teamName}</span><span class="team-record"> ({data.teamRecords[pmatchup.home.teamId]?.wins ?? 0}-{data.teamRecords[pmatchup.home.teamId]?.losses ?? 0})</span>
 								<span class="score preview-proj">{pmatchup.home.projectedPoints.toFixed(2)}</span>
 							</div>
 							<span class="vs">vs</span>
@@ -1588,37 +1595,38 @@
 							{#if pmatchup.away}
 								<div class="team-score">
 									<span class="score preview-proj">{pmatchup.away.projectedPoints.toFixed(2)}</span>
-									<span class="team-name">{pmatchup.away.teamName}</span>
-									<span class="team-record"> ({data.teamRecords[pmatchup.away.teamId]?.wins ?? 0}-{data.teamRecords[pmatchup.away.teamId]?.losses ?? 0})</span>
+									<span class="team-name">{pmatchup.away.teamName}</span><span class="team-record"> ({data.teamRecords[pmatchup.away.teamId]?.wins ?? 0}-{data.teamRecords[pmatchup.away.teamId]?.losses ?? 0})</span>
 								</div>
 							{/if}
 						</div>
-
-						<!-- Win probability bar -->
-						{#if pmatchup.away}
-							<div class="win-prob-row">
-								<span class="win-prob-pct home-pct">{(pmatchup.home.winProbability * 100).toFixed(0)}%</span>
-								<div class="win-prob-bar">
-									<div class="prob-home" style="width:{(pmatchup.home.winProbability * 100).toFixed(1)}%"></div>
-								</div>
-								<span class="win-prob-pct away-pct">{(pmatchup.away.winProbability * 100).toFixed(0)}%</span>
-							</div>
-						{/if}
-
 						<button
 							class="cake-btn {isOptimal ? 'active' : ''}"
 							onclick={() => toggleOptimal(pmatchup.matchupId)}
 							title="Optimal Lineup (by projection)"
+							aria-label="Optimal Lineup"
 						>🍰</button>
 					</div>
 
-					<!-- Rosters -->
+					<!-- Win probability bar -->
+					{#if pmatchup.away}
+						<div class="win-prob-row">
+							<span class="win-prob-pct home-pct">{(pmatchup.home.winProbability * 100).toFixed(0)}%</span>
+							<div class="win-prob-bar">
+								<div class="prob-home" style="width:{(pmatchup.home.winProbability * 100).toFixed(1)}%"></div>
+							</div>
+							<span class="win-prob-pct away-pct">{(pmatchup.away.winProbability * 100).toFixed(0)}%</span>
+						</div>
+					{/if}
+
+					<!-- Lineup view -->
 					{#if !isOptimal}
 						<div class="roster-grid">
 							{#each [pmatchup.home, pmatchup.away].filter(Boolean) as pteam}
 								<div class="team-col">
-									<div class="col-header"><span class="col-team-name">{pteam.teamName}</span></div>
-									{#each pteam.starters as p}
+									<div class="col-header">
+										<span class="col-team-name">{pteam.teamName}</span>
+									</div>
+									{#each sortPreviewPlayers(pteam.starters) as p}
 										<div class="player-row">
 											<div class="player-left">
 												<span class="slot-label">{p.slotName}</span>
@@ -1675,7 +1683,7 @@
 										<span class="col-team-name">{pteam.teamName}</span>
 										<span class="cake-opt-delta">+{(pteam.projectedOptimalPoints - pteam.projectedPoints).toFixed(1)}</span>
 									</div>
-									{#each pteam.optimalStarters as p}
+									{#each sortPreviewPlayers(pteam.optimalStarters) as p}
 										{@const wasStarted = pteam.starters.some(s => s.playerId === p.playerId)}
 										<div class="player-row {!wasStarted ? 'was-benched' : ''}">
 											<div class="player-left">
@@ -1700,7 +1708,7 @@
 						</div>
 					{/if}
 
-					<!-- H2H section -->
+					<!-- H2H — identical to regular matchup card -->
 					{#if pmatchup.h2h && pmatchup.away}
 						{@const h2h = pmatchup.h2h}
 						{@const total = h2h.homeWins + h2h.awayWins + h2h.ties}
@@ -1711,6 +1719,27 @@
 									<span class="h2h-summary">{pmatchup.home.teamName} {h2h.homeWins}–{h2h.awayWins}{h2h.ties ? `–${h2h.ties}` : ''} {pmatchup.away.teamName}</span>
 									<span class="h2h-chevron" style="transform: rotate({h2hOpen[pmatchup.matchupId] ? 0 : -90}deg)">›</span>
 								</button>
+								{#if h2hOpen[pmatchup.matchupId]}
+									{#if !h2hHistory[pmatchup.matchupId]}
+										<div class="h2h-loading">Loading…</div>
+									{:else}
+										<div class="h2h-list">
+											{#each h2hHistory[pmatchup.matchupId] as game}
+												{@const homeWon = game.winner === 'home'}
+												{@const lo = Math.min(game.homeTeamId, game.awayTeamId)}
+												{@const hi = Math.max(game.homeTeamId, game.awayTeamId)}
+												<a class="h2h-row" href="/?season={game.seasonId}&week={game.week}#matchup-{lo}-{hi}">
+													<span class="h2h-meta">{game.seasonId} · Wk {game.week}</span>
+													<span class="h2h-teams">
+														<span class="{homeWon ? 'h2h-winner' : 'h2h-loser'}">{game.homeTeamName}</span>
+														<span class="h2h-score">{game.homeScore.toFixed(1)} – {game.awayScore.toFixed(1)}</span>
+														<span class="{homeWon ? 'h2h-loser' : 'h2h-winner'}">{game.awayTeamName}</span>
+													</span>
+												</a>
+											{/each}
+										</div>
+									{/if}
+								{/if}
 							</div>
 						{/if}
 					{/if}

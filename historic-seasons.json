@@ -1,0 +1,61 @@
+{
+  "_instructions": "Fill in teamId (ESPN team slot number), logoUrl (ESPN logo URL or leave null), and correct teamName if needed. Also correct championshipWeek if 17 is wrong for that year. Add chumpion for any year you know it.",
+  "seasons": [
+    {
+      "seasonId": 2018,
+      "championshipWeek": 17,
+      "first":    { "teamName": "Dave The Dad",          "teamId": null, "logoUrl": null },
+      "second":   { "teamName": "GLUEY GIANT SLAYER",    "teamId": null, "logoUrl": null },
+      "third":    { "teamName": "Team French",            "teamId": null, "logoUrl": null },
+      "chumpion": { "teamName": null,                     "teamId": null, "logoUrl": null }
+    },
+    {
+      "seasonId": 2017,
+      "championshipWeek": 17,
+      "first":    { "teamName": "King of the Wind",                  "teamId": null, "logoUrl": null },
+      "second":   { "teamName": "Julio Franco, Chipper Jones",       "teamId": null, "logoUrl": null },
+      "third":    { "teamName": "Quarterback Sneak",                 "teamId": null, "logoUrl": null },
+      "chumpion": { "teamName": null,                                "teamId": null, "logoUrl": null }
+    },
+    {
+      "seasonId": 2016,
+      "championshipWeek": 17,
+      "first":    { "teamName": "Team French",                       "teamId": null, "logoUrl": null },
+      "second":   { "teamName": "Matthew \"Ice\" Bounty Hunter",     "teamId": null, "logoUrl": null },
+      "third":    { "teamName": "King of the Wind",                  "teamId": null, "logoUrl": null },
+      "chumpion": { "teamName": null,                                "teamId": null, "logoUrl": null }
+    },
+    {
+      "seasonId": 2015,
+      "championshipWeek": 17,
+      "first":    { "teamName": "Julio \"Franco, Chipper\" Jones",   "teamId": null, "logoUrl": null },
+      "second":   { "teamName": "Taming of the Glue",               "teamId": null, "logoUrl": null },
+      "third":    { "teamName": "Stafford's Staff",                  "teamId": null, "logoUrl": null },
+      "chumpion": { "teamName": null,                                "teamId": null, "logoUrl": null }
+    },
+    {
+      "seasonId": 2014,
+      "championshipWeek": 17,
+      "first":    { "teamName": "Hash Driveway",                     "teamId": null, "logoUrl": null },
+      "second":   { "teamName": "Dead Wrong Dave",                   "teamId": null, "logoUrl": null },
+      "third":    { "teamName": "Eleven Angry Men",                  "teamId": null, "logoUrl": null },
+      "chumpion": { "teamName": null,                                "teamId": null, "logoUrl": null }
+    },
+    {
+      "seasonId": 2013,
+      "championshipWeek": 17,
+      "first":    { "teamName": "Caught Red Hernandez",              "teamId": null, "logoUrl": null },
+      "second":   { "teamName": "Churchill Polar Bears",             "teamId": null, "logoUrl": null },
+      "third":    { "teamName": "Clowny McQuestion",                 "teamId": null, "logoUrl": null },
+      "chumpion": { "teamName": null,                                "teamId": null, "logoUrl": null }
+    },
+    {
+      "seasonId": 2012,
+      "championshipWeek": 17,
+      "first":    { "teamName": "Cloney McStudent",                  "teamId": null, "logoUrl": null },
+      "second":   { "teamName": "Don Cheadle and the Rice Beds",     "teamId": null, "logoUrl": null },
+      "third":    { "teamName": "My Couch Pulls Out But I Don't",    "teamId": null, "logoUrl": null },
+      "chumpion": { "teamName": null,                                "teamId": null, "logoUrl": null }
+    }
+  ]
+}
