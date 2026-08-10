@@ -493,3 +493,47 @@ export async function getAllMatchupsAllSeasons(leagueId: string): Promise<Weekly
 		.sort({ seasonId: 1, scoringPeriodId: 1 })
 		.toArray();
 }
+
+/**
+ * Checks if ESPN's current scoring period is ahead of our newest stored week.
+ * If so, returns info about that upcoming (preview) week; otherwise null.
+ */
+export async function detectPreviewWeek(
+	leagueId: string
+): Promise<{ seasonId: number; scoringPeriodId: number; isPlayoff: boolean } | null> {
+	try {
+		const currentYear = getNFLSeason();
+		const [raw, db] = await Promise.all([
+			fetchLeagueSeason(leagueId, currentYear),
+			getDb()
+		]);
+		const espnCurrentWeek: number = raw.scoringPeriodId ?? 0;
+		if (!espnCurrentWeek) return null;
+
+		const latest = await db
+			.collection<WeeklyMatchupDoc>(WEEKLY_MATCHUPS_COLLECTION)
+			.findOne(
+				{ leagueId, seasonId: currentYear },
+				{ sort: { scoringPeriodId: -1 }, projection: { scoringPeriodId: 1 } }
+			);
+
+		if (!latest || espnCurrentWeek <= latest.scoringPeriodId) return null;
+
+		const seasonDoc = await db
+			.collection<SeasonDoc>(SEASONS_COLLECTION)
+			.findOne(
+				{ leagueId, seasonId: currentYear },
+				{ projection: { 'settings.regularSeasonWeeks': 1 } }
+			);
+		const regularSeasonWeeks = seasonDoc?.settings?.regularSeasonWeeks ?? 14;
+
+		return {
+			seasonId: currentYear,
+			scoringPeriodId: espnCurrentWeek,
+			isPlayoff: espnCurrentWeek > regularSeasonWeeks,
+		};
+	} catch (err) {
+		console.warn('[detectPreviewWeek] Failed:', err);
+		return null;
+	}
+}

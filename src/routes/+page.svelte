@@ -5,8 +5,31 @@
 	import { navigating } from '$app/stores';
 
 	export let data: {
-		availableWeeks: Array<{ seasonId: number; scoringPeriodId: number; isPlayoff: boolean }>;
+		availableWeeks: Array<{ seasonId: number; scoringPeriodId: number; isPlayoff: boolean; isPreview?: boolean }>;
 		weekData: ProcessedWeek | null;
+		isPreviewWeek: boolean;
+		previewWeekId: { seasonId: number; scoringPeriodId: number } | null;
+		previewMatchups: Array<{
+			matchupId: number;
+			playoffTierType: string;
+			home: {
+				teamId: number; teamName: string; ownerName: string; logoUrl?: string;
+				projectedPoints: number; winProbability: number;
+				starters: Array<{ playerId: number; fullName: string; position: string; slotName: string; nflTeam: string; lineupSlotId: number; isStarter: boolean; projectedScore: number; projectedCeiling: number; injuryStatus: string }>;
+				bench: Array<{ playerId: number; fullName: string; position: string; slotName: string; nflTeam: string; lineupSlotId: number; isStarter: boolean; projectedScore: number; projectedCeiling: number; injuryStatus: string }>;
+				optimalStarters: Array<{ playerId: number; fullName: string; position: string; slotName: string; nflTeam: string; lineupSlotId: number; isStarter: boolean; projectedScore: number; projectedCeiling: number; injuryStatus: string }>;
+				projectedOptimalPoints: number;
+			};
+			away?: {
+				teamId: number; teamName: string; ownerName: string; logoUrl?: string;
+				projectedPoints: number; winProbability: number;
+				starters: Array<{ playerId: number; fullName: string; position: string; slotName: string; nflTeam: string; lineupSlotId: number; isStarter: boolean; projectedScore: number; projectedCeiling: number; injuryStatus: string }>;
+				bench: Array<{ playerId: number; fullName: string; position: string; slotName: string; nflTeam: string; lineupSlotId: number; isStarter: boolean; projectedScore: number; projectedCeiling: number; injuryStatus: string }>;
+				optimalStarters: Array<{ playerId: number; fullName: string; position: string; slotName: string; nflTeam: string; lineupSlotId: number; isStarter: boolean; projectedScore: number; projectedCeiling: number; injuryStatus: string }>;
+				projectedOptimalPoints: number;
+			};
+			h2h?: { homeWins: number; awayWins: number; ties: number };
+		}>;
 		standingsHistory: StandingsEntry[];
 		matchupH2H: Record<string, { homeWins: number; awayWins: number; ties: number }>;
 		teamRecords: Record<number, { wins: number; losses: number }>;
@@ -331,6 +354,36 @@
 		color: rgba(255,255,255,0.4);
 		margin-bottom: 24px;
 	}
+	.preview-label { color: rgba(255, 204, 51, 0.6); }
+
+	/* Preview matchup card */
+	.preview-card .matchup-header { flex-direction: column; align-items: stretch; gap: 10px; }
+	.preview-proj { color: var(--gold) !important; font-size: 20px !important; }
+	.win-prob-row {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+	.win-prob-bar {
+		flex: 1;
+		height: 6px;
+		background: rgba(255,90,70,0.5);
+		border-radius: 3px;
+		overflow: hidden;
+	}
+	.prob-home {
+		height: 100%;
+		background: var(--green);
+		border-radius: 3px;
+		transition: width 0.3s ease;
+	}
+	.win-prob-pct {
+		font-size: 11px;
+		font-weight: 600;
+		min-width: 32px;
+	}
+	.home-pct { color: var(--green); text-align: left; }
+	.away-pct { color: var(--red);   text-align: right; }
 
 	/* Matchup card */
 	.matchup-card {
@@ -787,7 +840,7 @@
 			</select>
 			<select bind:value={selectedWeek} onchange={onWeekChange}>
 				{#each weeksForSeason as w}
-					<option value={w.scoringPeriodId}>{w.isPlayoff ? '🏆 ' : ''}Week {w.scoringPeriodId}</option>
+					<option value={w.scoringPeriodId}>{w.isPreview ? '⏳ ' : w.isPlayoff ? '🏆 ' : ''}Week {w.scoringPeriodId}{w.isPreview ? ' (Preview)' : ''}</option>
 				{/each}
 			</select>
 		</div>
@@ -1508,6 +1561,211 @@
 				{/if}
 			{/if}
 			{/if}
+		{:else if data.isPreviewWeek && data.previewMatchups?.length}
+			<div class="week-label preview-label">
+				{data.previewWeekId?.seasonId} · ⏳ Week {data.previewWeekId?.scoringPeriodId} Preview
+			</div>
+
+			<h2 class="section-header" onclick={() => matchupsOpen = !matchupsOpen}>
+				<span>Matchups</span>
+				<span class="section-chevron {matchupsOpen ? 'open' : ''}"></span>
+			</h2>
+			{#if matchupsOpen}
+			{#each data.previewMatchups as pmatchup}
+				{@const isOptimal = showOptimal[pmatchup.matchupId] ?? false}
+				{@const isBenchOpen = benchOpen[pmatchup.matchupId] ?? false}
+				<div class="matchup-card preview-card {isOptimal ? 'optimal-mode' : ''}">
+					<div class="matchup-header">
+						<div class="score-line">
+							<!-- Home -->
+							<div class="team-score">
+								<span class="team-name">{pmatchup.home.teamName}</span>
+								<span class="team-record"> ({data.teamRecords[pmatchup.home.teamId]?.wins ?? 0}-{data.teamRecords[pmatchup.home.teamId]?.losses ?? 0})</span>
+								<span class="score preview-proj">{pmatchup.home.projectedPoints.toFixed(2)}</span>
+							</div>
+							<span class="vs">vs</span>
+							<!-- Away -->
+							{#if pmatchup.away}
+								<div class="team-score">
+									<span class="score preview-proj">{pmatchup.away.projectedPoints.toFixed(2)}</span>
+									<span class="team-name">{pmatchup.away.teamName}</span>
+									<span class="team-record"> ({data.teamRecords[pmatchup.away.teamId]?.wins ?? 0}-{data.teamRecords[pmatchup.away.teamId]?.losses ?? 0})</span>
+								</div>
+							{/if}
+						</div>
+
+						<!-- Win probability bar -->
+						{#if pmatchup.away}
+							<div class="win-prob-row">
+								<span class="win-prob-pct home-pct">{(pmatchup.home.winProbability * 100).toFixed(0)}%</span>
+								<div class="win-prob-bar">
+									<div class="prob-home" style="width:{(pmatchup.home.winProbability * 100).toFixed(1)}%"></div>
+								</div>
+								<span class="win-prob-pct away-pct">{(pmatchup.away.winProbability * 100).toFixed(0)}%</span>
+							</div>
+						{/if}
+
+						<button
+							class="cake-btn {isOptimal ? 'active' : ''}"
+							onclick={() => toggleOptimal(pmatchup.matchupId)}
+							title="Optimal Lineup (by projection)"
+						>🍰</button>
+					</div>
+
+					<!-- Rosters -->
+					{#if !isOptimal}
+						<div class="roster-grid">
+							{#each [pmatchup.home, pmatchup.away].filter(Boolean) as pteam}
+								<div class="team-col">
+									<div class="col-header"><span class="col-team-name">{pteam.teamName}</span></div>
+									{#each pteam.starters as p}
+										<div class="player-row">
+											<div class="player-left">
+												<span class="slot-label">{p.slotName}</span>
+												<span class="player-name">{p.fullName}</span>
+												{#if p.nflTeam}<span class="nfl-team">{p.nflTeam}</span>{/if}
+												{#if p.injuryStatus === 'OUT' || p.injuryStatus === 'DOUBTFUL'}
+													<span class="injury-badge out">{p.injuryStatus[0]}</span>
+												{:else if p.injuryStatus === 'QUESTIONABLE'}
+													<span class="injury-badge q">Q</span>
+												{/if}
+											</div>
+											<div class="player-right">
+												<span class="proj">{p.projectedScore.toFixed(1)}</span>
+											</div>
+										</div>
+									{/each}
+									<div class="total-row">
+										<span class="total-label">PROJ</span>
+										<div class="total-right">
+											<span class="actual norm">{pteam.projectedPoints.toFixed(2)}</span>
+										</div>
+									</div>
+									{#if pteam.bench.filter(p => p.slotName !== 'IR').length > 0}
+										<button class="bench-toggle" onclick={() => toggleBench(pmatchup.matchupId)}>
+											<span>{isBenchOpen ? '▴' : '▾'}</span> Bench
+										</button>
+										{#if isBenchOpen}
+											<div class="bench-section">
+												{#each pteam.bench.filter(p => p.slotName !== 'IR') as p}
+													<div class="bench-row">
+														<div class="bench-left">
+															<span class="slot-label">{p.position}</span>
+															<span>{p.fullName}</span>
+															{#if p.nflTeam}<span class="nfl-team">{p.nflTeam}</span>{/if}
+														</div>
+														<div class="player-right">
+															<span class="proj">{p.projectedScore.toFixed(1)}</span>
+														</div>
+													</div>
+												{/each}
+											</div>
+										{/if}
+									{/if}
+								</div>
+							{/each}
+						</div>
+
+					<!-- Optimal (cake) view — sorted by projected score -->
+					{:else}
+						<div class="roster-grid">
+							{#each [pmatchup.home, pmatchup.away].filter(Boolean) as pteam}
+								<div class="team-col">
+									<div class="col-header">
+										<span class="col-team-name">{pteam.teamName}</span>
+										<span class="cake-opt-delta">+{(pteam.projectedOptimalPoints - pteam.projectedPoints).toFixed(1)}</span>
+									</div>
+									{#each pteam.optimalStarters as p}
+										{@const wasStarted = pteam.starters.some(s => s.playerId === p.playerId)}
+										<div class="player-row {!wasStarted ? 'was-benched' : ''}">
+											<div class="player-left">
+												<span class="slot-label">{p.slotName}</span>
+												<span class="player-name">{p.fullName}</span>
+												{#if p.nflTeam}<span class="nfl-team">{p.nflTeam}</span>{/if}
+												{#if !wasStarted}<span class="benched-tag">BENCHED</span>{/if}
+											</div>
+											<div class="player-right">
+												<span class="proj">{p.projectedScore.toFixed(1)}</span>
+											</div>
+										</div>
+									{/each}
+									<div class="total-row">
+										<span class="total-label">OPT PROJ</span>
+										<div class="total-right">
+											<span class="actual norm" style="color:var(--green)">{pteam.projectedOptimalPoints.toFixed(2)}</span>
+										</div>
+									</div>
+								</div>
+							{/each}
+						</div>
+					{/if}
+
+					<!-- H2H section -->
+					{#if pmatchup.h2h && pmatchup.away}
+						{@const h2h = pmatchup.h2h}
+						{@const total = h2h.homeWins + h2h.awayWins + h2h.ties}
+						{#if total > 0}
+							<div class="h2h-section">
+								<button class="h2h-toggle" onclick={() => toggleH2H(pmatchup.matchupId)}>
+									<span>🏛️ Historic record:</span>
+									<span class="h2h-summary">{pmatchup.home.teamName} {h2h.homeWins}–{h2h.awayWins}{h2h.ties ? `–${h2h.ties}` : ''} {pmatchup.away.teamName}</span>
+									<span class="h2h-chevron" style="transform: rotate({h2hOpen[pmatchup.matchupId] ? 0 : -90}deg)">›</span>
+								</button>
+							</div>
+						{/if}
+					{/if}
+				</div>
+			{/each}
+			{/if}
+
+			<!-- Standings chart (shows last completed week's standings) -->
+			{#if standingsHistory.length > 0 && chartInfo}
+				<h2 class="section-header" onclick={() => standingsOpen = !standingsOpen}>
+					<span>Season Standings</span>
+					<span class="section-chevron {standingsOpen ? 'open' : ''}"></span>
+				</h2>
+				{#if standingsOpen}
+					{@const c = chartInfo}
+					<div class="standings-chart-wrap">
+						<svg viewBox="0 0 {SVG_W} {SVG_H}" class="standings-svg">
+							{#if c.playoffStartWeek !== null}
+								<rect class="chart-playoff-bg" x={c.xFor(c.playoffStartWeek - 0.5)} y={PAD_T} width={SVG_W - PAD_R - c.xFor(c.playoffStartWeek - 0.5)} height={PLOT_H} />
+							{/if}
+							{#each c.gridRanks as rank}
+								<line class="chart-grid-line" x1={PAD_L} y1={c.yFor(rank)} x2={SVG_W - PAD_R} y2={c.yFor(rank)} />
+								<text class="chart-axis-label" x={PAD_L - 6} y={c.yFor(rank) + 3.5} text-anchor="end">{rank}</text>
+							{/each}
+							{#each c.allWeeks as week}
+								{@const isPlayoffWeek = c.playoffStartWeek !== null && week >= c.playoffStartWeek}
+								<line class="{isPlayoffWeek ? 'chart-grid-line-playoff' : 'chart-grid-line'}" x1={c.xFor(week)} y1={PAD_T} x2={c.xFor(week)} y2={PAD_T + PLOT_H} />
+								{#if week > 0}<text class="chart-week-label" x={c.xFor(week)} y={PAD_T + PLOT_H + 14}>{week}</text>{/if}
+							{/each}
+							{#if c.playoffStartWeek !== null}
+								{@const pLabelX = (c.xFor(c.playoffStartWeek) + (SVG_W - PAD_R)) / 2}
+								<text class="chart-playoff-label" x={pLabelX} y={PAD_T - 3}>PLAYOFFS</text>
+							{/if}
+							<line class="chart-grid-line" x1={PAD_L} y1={PAD_T} x2={PAD_L} y2={PAD_T + PLOT_H} />
+							{#each c.teams as team}
+								{#if team.d}<path class="chart-team-line" d={team.d} stroke={team.color}><title>{team.teamName}</title></path>{/if}
+							{/each}
+							{#each c.teams as team}
+								{#if team.clinchX != null && team.clinchY != null}<text class="chart-marker" x={team.clinchX} y={team.clinchY} text-anchor="middle" dominant-baseline="middle">🔒</text>{/if}
+								{#if team.elimX != null && team.elimY != null}<text class="chart-marker" x={team.elimX} y={team.elimY} text-anchor="middle" dominant-baseline="middle">💀</text>{/if}
+							{/each}
+							<text class="chart-axis-label" x={PAD_L + PLOT_W / 2} y={SVG_H} text-anchor="middle">Week</text>
+						</svg>
+						<div class="chart-legend">
+							{#each c.teams as team}
+								<div class="chart-legend-item">
+									<span class="chart-legend-dot" style="background:{team.color}"></span>
+									<span>{team.teamName}</span>
+								</div>
+							{/each}
+						</div>
+					</div>
+				{/if}
+			{/if}
+
 		{:else}
 			<div class="empty">No data found. Run the backfill to populate historical data.</div>
 		{/if}

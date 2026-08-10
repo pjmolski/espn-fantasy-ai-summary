@@ -200,3 +200,93 @@ export async function fetchTransactions(
 
 	return { data: [], newEspnS2 };
 }
+
+// ─── Preview / upcoming-week types ───────────────────────────────────────────
+
+export interface PreviewPlayer {
+	playerId: number;
+	fullName: string;
+	defaultPositionId: number;
+	lineupSlotId: number;
+	isStarter: boolean;
+	projectedScore: number;
+	projectedCeiling: number;
+	proTeamId: number;
+	injuryStatus: string;
+}
+
+export interface PreviewTeamSide {
+	teamId: number;
+	projectedPoints: number;
+	winProbability: number;
+	roster: PreviewPlayer[];
+}
+
+export interface PreviewMatchupRaw {
+	matchupId: number;
+	matchupPeriodId: number;
+	playoffTierType: string;
+	home: PreviewTeamSide;
+	away?: PreviewTeamSide;
+}
+
+/** Fetch upcoming-week projection data from ESPN (with optional auth cookies). */
+export async function fetchWeeklyProjections(
+	leagueId: string,
+	year: number,
+	week: number,
+	cookies?: { swid: string; espn_s2: string }
+): Promise<any> {
+	const url = `${BASE_URL}/seasons/${year}/segments/0/leagues/${leagueId}?view=mMatchup&view=mMatchupScore&scoringPeriodId=${week}`;
+	if (cookies) {
+		const cookie = `SWID=${cookies.swid}; espn_s2=${cookies.espn_s2}`;
+		const res = await fetch(url, { headers: { ...ESPN_HEADERS, Cookie: cookie } });
+		if (!res.ok) throw new Error(`ESPN API ${res.status} for ${url}`);
+		return res.json();
+	}
+	return espnGet(url);
+}
+
+function parsePreviewPlayer(entry: any, week: number): PreviewPlayer {
+	const poolEntry = entry.playerPoolEntry;
+	const player = poolEntry?.player;
+	const stats: any[] = player?.stats ?? [];
+	const projected =
+		stats.find((s) => s.statSourceId === 1 && s.scoringPeriodId === week) ??
+		stats.find((s) => s.statSourceId === 1);
+	return {
+		playerId: entry.playerId,
+		fullName: player?.fullName ?? 'Unknown',
+		defaultPositionId: player?.defaultPositionId ?? 0,
+		lineupSlotId: entry.lineupSlotId,
+		isStarter: STARTER_SLOTS.has(entry.lineupSlotId),
+		projectedScore: projected?.appliedTotal ?? 0,
+		projectedCeiling: projected?.appliedTotalCeiling ?? 0,
+		proTeamId: player?.proTeamId ?? 0,
+		injuryStatus: player?.injuryStatus ?? 'ACTIVE',
+	};
+}
+
+/** Parse ESPN raw response for an upcoming week into preview matchup structures. */
+export function parsePreviewMatchups(raw: any, week: number): PreviewMatchupRaw[] {
+	const weekMatchups: any[] = (raw.schedule ?? []).filter(
+		(m: any) => m.matchupPeriodId === week
+	);
+	return weekMatchups.map((m) => {
+		const parseSide = (side: any): PreviewTeamSide => ({
+			teamId: side.teamId,
+			projectedPoints: side.totalProjectedPoints ?? side.totalPointsLive ?? 0,
+			winProbability: side.winProbability ?? 0.5,
+			roster: (side.rosterForCurrentScoringPeriod?.entries ?? []).map((e: any) =>
+				parsePreviewPlayer(e, week)
+			),
+		});
+		return {
+			matchupId: m.id,
+			matchupPeriodId: m.matchupPeriodId,
+			playoffTierType: m.playoffTierType ?? 'NONE',
+			home: m.home ? parseSide(m.home) : { teamId: 0, projectedPoints: 0, winProbability: 0.5, roster: [] },
+			away: m.away ? parseSide(m.away) : undefined,
+		};
+	});
+}
