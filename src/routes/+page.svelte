@@ -1454,12 +1454,18 @@
 											{@const homeWon = game.winner === 'home'}
 											{@const lo = Math.min(game.homeTeamId, game.awayTeamId)}
 											{@const hi = Math.max(game.homeTeamId, game.awayTeamId)}
+											{@const leftIsHome = game.homeTeamId === matchup.home.teamId}
+											{@const leftWon = leftIsHome ? homeWon : !homeWon}
+											{@const leftTeam = leftIsHome ? game.homeTeamName : game.awayTeamName}
+											{@const leftScore = leftIsHome ? game.homeScore : game.awayScore}
+											{@const rightTeam = leftIsHome ? game.awayTeamName : game.homeTeamName}
+											{@const rightScore = leftIsHome ? game.awayScore : game.homeScore}
 											<a class="h2h-row" href="/?season={game.seasonId}&week={game.week}#matchup-{lo}-{hi}">
 												<span class="h2h-meta">{game.seasonId} · Wk {game.week}</span>
 												<span class="h2h-teams">
-													<span class="{homeWon ? 'h2h-winner' : 'h2h-loser'}">{game.homeTeamName}</span>
-													<span class="h2h-score">{game.homeScore.toFixed(1)} – {game.awayScore.toFixed(1)}</span>
-													<span class="{homeWon ? 'h2h-loser' : 'h2h-winner'}">{game.awayTeamName}</span>
+													<span class="{leftWon ? 'h2h-winner' : 'h2h-loser'}">{leftTeam}</span>
+													<span class="h2h-score">{leftScore.toFixed(1)} – {rightScore.toFixed(1)}</span>
+													<span class="{leftWon ? 'h2h-loser' : 'h2h-winner'}">{rightTeam}</span>
 												</span>
 											</a>
 										{/each}
@@ -1730,12 +1736,18 @@
 												{@const homeWon = game.winner === 'home'}
 												{@const lo = Math.min(game.homeTeamId, game.awayTeamId)}
 												{@const hi = Math.max(game.homeTeamId, game.awayTeamId)}
+												{@const leftIsHome = game.homeTeamId === pmatchup.home.teamId}
+												{@const leftWon = leftIsHome ? homeWon : !homeWon}
+												{@const leftTeam = leftIsHome ? game.homeTeamName : game.awayTeamName}
+												{@const leftScore = leftIsHome ? game.homeScore : game.awayScore}
+												{@const rightTeam = leftIsHome ? game.awayTeamName : game.homeTeamName}
+												{@const rightScore = leftIsHome ? game.awayScore : game.homeScore}
 												<a class="h2h-row" href="/?season={game.seasonId}&week={game.week}#matchup-{lo}-{hi}">
 													<span class="h2h-meta">{game.seasonId} · Wk {game.week}</span>
 													<span class="h2h-teams">
-														<span class="{homeWon ? 'h2h-winner' : 'h2h-loser'}">{game.homeTeamName}</span>
-														<span class="h2h-score">{game.homeScore.toFixed(1)} – {game.awayScore.toFixed(1)}</span>
-														<span class="{homeWon ? 'h2h-loser' : 'h2h-winner'}">{game.awayTeamName}</span>
+														<span class="{leftWon ? 'h2h-winner' : 'h2h-loser'}">{leftTeam}</span>
+														<span class="h2h-score">{leftScore.toFixed(1)} – {rightScore.toFixed(1)}</span>
+														<span class="{leftWon ? 'h2h-loser' : 'h2h-winner'}">{rightTeam}</span>
 													</span>
 												</a>
 											{/each}
