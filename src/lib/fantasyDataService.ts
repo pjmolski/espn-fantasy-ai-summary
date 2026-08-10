@@ -517,7 +517,8 @@ export async function detectPreviewWeek(
 				{ sort: { scoringPeriodId: -1 }, projection: { scoringPeriodId: 1 } }
 			);
 
-		if (!latest || espnCurrentWeek <= latest.scoringPeriodId) return null;
+		const latestStoredWeek = latest?.scoringPeriodId ?? 0;
+		if (espnCurrentWeek <= latestStoredWeek) return null;
 
 		const seasonDoc = await db
 			.collection<SeasonDoc>(SEASONS_COLLECTION)
