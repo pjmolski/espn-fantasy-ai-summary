@@ -58,7 +58,7 @@ export async function GET({ url }) {
 				awayTeamId:   m.away.teamId,
 				awayTeamName: nameFor(doc.seasonId, m.away.teamId),
 				awayScore:    m.away.totalPoints,
-				winner:       m.winner
+				winner:       m.winner.toLowerCase()
 			});
 		}
 	}

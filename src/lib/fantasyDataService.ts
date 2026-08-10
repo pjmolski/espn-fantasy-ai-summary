@@ -461,7 +461,7 @@ export async function computeAllTimeH2H(leagueId: string): Promise<Map<string, H
 			if (winner === 'TIE') {
 				rec.ties++;
 			} else {
-				const winnerId = winner === 'home' ? home.teamId : away.teamId;
+				const winnerId = winner.toLowerCase() === 'home' ? home.teamId : away.teamId;
 				if (winnerId === lo) rec.team1Wins++; else rec.team2Wins++;
 			}
 		}
