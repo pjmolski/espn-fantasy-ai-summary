@@ -483,3 +483,13 @@ export function getH2H(
 	const bWins = teamAId === lo ? rec.team2Wins : rec.team1Wins;
 	return { aWins, bWins, ties: rec.ties };
 }
+
+/** Fetch every weekly matchup doc across all seasons for a league. */
+export async function getAllMatchupsAllSeasons(leagueId: string): Promise<WeeklyMatchupDoc[]> {
+	const db = await getDb();
+	return db
+		.collection<WeeklyMatchupDoc>(WEEKLY_MATCHUPS_COLLECTION)
+		.find({ leagueId })
+		.sort({ seasonId: 1, scoringPeriodId: 1 })
+		.toArray();
+}
