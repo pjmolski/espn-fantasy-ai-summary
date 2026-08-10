@@ -217,6 +217,28 @@
 		return [...players].sort((a, b) => SLOT_ORDER.indexOf(a.slotName) - SLOT_ORDER.indexOf(b.slotName));
 	}
 
+	function padLineups<T extends { slotName: string }>(sides: T[][]): any[][] {
+		const maxCounts: Record<string, number> = {};
+		for (const starters of sides) {
+			const counts: Record<string, number> = {};
+			for (const p of starters) counts[p.slotName] = (counts[p.slotName] ?? 0) + 1;
+			for (const [slot, c] of Object.entries(counts))
+				maxCounts[slot] = Math.max(maxCounts[slot] ?? 0, c);
+		}
+		return sides.map(starters => {
+			const bySlot: Record<string, T[]> = {};
+			for (const p of starters) (bySlot[p.slotName] ??= []).push(p);
+			const result: any[] = [];
+			for (const slot of SLOT_ORDER) {
+				const count = maxCounts[slot] ?? 0;
+				const players = bySlot[slot] ?? [];
+				for (let i = 0; i < count; i++)
+					result.push(players[i] ?? { slotName: slot, isEmpty: true, fullName: 'Empty', actualScore: 0, projectedScore: 0 });
+			}
+			return result;
+		});
+	}
+
 	function playerImgUrl(playerId: number, position: string, nflTeam: string): string {
 		if (position === 'D/ST') return `https://a.espncdn.com/i/teamlogos/nfl/500/${nflTeam.toLowerCase()}.png`;
 		return `https://a.espncdn.com/i/headshots/nfl/players/full/${playerId}.png`;
