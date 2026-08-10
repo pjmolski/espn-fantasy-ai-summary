@@ -237,7 +237,7 @@ export async function fetchWeeklyProjections(
 	week: number,
 	cookies?: { swid: string; espn_s2: string }
 ): Promise<any> {
-	const url = `${BASE_URL}/seasons/${year}/segments/0/leagues/${leagueId}?view=mMatchup&view=mMatchupScore&scoringPeriodId=${week}`;
+	const url = `${BASE_URL}/seasons/${year}/segments/0/leagues/${leagueId}?view=mMatchup&view=mMatchupScore&view=mTeam&scoringPeriodId=${week}`;
 	if (cookies) {
 		const cookie = `SWID=${cookies.swid}; espn_s2=${cookies.espn_s2}`;
 		const res = await fetch(url, { headers: { ...ESPN_HEADERS, Cookie: cookie } });
