@@ -124,7 +124,8 @@
 	async function toggleH2H(matchupId: number) {
 		h2hOpen = { ...h2hOpen, [matchupId]: !h2hOpen[matchupId] };
 		if (h2hOpen[matchupId] && !h2hHistory[matchupId]) {
-			const m = weekData?.matchups.find(x => x.matchupId === matchupId);
+			const m = weekData?.matchups.find(x => x.matchupId === matchupId)
+				?? data.previewMatchups?.find(x => x.matchupId === matchupId);
 			if (!m?.away) return;
 			const res = await fetch(`/api/h2h?team1=${m.home.teamId}&team2=${m.away.teamId}`);
 			const d = await res.json();
