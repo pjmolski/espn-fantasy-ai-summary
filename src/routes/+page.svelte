@@ -43,6 +43,14 @@
 		if (season && week) {
 			try { window.parent.postMessage({ type: 'ff-nav', season: +season, week: +week }, '*'); } catch {}
 		}
+		// Scroll to anchor if present (e.g. from H2H row click)
+		const hash = to?.url?.hash ?? window.location.hash;
+		if (hash) {
+			setTimeout(() => {
+				const el = document.getElementById(hash.slice(1));
+				if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			}, 100);
+		}
 	});
 
 	$: weeksBySeason = groupWeeksBySeason(data.availableWeeks);
@@ -79,6 +87,20 @@
 	let benchOpen: Record<number, boolean> = {};
 	function toggleBench(matchupId: number) {
 		benchOpen = { ...benchOpen, [matchupId]: !benchOpen[matchupId] };
+	}
+
+	// H2H history subsection
+	let h2hOpen: Record<number, boolean> = {};
+	let h2hHistory: Record<number, any[]> = {};
+	async function toggleH2H(matchupId: number) {
+		h2hOpen = { ...h2hOpen, [matchupId]: !h2hOpen[matchupId] };
+		if (h2hOpen[matchupId] && !h2hHistory[matchupId]) {
+			const m = weekData?.matchups.find(x => x.matchupId === matchupId);
+			if (!m?.away) return;
+			const res = await fetch(`/api/h2h?team1=${m.home.teamId}&team2=${m.away.teamId}`);
+			const d = await res.json();
+			h2hHistory = { ...h2hHistory, [matchupId]: d.matchups ?? [] };
+		}
 	}
 
 	function ordinal(n: number) {
@@ -517,7 +539,21 @@
 	}
 	.bench-row:nth-child(odd) { background: rgba(255,255,255,0.02); }
 
-	.h2h-record { text-align: center; font-size: 11px; color: rgba(255,255,255,0.35); letter-spacing: 0.4px; padding: 4px 0 6px; }
+		/* H2H history subsection */
+	.h2h-section { border-top: 1px solid rgba(255,255,255,0.06); margin-top: 4px; }
+	.h2h-toggle { width: 100%; display: flex; align-items: center; gap: 8px; background: none; border: none; color: rgba(255,255,255,0.45); font-size: 12px; font-family: inherit; cursor: pointer; padding: 10px 20px; text-align: left; }
+	.h2h-toggle:hover { color: rgba(255,255,255,0.7); }
+	.h2h-summary { flex: 1; font-weight: 600; color: rgba(255,255,255,0.6); }
+	.h2h-chevron { font-size: 16px; transition: transform 0.15s; color: rgba(255,255,255,0.3); }
+	.h2h-loading { padding: 12px 20px; font-size: 12px; color: rgba(255,255,255,0.3); }
+	.h2h-list { padding: 0 12px 10px; display: flex; flex-direction: column; gap: 2px; }
+	.h2h-row { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 4px; text-decoration: none; color: inherit; }
+	.h2h-row:hover { background: rgba(255,255,255,0.05); }
+	.h2h-meta { font-size: 11px; color: rgba(255,255,255,0.3); min-width: 80px; white-space: nowrap; }
+	.h2h-teams { flex: 1; display: flex; align-items: center; gap: 8px; font-size: 12px; }
+	.h2h-winner { font-weight: 700; color: rgba(255,255,255,0.85); }
+	.h2h-loser { color: rgba(255,255,255,0.3); }
+	.h2h-score { color: rgba(255,255,255,0.4); font-size: 11px; white-space: nowrap; }
 		.matchup-card.optimal-mode { background: rgba(255,204,51,0.04); border-color: rgba(255,204,51,0.25); }
 	.matchup-card.optimal-mode .matchup-header { background: rgba(40,30,0,0.7); border-bottom-color: rgba(255,204,51,0.15); }
 	.bracket-label { font-size: 10px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--dim); opacity: 0.7; margin-bottom: 6px; }
@@ -1148,7 +1184,8 @@
 				{@const isOptimal = showOptimal[matchup.matchupId] ?? false}
 				{@const isBenchOpen = benchOpen[matchup.matchupId] ?? false}
 
-				<div class="matchup-card {isOptimal ? 'optimal-mode' : ''}">
+{@const h2hKey = matchup.away ? `${Math.min(matchup.home.teamId, matchup.away.teamId)}-${Math.max(matchup.home.teamId, matchup.away.teamId)}` : null}
+				<div id={h2hKey ? `matchup-${h2hKey}` : undefined} class="matchup-card {isOptimal ? 'optimal-mode' : ''}">
 					{#if matchup.bracketLabel}
 						<div class="bracket-label" style="padding: 8px 20px 0;">{matchup.bracketLabel}</div>
 					{/if}
@@ -1171,21 +1208,6 @@
 							{/if}
 						</div>
 
-						{#if matchup.away && matchupH2H[matchup.matchupId]}
-							{@const h2h = matchupH2H[matchup.matchupId]}
-							{@const total = h2h.homeWins + h2h.awayWins + h2h.ties}
-							{#if total > 0}
-								<div class="h2h-record">
-									{#if h2h.homeWins === h2h.awayWins}
-										Tied {h2h.homeWins}–{h2h.awayWins} all time{h2h.ties ? ` (${h2h.ties}T)` : ''}
-									{:else if h2h.homeWins > h2h.awayWins}
-										{matchup.home.teamName} leads {h2h.homeWins}–{h2h.awayWins}{h2h.ties ? `–${h2h.ties}` : ''} all time
-									{:else}
-										{matchup.away.teamName} leads {h2h.awayWins}–{h2h.homeWins}{h2h.ties ? `–${h2h.ties}` : ''} all time
-									{/if}
-								</div>
-							{/if}
-						{/if}
 
 						<button
 							class="cake-btn {isOptimal ? 'active' : ''}"
@@ -1345,6 +1367,41 @@
 							{/each}
 						</div>
 					{/if}
+
+				{#if matchup.away && matchupH2H[matchup.matchupId]}
+					{@const h2h = matchupH2H[matchup.matchupId]}
+					{@const total = h2h.homeWins + h2h.awayWins + h2h.ties}
+					{#if total > 0}
+						<div class="h2h-section">
+							<button class="h2h-toggle" onclick={() => toggleH2H(matchup.matchupId)}>
+								<span>🏛️ Historic record:</span>
+								<span class="h2h-summary">{matchup.home.teamName} {h2h.homeWins}–{h2h.awayWins}{h2h.ties ? `–${h2h.ties}` : ''} {matchup.away.teamName}</span>
+								<span class="h2h-chevron" style="transform: rotate({h2hOpen[matchup.matchupId] ? 0 : -90}deg)">›</span>
+							</button>
+							{#if h2hOpen[matchup.matchupId]}
+								{#if !h2hHistory[matchup.matchupId]}
+									<div class="h2h-loading">Loading…</div>
+								{:else}
+									<div class="h2h-list">
+										{#each h2hHistory[matchup.matchupId] as game}
+											{@const homeWon = game.winner === 'home'}
+											{@const lo = Math.min(game.homeTeamId, game.awayTeamId)}
+											{@const hi = Math.max(game.homeTeamId, game.awayTeamId)}
+											<a class="h2h-row" href="/?season={game.seasonId}&week={game.week}#matchup-{lo}-{hi}">
+												<span class="h2h-meta">{game.seasonId} · Wk {game.week}</span>
+												<span class="h2h-teams">
+													<span class="{homeWon ? 'h2h-winner' : 'h2h-loser'}">{game.homeTeamName}</span>
+													<span class="h2h-score">{game.homeScore.toFixed(1)} – {game.awayScore.toFixed(1)}</span>
+													<span class="{homeWon ? 'h2h-loser' : 'h2h-winner'}">{game.awayTeamName}</span>
+												</span>
+											</a>
+										{/each}
+									</div>
+								{/if}
+							{/if}
+						</div>
+					{/if}
+				{/if}
 				</div>
 			{/each}
 
