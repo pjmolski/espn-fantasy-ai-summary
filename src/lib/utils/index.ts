@@ -9,7 +9,8 @@ import {
 } from '$env/static/private'; // using envs for web deployment
 import styleGuide from '$lib/FANTASY_FOOTBALL_RECAP_STYLE_GUIDE.txt?raw';
 import fetch from 'node-fetch';
-const OWNER_DICT_PARSED = JSON.parse(OWNER_DICT || '{}');
+let OWNER_DICT_PARSED: Record<string, string> = {};
+try { OWNER_DICT_PARSED = JSON.parse(OWNER_DICT || '{}'); } catch { OWNER_DICT_PARSED = {}; }
 interface Headers {
 	[key: string]: string;
 }

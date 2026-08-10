@@ -150,6 +150,7 @@
 						<span
 							class="tally-name has-tooltip"
 							onclick={() => toggleTooltip(`champ-${i}`)}
+							onkeydown={(e) => e.key === 'Enter' && toggleTooltip(`champ-${i}`)}
 							role="button" tabindex="0"
 						>
 							{t.teamName}
@@ -171,6 +172,7 @@
 						<span
 							class="tally-name has-tooltip"
 							onclick={() => toggleTooltip(`chump-${i}`)}
+							onkeydown={(e) => e.key === 'Enter' && toggleTooltip(`chump-${i}`)}
 							role="button" tabindex="0"
 						>
 							{t.teamName}
