@@ -103,6 +103,21 @@ export async function load({ url }) {
 			}
 
 			const rawMatchups = parsePreviewMatchups(rawPreview, target.scoringPeriodId);
+
+			// Build team info map: prefer stored seasonDoc, fall back to data embedded in the ESPN response
+			const espnMembers: any[] = rawPreview.members ?? [];
+			const memberNameMap = new Map<string, string>(
+				espnMembers.map((m: any) => [m.id, m.displayName ?? `${m.firstName ?? ''} ${m.lastName ?? ''}`.trim()])
+			);
+			const espnTeams: any[] = rawPreview.teams ?? [];
+			const fallbackTeamMap = new Map<number, { name: string; owners: string[]; logoUrl?: string }>(
+				espnTeams.map((t: any) => [t.id as number, {
+					name: t.name?.trim() ?? `Team ${t.id}`,
+					owners: (t.owners ?? []).map((id: string) => memberNameMap.get(id) ?? id),
+					logoUrl: t.logo ?? undefined,
+				}])
+			);
+
 			const teamInfoMap = new Map((seasonDoc?.teams ?? []).map((t) => [t.teamId, t]));
 			const slotCounts  = (seasonDoc?.settings?.lineupSlotCounts ?? {}) as Record<string, number>;
 
@@ -121,7 +136,8 @@ export async function load({ url }) {
 
 			const processTeam = (side: PreviewMatchupRaw['home']) => {
 				const info     = teamInfoMap.get(side.teamId);
-				const ownerRaw = info?.owners?.[0] ?? '';
+				const fallback = fallbackTeamMap.get(side.teamId);
+				const ownerRaw = info?.owners?.[0] ?? fallback?.owners?.[0] ?? '';
 				const starters = side.roster.filter((p) => p.isStarter).map((p) => mapPlayer(p));
 				const bench    = side.roster.filter((p) => !p.isStarter && p.lineupSlotId !== 21).map((p) => mapPlayer(p));
 				const optSlotted    = computeOptimalByProjection(side.roster, slotCounts);
@@ -131,9 +147,9 @@ export async function load({ url }) {
 				) / 100;
 				return {
 					teamId:               side.teamId,
-					teamName:             info?.name ?? `Team ${side.teamId}`,
+					teamName:             info?.name ?? fallback?.name ?? `Team ${side.teamId}`,
 					ownerName:            ownerDict[ownerRaw] ?? ownerRaw,
-					logoUrl:              info?.logoUrl,
+					logoUrl:              info?.logoUrl ?? fallback?.logoUrl,
 					projectedPoints:      Math.round(side.projectedPoints * 100) / 100,
 					winProbability:       side.winProbability,
 					starters,
