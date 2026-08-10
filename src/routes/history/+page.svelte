@@ -9,8 +9,8 @@
 			third?:   { teamId: number; teamName: string; logoUrl?: string };
 			chumpion?:{ teamId: number; teamName: string; logoUrl?: string };
 		}[];
-		winniestTeams:  { teamId: number; teamName: string; logoUrl?: string; count: number }[];
-		chumpiestTeams: { teamId: number; teamName: string; logoUrl?: string; count: number }[];
+		winniestTeams:  { teamId: number; teamName: string; logoUrl?: string; count: number; years: number[] }[];
+		chumpiestTeams: { teamId: number; teamName: string; logoUrl?: string; count: number; years: number[] }[];
 		h2hSerialized: Record<string, { t1w: number; t2w: number; ties: number }>;
 		tightestRivalries: { team1Id: number; team1Name: string; team1Logo?: string; team2Id: number; team2Name: string; team2Logo?: string; wins1: number; wins2: number; ties: number; total: number }[];
 		lopsidedRivalries: { team1Id: number; team1Name: string; team1Logo?: string; team2Id: number; team2Name: string; team2Logo?: string; wins1: number; wins2: number; ties: number; total: number }[];
@@ -20,6 +20,9 @@
 
 	const { currentTeams, earliestSeason, seasonResults, winniestTeams, chumpiestTeams,
 	        h2hSerialized, tightestRivalries, lopsidedRivalries, blowouts, barnBurners } = data;
+
+	let activeTooltip: string | null = null;
+	function toggleTooltip(id: string) { activeTooltip = activeTooltip === id ? null : id; }
 
 	// ── H2H helpers ───────────────────────────────────────────────────────────
 	function getH2H(t1: number, t2: number) {
@@ -141,10 +144,17 @@
 		<section class="history-section">
 			<h2 class="section-label">🔩 Most Championships</h2>
 			<div class="tally-list">
-				{#each winniestTeams as t}
+				{#each winniestTeams as t, i}
 					<div class="tally-row">
 						{#if t.logoUrl}<img src={t.logoUrl} alt="" class="team-logo" />{/if}
-						<span class="tally-name">{t.teamName}</span>
+						<span
+							class="tally-name has-tooltip"
+							onclick={() => toggleTooltip(`champ-${i}`)}
+							role="button" tabindex="0"
+						>
+							{t.teamName}
+							<span class="tooltip" class:visible={activeTooltip === `champ-${i}`}>{t.years.join(', ')}</span>
+						</span>
 						<span class="tally-count gold">{t.count}</span>
 					</div>
 				{:else}
@@ -155,10 +165,17 @@
 		<section class="history-section">
 			<h2 class="section-label">🪠 Most Chumpionships</h2>
 			<div class="tally-list">
-				{#each chumpiestTeams as t}
+				{#each chumpiestTeams as t, i}
 					<div class="tally-row">
 						{#if t.logoUrl}<img src={t.logoUrl} alt="" class="team-logo" />{/if}
-						<span class="tally-name">{t.teamName}</span>
+						<span
+							class="tally-name has-tooltip"
+							onclick={() => toggleTooltip(`chump-${i}`)}
+							role="button" tabindex="0"
+						>
+							{t.teamName}
+							<span class="tooltip" class:visible={activeTooltip === `chump-${i}`}>{t.years.join(', ')}</span>
+						</span>
 						<span class="tally-count dim">{t.count}</span>
 					</div>
 				{:else}
@@ -418,6 +435,18 @@
 	.tally-count { font-size: 18px; font-weight: 700; }
 	.tally-count.gold { color: #ffcc33; }
 	.tally-count.dim { color: rgba(255,255,255,0.35); }
+
+	.has-tooltip { position: relative; cursor: default; }
+	.tooltip {
+		position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+		background: #1a1a1a; border: 1px solid rgba(255,255,255,0.12);
+		color: rgba(255,255,255,0.75); font-size: 11px; font-weight: 400;
+		white-space: nowrap; padding: 4px 8px; border-radius: 4px;
+		pointer-events: none; opacity: 0; transition: opacity 0.15s;
+		z-index: 10;
+	}
+	.has-tooltip:hover .tooltip,
+	.tooltip.visible { opacity: 1; }
 
 	/* ── Matrix ─────────────────────────────────────────────────── */
 	.matrix-scroll { overflow-x: auto; }

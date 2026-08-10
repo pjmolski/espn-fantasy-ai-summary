@@ -27,9 +27,11 @@ export async function load() {
 		?? currentTeams.find(t => t.teamId === teamId)?.name
 		?? `Team ${teamId}`;
 
+	const DEFAULT_LOGO = 'https://g.espncdn.com/lm-static/ffl/images/ffl-shield-icon.svg';
 	const logoFor = (seasonId: number, teamId: number) =>
 		seasonMetaMap.get(seasonId)?.get(teamId)?.logoUrl
-		?? currentTeams.find(t => t.teamId === teamId)?.logoUrl;
+		?? currentTeams.find(t => t.teamId === teamId)?.logoUrl
+		?? DEFAULT_LOGO;
 
 	// ── Group docs by season ──────────────────────────────────────────────────
 	const docsBySeason = new Map<number, WeeklyMatchupDoc[]>();
@@ -85,61 +87,74 @@ export async function load() {
 	// ── Static historical seasons (pre-2019, no API data) ────────────────────
 	const STATIC_HISTORICAL: SeasonResult[] = [
 		{ seasonId: 2018, championshipWeek: 17, historical: true,
-		  first:  { teamId: 0, teamName: 'Dave The Dad' },
-		  second: { teamId: 0, teamName: 'GLUEY GIANT SLAYER' },
-		  third:  { teamId: 0, teamName: 'Team French' },
+		  first:    { teamId: 7,  teamName: 'Dave The Dad',                       logoUrl: 'https://g.espncdn.com/s/ffllm/logos/CatsAndDogs/cats_dogs-2.svg' },
+		  second:   { teamId: 6,  teamName: 'GLUEY GIANT SLAYER',                 logoUrl: 'https://g.espncdn.com/s/ffllm/logos/BlitznBears-MartinLaksman/bears-01.svg' },
+		  third:    { teamId: 12, teamName: 'Team French',                         logoUrl: DEFAULT_LOGO },
+		  chumpion: { teamId: 9,  teamName: 'Gurl Just Wants To Have Fun',         logoUrl: 'https://g.espncdn.com/lm-static/logo-packs/ffl/BlitznBears-MartinLaksman/bears-02.svg' },
 		},
 		{ seasonId: 2017, championshipWeek: 17, historical: true,
-		  first:  { teamId: 0, teamName: 'King of the Wind' },
-		  second: { teamId: 0, teamName: 'Julio Franco, Chipper Jones' },
-		  third:  { teamId: 0, teamName: 'Quarterback Sneak' },
+		  first:    { teamId: 3,  teamName: 'King of the Wind',                    logoUrl: DEFAULT_LOGO },
+		  second:   { teamId: 8,  teamName: 'Julio Franco, Chipper Jones',         logoUrl: DEFAULT_LOGO },
+		  third:    { teamId: 2,  teamName: 'Quarterback Sneak',                   logoUrl: 'https://i.imgur.com/ri3g4hb.png' },
+		  chumpion: { teamId: 1,  teamName: 'Clowney McQuestion',                  logoUrl: 'https://i.pinimg.com/736x/dc/3f/e8/dc3fe87bc20e6203b44f168b438691d8---nfl-draft-falcons-football.jpg' },
 		},
 		{ seasonId: 2016, championshipWeek: 17, historical: true,
-		  first:  { teamId: 0, teamName: 'Team French' },
-		  second: { teamId: 0, teamName: 'Matthew "Ice" Bounty Hunter' },
-		  third:  { teamId: 0, teamName: 'King of the Wind' },
+		  first:    { teamId: 12, teamName: 'Team French',                         logoUrl: DEFAULT_LOGO },
+		  second:   { teamId: 11, teamName: 'Matthew "Ice" Bounty Hunter',         logoUrl: DEFAULT_LOGO },
+		  third:    { teamId: 3,  teamName: 'King of the Wind',                    logoUrl: DEFAULT_LOGO },
+		  chumpion: { teamId: 1,  teamName: 'Clinty McEastwood',                   logoUrl: 'https://i.pinimg.com/736x/dc/3f/e8/dc3fe87bc20e6203b44f168b438691d8---nfl-draft-falcons-football.jpg' },
 		},
 		{ seasonId: 2015, championshipWeek: 17, historical: true,
-		  first:  { teamId: 0, teamName: 'Julio "Franco, Chipper" Jones' },
-		  second: { teamId: 0, teamName: 'Taming of the Glue' },
-		  third:  { teamId: 0, teamName: "Stafford's Staff" },
+		  first:    { teamId: 8,  teamName: 'Julio "Franco, Chipper" Jones',       logoUrl: DEFAULT_LOGO },
+		  second:   { teamId: 6,  teamName: 'Taming of the Glue',                 logoUrl: DEFAULT_LOGO },
+		  third:    { teamId: 4,  teamName: "Stafford's Staff",                    logoUrl: DEFAULT_LOGO },
+		  chumpion: { teamId: 9,  teamName: 'As Impressive As Declan',             logoUrl: 'https://vignette3.wikia.nocookie.net/christmasspecials/images/a/a3/Yukon.jpg/revision/latest?cb=20120724062049' },
 		},
 		{ seasonId: 2014, championshipWeek: 17, historical: true,
-		  first:  { teamId: 0, teamName: 'Hash Driveway' },
-		  second: { teamId: 0, teamName: 'Dead Wrong Dave' },
-		  third:  { teamId: 0, teamName: 'Eleven Angry Men' },
+		  first:    { teamId: 8,  teamName: 'Hash Driveway',                       logoUrl: DEFAULT_LOGO },
+		  second:   { teamId: 7,  teamName: 'Dead Wrong Dave',                    logoUrl: DEFAULT_LOGO },
+		  third:    { teamId: 11, teamName: 'Eleven Angry Men',                   logoUrl: 'https://i.imgur.com/meH2Y6I.jpg' },
+		  chumpion: { teamId: 2,  teamName: 'Intentional Grounding',               logoUrl: 'https://imgur.com/ggxcS4a.jpg' },
 		},
 		{ seasonId: 2013, championshipWeek: 17, historical: true,
-		  first:  { teamId: 0, teamName: 'Caught Red Hernandez' },
-		  second: { teamId: 0, teamName: 'Churchill Polar Bears' },
-		  third:  { teamId: 0, teamName: 'Clowny McQuestion' },
+		  first:    { teamId: 9,  teamName: 'Caught Red Hernandez',                logoUrl: DEFAULT_LOGO },
+		  second:   { teamId: 5,  teamName: 'Churchill Polar Bears',               logoUrl: 'https://i.imgur.com/COOhSjS.jpg' },
+		  third:    { teamId: 1,  teamName: 'Clowny McQuestion',                   logoUrl: DEFAULT_LOGO },
+		  chumpion: { teamId: 11, teamName: "Schrodinger's Kaepernick",             logoUrl: 'https://i.imgur.com/O3YkZaw.jpg' },
 		},
 		{ seasonId: 2012, championshipWeek: 17, historical: true,
-		  first:  { teamId: 0, teamName: 'Cloney McStudent' },
-		  second: { teamId: 0, teamName: 'Don Cheadle and the Rice Beds' },
-		  third:  { teamId: 0, teamName: "My Couch Pulls Out But I Don't" },
+		  first:    { teamId: 1,  teamName: 'Cloney McStudent',                    logoUrl: 'https://i.imgur.com/h6lWf.png' },
+		  second:   { teamId: 7,  teamName: 'Don Cheadle and the Rice Beds',       logoUrl: 'https://i.imgur.com/YTMR3.gif' },
+		  third:    { teamId: 8,  teamName: "My Couch Pulls Out But I Don't",      logoUrl: DEFAULT_LOGO },
+		  chumpion: { teamId: 2,  teamName: 'The Abominable Snowmen',              logoUrl: 'https://i.imgur.com/BkE2m.png' },
 		},
 	];
 	seasonResults.push(...STATIC_HISTORICAL);
 	seasonResults.sort((a, b) => b.seasonId - a.seasonId);
 
 	// ── Winningest & chumpiest tallies ────────────────────────────────────────
-	const champCount = new Map<number, number>();
-	const chumpCount = new Map<number, number>();
+	const champYears = new Map<number, number[]>();
+	const chumpYears = new Map<number, number[]>();
 	for (const sr of seasonResults) {
-		if (sr.first && sr.first.teamId !== 0) champCount.set(sr.first.teamId, (champCount.get(sr.first.teamId) ?? 0) + 1);
-		if (sr.chumpion && sr.chumpion.teamId !== 0) chumpCount.set(sr.chumpion.teamId, (chumpCount.get(sr.chumpion.teamId) ?? 0) + 1);
+		if (sr.first) {
+			if (!champYears.has(sr.first.teamId)) champYears.set(sr.first.teamId, []);
+			champYears.get(sr.first.teamId)!.push(sr.seasonId);
+		}
+		if (sr.chumpion) {
+			if (!chumpYears.has(sr.chumpion.teamId)) chumpYears.set(sr.chumpion.teamId, []);
+			chumpYears.get(sr.chumpion.teamId)!.push(sr.seasonId);
+		}
 	}
 	const currentLogoFor = (teamId: number) => currentTeams.find(t => t.teamId === teamId)?.logoUrl;
 	const currentNameFor = (teamId: number) => currentTeams.find(t => t.teamId === teamId)?.name ?? `Team ${teamId}`;
 
-	const winniestTeams = [...champCount.entries()]
-		.sort((a, b) => b[1] - a[1])
-		.map(([teamId, count]) => ({ teamId, teamName: currentNameFor(teamId), logoUrl: currentLogoFor(teamId), count }));
+	const winniestTeams = [...champYears.entries()]
+		.sort((a, b) => b[1].length - a[1].length)
+		.map(([teamId, years]) => ({ teamId, teamName: currentNameFor(teamId), logoUrl: currentLogoFor(teamId), count: years.length, years: [...years].sort((a, b) => a - b) }));
 
-	const chumpiestTeams = [...chumpCount.entries()]
-		.sort((a, b) => b[1] - a[1])
-		.map(([teamId, count]) => ({ teamId, teamName: currentNameFor(teamId), logoUrl: currentLogoFor(teamId), count }));
+	const chumpiestTeams = [...chumpYears.entries()]
+		.sort((a, b) => b[1].length - a[1].length)
+		.map(([teamId, years]) => ({ teamId, teamName: currentNameFor(teamId), logoUrl: currentLogoFor(teamId), count: years.length, years: [...years].sort((a, b) => a - b) }));
 
 	// ── All-time H2H records ──────────────────────────────────────────────────
 	type H2HRec = { t1w: number; t2w: number; ties: number };
