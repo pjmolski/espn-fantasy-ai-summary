@@ -71,6 +71,55 @@ export async function load() {
 		docsBySeason.get(doc.seasonId)!.push(doc);
 	}
 
+	// ── Canonical matchup list ────────────────────────────────────────────────
+	// Single source of truth for H2H records, weekPerf, and game stats.
+	// Regular-season weeks: raw ESPN docs (allDocsExtended, all eras).
+	// Playoff weeks for MongoDB seasons (2019+): computePlayoffBracket, so the
+	// custom Chumpionship bracket seeding overrides ESPN's default pairings.
+	type CanonicalMatchup = {
+		seasonId: number; week: number;
+		teamAId: number; teamAScore: number;
+		teamBId: number; teamBScore: number;
+		winnerId: number | 'TIE';
+	};
+	const canonicalMatchups: CanonicalMatchup[] = [];
+
+	// Regular-season weeks (historical JSON docs have no isPlayoff field — pass through)
+	for (const doc of allDocsExtended) {
+		if ((doc as any).isPlayoff) continue;
+		for (const m of doc.matchups) {
+			if (!m.away || m.winner === 'UNDECIDED') continue;
+			const winnerId: number | 'TIE' = m.winner === 'TIE' ? 'TIE' :
+				(m.winner.toLowerCase() === 'home' ? m.home.teamId : m.away.teamId);
+			canonicalMatchups.push({
+				seasonId: doc.seasonId, week: doc.scoringPeriodId,
+				teamAId: m.home.teamId, teamAScore: m.home.totalPoints,
+				teamBId: m.away.teamId, teamBScore: m.away.totalPoints,
+				winnerId,
+			});
+		}
+	}
+
+	// Playoff weeks — use custom bracket results
+	for (const seasonDoc of allSeasons) {
+		const docs = docsBySeason.get(seasonDoc.seasonId) ?? [];
+		try {
+			const bracket = computePlayoffBracket(docs, seasonDoc);
+			for (const round of bracket.rounds) {
+				for (const matchup of round.matchups) {
+					if (matchup.teamIdB === null || matchup.winner === null ||
+					    matchup.scoreA === null || matchup.scoreB === null) continue;
+					canonicalMatchups.push({
+						seasonId: seasonDoc.seasonId, week: round.week,
+						teamAId: matchup.teamIdA, teamAScore: matchup.scoreA,
+						teamBId: matchup.teamIdB, teamBScore: matchup.scoreB,
+						winnerId: matchup.winner,
+					});
+				}
+			}
+		} catch { /* skip incomplete seasons */ }
+	}
+
 	// ── Season results (champions + chumpions per season) ────────────────────
 	type Finisher = { teamId: number; teamName: string; logoUrl?: string };
 	type SeasonResult = {
@@ -190,20 +239,14 @@ export async function load() {
 	// ── All-time H2H records ──────────────────────────────────────────────────
 	type H2HRec = { t1w: number; t2w: number; ties: number };
 	const h2hMap = new Map<string, H2HRec>();
-	for (const doc of allDocsExtended) {
-		for (const m of doc.matchups) {
-			if (!m.away || m.winner === 'UNDECIDED') continue;
-			const lo = Math.min(m.home.teamId, m.away.teamId);
-			const hi = Math.max(m.home.teamId, m.away.teamId);
-			const key = `${lo}-${hi}`;
-			if (!h2hMap.has(key)) h2hMap.set(key, { t1w: 0, t2w: 0, ties: 0 });
-			const rec = h2hMap.get(key)!;
-			if (m.winner === 'TIE') { rec.ties++; }
-			else {
-				const winnerId = m.winner.toLowerCase() === 'home' ? m.home.teamId : m.away.teamId;
-				if (winnerId === lo) rec.t1w++; else rec.t2w++;
-			}
-		}
+	for (const cm of canonicalMatchups) {
+		const lo = Math.min(cm.teamAId, cm.teamBId);
+		const hi = Math.max(cm.teamAId, cm.teamBId);
+		const key = `${lo}-${hi}`;
+		if (!h2hMap.has(key)) h2hMap.set(key, { t1w: 0, t2w: 0, ties: 0 });
+		const rec = h2hMap.get(key)!;
+		if (cm.winnerId === 'TIE') { rec.ties++; }
+		else { if (cm.winnerId === lo) rec.t1w++; else rec.t2w++; }
 	}
 	const h2hSerialized: Record<string, H2HRec> = Object.fromEntries(h2hMap);
 
@@ -248,19 +291,18 @@ export async function load() {
 	};
 
 	const gameStats: GameStat[] = [];
-	for (const doc of allDocsExtended) {
-		for (const m of doc.matchups) {
-			if (!m.away || m.winner === 'UNDECIDED' || m.winner === 'TIE') continue;
-			const homeWon = m.winner.toLowerCase() === 'home';
-			const [wId, lId] = homeWon ? [m.home.teamId, m.away.teamId] : [m.away.teamId, m.home.teamId];
-			const [wScore, lScore] = homeWon ? [m.home.totalPoints, m.away.totalPoints] : [m.away.totalPoints, m.home.totalPoints];
-			gameStats.push({
-				seasonId: doc.seasonId, week: doc.scoringPeriodId,
-				winnerName: nameFor(doc.seasonId, wId), winnerScore: wScore, winnerLogo: logoFor(doc.seasonId, wId),
-				loserName:  nameFor(doc.seasonId, lId), loserScore: lScore, loserLogo:  logoFor(doc.seasonId, lId),
-				delta: wScore - lScore, combined: wScore + lScore,
-			});
-		}
+	for (const cm of canonicalMatchups) {
+		if (cm.winnerId === 'TIE') continue;
+		const wId = cm.winnerId;
+		const lId = cm.winnerId === cm.teamAId ? cm.teamBId : cm.teamAId;
+		const wScore = cm.winnerId === cm.teamAId ? cm.teamAScore : cm.teamBScore;
+		const lScore = cm.winnerId === cm.teamAId ? cm.teamBScore : cm.teamAScore;
+		gameStats.push({
+			seasonId: cm.seasonId, week: cm.week,
+			winnerName: nameFor(cm.seasonId, wId), winnerScore: wScore, winnerLogo: logoFor(cm.seasonId, wId),
+			loserName:  nameFor(cm.seasonId, lId), loserScore: lScore, loserLogo:  logoFor(cm.seasonId, lId),
+			delta: wScore - lScore, combined: wScore + lScore,
+		});
 	}
 
 	const blowouts    = [...gameStats].sort((a, b) => b.delta    - a.delta).slice(0, 10);
@@ -270,24 +312,18 @@ export async function load() {
 
 	// ── Performance by week (W-L per week slot across all seasons) ─────────────
 	const weekPerf: Record<number, Record<number, { wins: number; losses: number; winSeasons: number[]; lossSeasons: number[] }>> = {};
-	for (const doc of allDocsExtended) {
-		const wk = doc.scoringPeriodId;
-		const yr = doc.seasonId;
-		for (const m of doc.matchups) {
-			if (!m.away || m.winner === 'UNDECIDED') continue;
-			const hId = m.home.teamId, aId = m.away.teamId;
-			weekPerf[hId] ??= {};
-			weekPerf[aId] ??= {};
-			weekPerf[hId][wk] ??= { wins: 0, losses: 0, winSeasons: [], lossSeasons: [] };
-			weekPerf[aId][wk] ??= { wins: 0, losses: 0, winSeasons: [], lossSeasons: [] };
-			if (m.winner === 'HOME') {
-				weekPerf[hId][wk].wins++; weekPerf[hId][wk].winSeasons.push(yr);
-				weekPerf[aId][wk].losses++; weekPerf[aId][wk].lossSeasons.push(yr);
-			} else if (m.winner === 'AWAY') {
-				weekPerf[hId][wk].losses++; weekPerf[hId][wk].lossSeasons.push(yr);
-				weekPerf[aId][wk].wins++; weekPerf[aId][wk].winSeasons.push(yr);
-			}
-		}
+	for (const cm of canonicalMatchups) {
+		if (cm.winnerId === 'TIE') continue;
+		const { seasonId: yr, week: wk, teamAId, teamBId, winnerId } = cm;
+		const loserId = winnerId === teamAId ? teamBId : teamAId;
+		weekPerf[winnerId] ??= {};
+		weekPerf[winnerId][wk] ??= { wins: 0, losses: 0, winSeasons: [], lossSeasons: [] };
+		weekPerf[winnerId][wk].wins++;
+		weekPerf[winnerId][wk].winSeasons.push(yr);
+		weekPerf[loserId] ??= {};
+		weekPerf[loserId][wk] ??= { wins: 0, losses: 0, winSeasons: [], lossSeasons: [] };
+		weekPerf[loserId][wk].losses++;
+		weekPerf[loserId][wk].lossSeasons.push(yr);
 	}
 
 	return {
