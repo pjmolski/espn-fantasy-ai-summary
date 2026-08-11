@@ -16,7 +16,7 @@
 		lopsidedRivalries: { team1Id: number; team1Name: string; team1Logo?: string; team2Id: number; team2Name: string; team2Logo?: string; wins1: number; wins2: number; ties: number; total: number }[];
 		blowouts:    { seasonId: number; week: number; winnerName: string; winnerScore: number; winnerLogo?: string; loserName: string; loserScore: number; loserLogo?: string; delta: number; combined: number }[];
 		barnBurners: { seasonId: number; week: number; winnerName: string; winnerScore: number; winnerLogo?: string; loserName: string; loserScore: number; loserLogo?: string; delta: number; combined: number }[];
-		weekPerf: Record<number, Record<number, { wins: number; losses: number }>>;
+		weekPerf: Record<number, Record<number, { wins: number; losses: number; winSeasons: number[]; lossSeasons: number[] }>>;
 	};
 
 	const { currentTeams, earliestSeason, seasonResults, winniestTeams, chumpiestTeams,
@@ -390,8 +390,7 @@
 		{#if selectedPerfTeamId}
 		{@const pbwPerf = weekPerf[selectedPerfTeamId] ?? {}}
 		{@const pbwWeeks = Array.from({ length: 17 }, (_, i) => i + 1)}
-		{@const pbwValues = pbwWeeks.map(w => { const d = pbwPerf[w]; return d ? d.wins - d.losses : null; })}
-		{@const pbwMax = Math.max(1, ...pbwValues.filter(v => v !== null).map(v => Math.abs(v)))}
+		{@const pbwMax = Math.max(1, ...pbwWeeks.flatMap(w => { const d = pbwPerf[w]; return d ? [d.wins, d.losses] : []; }))}
 		{@const PBW_W = 700}
 		{@const PBW_H = 220}
 		{@const PBW_PL = 36}
@@ -402,33 +401,52 @@
 		{@const PBW_PH = PBW_H - PBW_PT - PBW_PB}
 		{@const barW = PBW_PW / 17}
 		{@const midY = PBW_PT + PBW_PH / 2}
+		{@const half = PBW_PH / 2}
 		<svg viewBox="0 0 {PBW_W} {PBW_H}" class="pbw-svg">
 			<line x1={PBW_PL} y1={midY} x2={PBW_PL + PBW_PW} y2={midY} stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
-			<text class="pbw-axis" x={PBW_PL - 4} y={PBW_PT + 4} text-anchor="end">+{pbwMax}</text>
+			<text class="pbw-axis" x={PBW_PL - 4} y={PBW_PT + 4} text-anchor="end">{pbwMax}</text>
 			<text class="pbw-axis" x={PBW_PL - 4} y={midY + 4} text-anchor="end">0</text>
-			<text class="pbw-axis" x={PBW_PL - 4} y={PBW_PT + PBW_PH + 4} text-anchor="end">-{pbwMax}</text>
+			<text class="pbw-axis" x={PBW_PL - 4} y={PBW_PT + PBW_PH + 4} text-anchor="end">{pbwMax}</text>
 			{#each pbwWeeks as week, wi}
-				{@const val = pbwValues[wi]}
+				{@const d = pbwPerf[week]}
 				{@const cx = PBW_PL + wi * barW + barW / 2}
-				{#if val === null}
+				{@const bx = cx - barW * 0.35}
+				{@const bw = barW * 0.7}
+				{#if !d}
 					<text x={cx} y={PBW_PT + PBW_PH + 22} text-anchor="middle" font-size="13" class="pbw-nodata">
-						<title>Can't find anything here!</title>
-						🔬
+						<title>Can't find anything here!</title>🔬
 					</text>
 				{:else}
-					{@const barH = Math.max(val === 0 ? 1 : Math.abs(val) / pbwMax * (PBW_PH / 2), 1)}
-					{@const barY = val >= 0 ? midY - barH : midY}
-					<rect
-						x={cx - barW * 0.35} y={barY}
-						width={barW * 0.7} height={barH}
-						fill={val > 0 ? '#00d26d' : val < 0 ? '#e74c3c' : 'rgba(255,255,255,0.2)'}
-						rx="2"
-					/>
-					{#if val !== 0}
+					{@const wH = Math.max(d.wins / pbwMax * half, d.wins > 0 ? 1 : 0)}
+					{@const lH = Math.max(d.losses / pbwMax * half, d.losses > 0 ? 1 : 0)}
+					{@const delta = d.wins - d.losses}
+					{@const deltaH = Math.abs(delta) / pbwMax * half}
+					<!-- Grey win bar (full wins, going up) -->
+					{#if d.wins > 0}
+					<g>
+						<title>W: {d.winSeasons.slice().sort((a,b)=>a-b).join(', ')}</title>
+						<rect x={bx} y={midY - wH} width={bw} height={wH} fill="rgba(255,255,255,0.15)" rx="2"/>
+					</g>
+					{/if}
+					<!-- Grey loss bar (full losses, going down) -->
+					{#if d.losses > 0}
+					<g>
+						<title>L: {d.lossSeasons.slice().sort((a,b)=>a-b).join(', ')}</title>
+						<rect x={bx} y={midY} width={bw} height={lH} fill="rgba(255,255,255,0.15)" rx="2"/>
+					</g>
+					{/if}
+					<!-- Delta highlight (green = top of win bar, red = bottom of loss bar) -->
+					{#if delta > 0}
+						<rect x={bx} y={midY - wH} width={bw} height={deltaH} fill="#00d26d" rx="2"/>
+					{:else if delta < 0}
+						<rect x={bx} y={midY + lH - deltaH} width={bw} height={deltaH} fill="#e74c3c" rx="2"/>
+					{/if}
+					<!-- Delta value label -->
+					{#if delta !== 0}
 						<text
-							x={cx} y={val > 0 ? barY - 3 : barY + barH + 11}
-							text-anchor="middle" class="pbw-val {val > 0 ? 'pos' : 'neg'}"
-						>{val > 0 ? '+' : ''}{val}</text>
+							x={cx} y={delta > 0 ? midY - wH - 3 : midY + lH + 11}
+							text-anchor="middle" class="pbw-val {delta > 0 ? 'pos' : 'neg'}"
+						>{delta > 0 ? '+' : ''}{delta}</text>
 					{/if}
 					<text x={cx} y={PBW_PT + PBW_PH + 22} text-anchor="middle" class="pbw-axis">{week}</text>
 				{/if}
