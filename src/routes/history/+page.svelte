@@ -387,6 +387,7 @@
 				{/each}
 			</select>
 		</div>
+		{#if selectedPerfTeamId}
 		{@const pbwPerf = weekPerf[selectedPerfTeamId] ?? {}}
 		{@const pbwWeeks = Array.from({ length: 17 }, (_, i) => i + 1)}
 		{@const pbwValues = pbwWeeks.map(w => { const d = pbwPerf[w]; return d ? d.wins - d.losses : null; })}
@@ -434,6 +435,7 @@
 			{/each}
 			<text class="pbw-axis" x={PBW_PL + PBW_PW / 2} y={PBW_H} text-anchor="middle">Week</text>
 		</svg>
+		{/if}
 	</section>
 
 
