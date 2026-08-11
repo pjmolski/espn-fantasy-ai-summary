@@ -538,3 +538,51 @@ export async function detectPreviewWeek(
 		return null;
 	}
 }
+
+/** Per-team, per-week historical W/L across all stored seasons. */
+export async function getWeekPerformance(leagueId: string): Promise<{
+	perf: Record<number, Record<number, { wins: number; losses: number }>>;
+	currentTeams: { teamId: number; teamName: string }[];
+}> {
+	const db = await getDb();
+
+	// Find latest stored season for canonical team names
+	const latestSeason = await db
+		.collection<SeasonDoc>(SEASONS_COLLECTION)
+		.findOne({ leagueId }, { sort: { seasonId: -1 }, projection: { seasonId: 1, teams: 1 } });
+
+	const currentTeams: { teamId: number; teamName: string }[] =
+		(latestSeason?.teams ?? []).map((t) => ({ teamId: t.teamId, teamName: t.name }));
+
+	// Pull all matchup docs (all seasons)
+	const allDocs = await db
+		.collection<WeeklyMatchupDoc>(WEEKLY_MATCHUPS_COLLECTION)
+		.find({ leagueId })
+		.project({ scoringPeriodId: 1, matchups: 1 })
+		.toArray();
+
+	const perf: Record<number, Record<number, { wins: number; losses: number }>> = {};
+
+	for (const doc of allDocs) {
+		const week = doc.scoringPeriodId;
+		for (const m of doc.matchups) {
+			if (!m.away) continue; // playoff bye — no result
+			const homeId = m.home.teamId;
+			const awayId = m.away.teamId;
+			perf[homeId] ??= {};
+			perf[awayId] ??= {};
+			perf[homeId][week] ??= { wins: 0, losses: 0 };
+			perf[awayId][week] ??= { wins: 0, losses: 0 };
+			if (m.winner === 'HOME') {
+				perf[homeId][week].wins++;
+				perf[awayId][week].losses++;
+			} else if (m.winner === 'AWAY') {
+				perf[homeId][week].losses++;
+				perf[awayId][week].wins++;
+			}
+			// TIE / UNDECIDED: skip (no W or L)
+		}
+	}
+
+	return { perf, currentTeams };
+}
