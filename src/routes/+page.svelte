@@ -31,10 +31,6 @@
 			h2h?: { homeWins: number; awayWins: number; ties: number };
 		}>;
 		standingsHistory: StandingsEntry[];
-		weekPerformance: {
-			perf: Record<number, Record<number, { wins: number; losses: number }>>;
-			currentTeams: { teamId: number; teamName: string }[];
-		};
 		matchupH2H: Record<string, { homeWins: number; awayWins: number; ties: number }>;
 		teamRecords: Record<number, { wins: number; losses: number }>;
 		error?: string;
@@ -259,13 +255,6 @@
 	})();
 	// ── Standings chart ──────────────────────────────────────────────────────────
 	let standingsOpen = true;
-	let perfByWeekOpen = true;
-	let selectedPerfTeamId: number | null = null;
-	$: perfCurrentTeams = data.weekPerformance?.currentTeams ?? [];
-	$: {
-		if (selectedPerfTeamId === null && perfCurrentTeams.length > 0)
-			selectedPerfTeamId = perfCurrentTeams[0].teamId;
-	}
 
 	const CHART_COLORS = [
 		'#ff6b6b', '#ff9f43', '#ffd32a', '#48dbfb',
@@ -398,24 +387,6 @@
 	}
 	.preview-label { color: rgba(255, 204, 51, 0.6); }
 
-	/* Performance by Week */
-	.pbw-wrap { padding: 8px 0 16px; }
-	.pbw-select {
-		margin-bottom: 16px;
-		background: var(--card-bg);
-		color: var(--fg);
-		border: 1px solid var(--border);
-		border-radius: 6px;
-		padding: 6px 10px;
-		font-size: 14px;
-		cursor: pointer;
-	}
-	.pbw-svg { width: 100%; max-width: 700px; display: block; overflow: visible; }
-	.pbw-axis { fill: var(--muted); font-size: 10px; }
-	.pbw-val { font-size: 10px; font-weight: 600; }
-	.pbw-val.pos { fill: var(--green); }
-	.pbw-val.neg { fill: #e74c3c; }
-	.pbw-nodata { fill: var(--muted); cursor: default; }
 	.empty-slot { opacity: 0.35; pointer-events: none; }
 	.empty-slot .player-name { font-style: italic; }
 	/* Preview matchup card */
@@ -1632,88 +1603,6 @@
 			{/if}
 			{/if}
 
-			<!-- ── Performance by Week ─────────────────────────────────────────────────── -->
-			{#if perfCurrentTeams.length > 0}
-				<h2 class="section-header" onclick={() => perfByWeekOpen = !perfByWeekOpen}>
-					<span>Performance by Week</span>
-					<span class="section-chevron {perfByWeekOpen ? 'open' : ''}"></span>
-				</h2>
-				{#if perfByWeekOpen}
-					<div class="pbw-wrap">
-						<select class="pbw-select" bind:value={selectedPerfTeamId} onchange={() => {}}>
-							{#each perfCurrentTeams as team}
-								<option value={team.teamId}>{team.teamName}</option>
-							{/each}
-						</select>
-						{#if selectedPerfTeamId !== null}
-							{@const pbwPerf = data.weekPerformance.perf[selectedPerfTeamId] ?? {}}
-							{@const pbwWeeks = Array.from({ length: 17 }, (_, i) => i + 1)}
-							{@const pbwValues = pbwWeeks.map(w => {
-								const d = pbwPerf[w];
-								return d ? d.wins - d.losses : null;
-							})}
-							{@const pbwMax = Math.max(1, ...pbwValues.filter(v => v !== null).map(v => Math.abs(v)))}
-							{@const PBW_W = 700}
-							{@const PBW_H = 220}
-							{@const PBW_PL = 36}
-							{@const PBW_PR = 12}
-							{@const PBW_PT = 16}
-							{@const PBW_PB = 32}
-							{@const PBW_PW = PBW_W - PBW_PL - PBW_PR}
-							{@const PBW_PH = PBW_H - PBW_PT - PBW_PB}
-							{@const barW = PBW_PW / 17}
-							{@const midY = PBW_PT + PBW_PH / 2}
-							<svg viewBox="0 0 {PBW_W} {PBW_H}" class="pbw-svg">
-								<!-- Zero line -->
-								<line x1={PBW_PL} y1={midY} x2={PBW_PL + PBW_PW} y2={midY} stroke="var(--border)" stroke-width="1"/>
-								<!-- Y-axis labels -->
-								<text class="pbw-axis" x={PBW_PL - 4} y={PBW_PT + 4} text-anchor="end">+{pbwMax}</text>
-								<text class="pbw-axis" x={PBW_PL - 4} y={midY + 4} text-anchor="end">0</text>
-								<text class="pbw-axis" x={PBW_PL - 4} y={PBW_PT + PBW_PH + 4} text-anchor="end">-{pbwMax}</text>
-								<!-- Bars -->
-								{#each pbwWeeks as week, wi}
-									{@const val = pbwValues[wi]}
-									{@const cx = PBW_PL + wi * barW + barW / 2}
-									{#if val === null}
-										<!-- No data: microscope emoji -->
-										<text
-											x={cx} y={PBW_PT + PBW_PH + 22}
-											text-anchor="middle" font-size="13"
-											class="pbw-nodata"
-										>
-											<title>Can't find anything here!</title>
-											🔬
-										</text>
-									{:else}
-										{@const barH = Math.abs(val) / pbwMax * (PBW_PH / 2)}
-										{@const barY = val >= 0 ? midY - barH : midY}
-										<rect
-											x={cx - barW * 0.35}
-											y={barY}
-											width={barW * 0.7}
-											height={Math.max(barH, 1)}
-											fill={val > 0 ? 'var(--green)' : val < 0 ? '#e74c3c' : 'var(--muted)'}
-											rx="2"
-										/>
-										<!-- Value label on bar -->
-										{#if val !== 0}
-										<text
-											x={cx} y={val > 0 ? barY - 3 : barY + barH + 11}
-											text-anchor="middle"
-											class="pbw-val {val > 0 ? 'pos' : 'neg'}"
-										>{val > 0 ? '+' : ''}{val}</text>
-										{/if}
-										<!-- X-axis week label -->
-										<text x={cx} y={PBW_PT + PBW_PH + 22} text-anchor="middle" class="pbw-axis">{week}</text>
-									{/if}
-								{/each}
-								<!-- X-axis title -->
-								<text class="chart-axis-label" x={PBW_PL + PBW_PW / 2} y={PBW_H} text-anchor="middle">Week</text>
-							</svg>
-						{/if}
-					</div>
-				{/if}
-			{/if}
 		{:else if data.isPreviewWeek && data.previewMatchups?.length}
 			<div class="week-label preview-label">
 				{data.previewWeekId?.seasonId} · ⏳ Week {data.previewWeekId?.scoringPeriodId} Preview

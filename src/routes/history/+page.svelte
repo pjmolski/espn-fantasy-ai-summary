@@ -16,12 +16,15 @@
 		lopsidedRivalries: { team1Id: number; team1Name: string; team1Logo?: string; team2Id: number; team2Name: string; team2Logo?: string; wins1: number; wins2: number; ties: number; total: number }[];
 		blowouts:    { seasonId: number; week: number; winnerName: string; winnerScore: number; winnerLogo?: string; loserName: string; loserScore: number; loserLogo?: string; delta: number; combined: number }[];
 		barnBurners: { seasonId: number; week: number; winnerName: string; winnerScore: number; winnerLogo?: string; loserName: string; loserScore: number; loserLogo?: string; delta: number; combined: number }[];
+		weekPerf: Record<number, Record<number, { wins: number; losses: number }>>;
 	};
 
 	const { currentTeams, earliestSeason, seasonResults, winniestTeams, chumpiestTeams,
-	        h2hSerialized, tightestRivalries, lopsidedRivalries, blowouts, barnBurners } = data;
+	        h2hSerialized, tightestRivalries, lopsidedRivalries, blowouts, barnBurners, weekPerf } = data;
 
 	let activeTooltip: string | null = null;
+	let selectedPerfTeamId: number = currentTeams[0]?.teamId ?? 0;
+	const SLOT_ORDER = ['QB', 'RB', 'WR', 'TE', 'FLEX', 'D/ST', 'K'];
 	function toggleTooltip(id: string) { activeTooltip = activeTooltip === id ? null : id; }
 
 	// ── H2H helpers ───────────────────────────────────────────────────────────
@@ -374,6 +377,67 @@
 		</div>
 	</section>
 
+	<!-- ── Performance by Week ──────────────────────────────────────────────── -->
+	<section class="history-section">
+		<h2 class="section-title">Performance by Week</h2>
+		<div class="pbw-controls">
+			<select class="pbw-select" bind:value={selectedPerfTeamId}>
+				{#each currentTeams as t}
+					<option value={t.teamId}>{t.name}</option>
+				{/each}
+			</select>
+		</div>
+		{@const pbwPerf = weekPerf[selectedPerfTeamId] ?? {}}
+		{@const pbwWeeks = Array.from({ length: 17 }, (_, i) => i + 1)}
+		{@const pbwValues = pbwWeeks.map(w => { const d = pbwPerf[w]; return d ? d.wins - d.losses : null; })}
+		{@const pbwMax = Math.max(1, ...pbwValues.filter(v => v !== null).map(v => Math.abs(v)))}
+		{@const PBW_W = 700}
+		{@const PBW_H = 220}
+		{@const PBW_PL = 36}
+		{@const PBW_PR = 12}
+		{@const PBW_PT = 16}
+		{@const PBW_PB = 32}
+		{@const PBW_PW = PBW_W - PBW_PL - PBW_PR}
+		{@const PBW_PH = PBW_H - PBW_PT - PBW_PB}
+		{@const barW = PBW_PW / 17}
+		{@const midY = PBW_PT + PBW_PH / 2}
+		<svg viewBox="0 0 {PBW_W} {PBW_H}" class="pbw-svg">
+			<line x1={PBW_PL} y1={midY} x2={PBW_PL + PBW_PW} y2={midY} stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+			<text class="pbw-axis" x={PBW_PL - 4} y={PBW_PT + 4} text-anchor="end">+{pbwMax}</text>
+			<text class="pbw-axis" x={PBW_PL - 4} y={midY + 4} text-anchor="end">0</text>
+			<text class="pbw-axis" x={PBW_PL - 4} y={PBW_PT + PBW_PH + 4} text-anchor="end">-{pbwMax}</text>
+			{#each pbwWeeks as week, wi}
+				{@const val = pbwValues[wi]}
+				{@const cx = PBW_PL + wi * barW + barW / 2}
+				{#if val === null}
+					<text x={cx} y={PBW_PT + PBW_PH + 22} text-anchor="middle" font-size="13" class="pbw-nodata">
+						<title>Can't find anything here!</title>
+						🔬
+					</text>
+				{:else}
+					{@const barH = Math.max(val === 0 ? 1 : Math.abs(val) / pbwMax * (PBW_PH / 2), 1)}
+					{@const barY = val >= 0 ? midY - barH : midY}
+					<rect
+						x={cx - barW * 0.35} y={barY}
+						width={barW * 0.7} height={barH}
+						fill={val > 0 ? '#00d26d' : val < 0 ? '#e74c3c' : 'rgba(255,255,255,0.2)'}
+						rx="2"
+					/>
+					{#if val !== 0}
+						<text
+							x={cx} y={val > 0 ? barY - 3 : barY + barH + 11}
+							text-anchor="middle" class="pbw-val {val > 0 ? 'pos' : 'neg'}"
+						>{val > 0 ? '+' : ''}{val}</text>
+					{/if}
+					<text x={cx} y={PBW_PT + PBW_PH + 22} text-anchor="middle" class="pbw-axis">{week}</text>
+				{/if}
+			{/each}
+			<text class="pbw-axis" x={PBW_PL + PBW_PW / 2} y={PBW_H} text-anchor="middle">Week</text>
+		</svg>
+	</section>
+
+
+
 </main>
 </div>
 
@@ -548,4 +612,22 @@
 	.game-score  { color: rgba(255,255,255,0.4); font-size: 11px; }
 	.game-loser  { color: rgba(255,255,255,0.35); }
 	.game-stat   { font-size: 12px; font-weight: 700; color: #00d26d; white-space: nowrap; }
+	/* ── Performance by Week ───────────────────────────────────── */
+	.pbw-controls { margin-bottom: 16px; }
+	.pbw-select {
+		background: rgba(255,255,255,0.06);
+		color: var(--fg, #fff);
+		border: 1px solid rgba(255,255,255,0.15);
+		border-radius: 6px;
+		padding: 6px 10px;
+		font-size: 14px;
+		cursor: pointer;
+	}
+	.pbw-svg { width: 100%; max-width: 700px; display: block; overflow: visible; }
+	.pbw-axis { fill: rgba(255,255,255,0.3); font-size: 10px; font-family: inherit; }
+	.pbw-val { font-size: 10px; font-weight: 700; font-family: inherit; }
+	.pbw-val.pos { fill: #00d26d; }
+	.pbw-val.neg { fill: #e74c3c; }
+	.pbw-nodata { fill: rgba(255,255,255,0.25); cursor: default; font-family: inherit; }
+
 </style>

@@ -1,4 +1,4 @@
-import { getAvailableWeeks, getWeeklyMatchupDoc, getSeasonDoc, getCumulativeScoresByWeek, getAllWeeklyDocs, getAllSeasonDocs, computeAllTimeH2H, getH2H, detectPreviewWeek, getWeekPerformance } from '$lib/fantasyDataService';
+import { getAvailableWeeks, getWeeklyMatchupDoc, getSeasonDoc, getCumulativeScoresByWeek, getAllWeeklyDocs, getAllSeasonDocs, computeAllTimeH2H, getH2H, detectPreviewWeek } from '$lib/fantasyDataService';
 import { processWeek } from '$lib/weekProcessor';
 import { computeStandingsHistory, computeStreaks } from '$lib/standingsHistory';
 import { computePlayoffBracket, getPlayoffRoundForWeek } from '$lib/playoffBracket';
@@ -53,14 +53,13 @@ function computeOptimalByProjection(
 
 export async function load({ url }) {
 	try {
-		const [availableWeeks, previewWeekInfo, weekPerformance] = await Promise.all([
+		const [availableWeeks, previewWeekInfo] = await Promise.all([
 			getAvailableWeeks(LEAGUE_ID),
 			detectPreviewWeek(LEAGUE_ID),
-			getWeekPerformance(LEAGUE_ID),
 		]);
 
 		if (availableWeeks.length === 0 && !previewWeekInfo) {
-			return { availableWeeks: [], weekData: null, isPreviewWeek: false, previewWeekId: null, previewMatchups: [], standingsHistory: [], matchupH2H: {}, teamRecords: {}, weekPerformance: { perf: {}, currentTeams: [] } };
+			return { availableWeeks: [], weekData: null, isPreviewWeek: false, previewWeekId: null, previewMatchups: [], standingsHistory: [], matchupH2H: {}, teamRecords: {} };
 		}
 
 		const allWeeks = [
@@ -203,7 +202,6 @@ export async function load({ url }) {
 				standingsHistory,
 				matchupH2H: {},
 				teamRecords,
-				weekPerformance,
 			};
 		}
 
@@ -268,8 +266,7 @@ export async function load({ url }) {
 			previewMatchups: [],
 			standingsHistory,
 			matchupH2H,
-			teamRecords,
-			weekPerformance
+			teamRecords
 		};
 	} catch (error) {
 		console.error('Page load error:', error);
@@ -282,7 +279,6 @@ export async function load({ url }) {
 			standingsHistory: [],
 			matchupH2H:      {},
 			teamRecords:     {},
-			weekPerformance: { perf: {}, currentTeams: [] },
 			error: error instanceof Error ? error.message : 'Failed to load data'
 		};
 	}

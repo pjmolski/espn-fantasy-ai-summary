@@ -268,6 +268,22 @@ export async function load() {
 
 	const earliestSeason = null; // Full history back to 2012 via static data
 
+	// ── Performance by week (W-L per week slot across all seasons) ─────────────
+	const weekPerf: Record<number, Record<number, { wins: number; losses: number }>> = {};
+	for (const doc of allDocsExtended) {
+		const wk = doc.scoringPeriodId;
+		for (const m of doc.matchups) {
+			if (!m.away || m.winner === 'UNDECIDED') continue;
+			const hId = m.home.teamId, aId = m.away.teamId;
+			weekPerf[hId] ??= {};
+			weekPerf[aId] ??= {};
+			weekPerf[hId][wk] ??= { wins: 0, losses: 0 };
+			weekPerf[aId][wk] ??= { wins: 0, losses: 0 };
+			if (m.winner === 'HOME') { weekPerf[hId][wk].wins++; weekPerf[aId][wk].losses++; }
+			else if (m.winner === 'AWAY') { weekPerf[hId][wk].losses++; weekPerf[aId][wk].wins++; }
+		}
+	}
+
 	return {
 		currentTeams,
 		earliestSeason,
@@ -279,5 +295,6 @@ export async function load() {
 		lopsidedRivalries,
 		blowouts,
 		barnBurners,
+		weekPerf,
 	};
 }
