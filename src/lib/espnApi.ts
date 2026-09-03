@@ -21,24 +21,37 @@ const STARTER_SLOTS = new Set([0, 2, 4, 6, 16, 17, 23]);
 
 // ─── Raw ESPN fetchers ────────────────────────────────────────────────────────
 
-async function espnGet(url: string): Promise<any> {
-	const res = await fetch(url, { headers: ESPN_HEADERS });
+type EspnCookies = { swid: string; espn_s2: string };
+
+function espnHeaders(cookies?: EspnCookies): Record<string, string> {
+	const h: Record<string, string> = { ...ESPN_HEADERS };
+	if (cookies) h['Cookie'] = `SWID=${cookies.swid}; espn_s2=${cookies.espn_s2}`;
+	return h;
+}
+
+async function espnGet(url: string, cookies?: EspnCookies): Promise<any> {
+	const res = await fetch(url, { headers: espnHeaders(cookies) });
 	if (!res.ok) throw new Error(`ESPN API ${res.status} for ${url}`);
 	return res.json();
 }
 
-export async function fetchLeagueSeason(leagueId: string, year: number): Promise<any> {
+export async function fetchLeagueSeason(
+	leagueId: string,
+	year: number,
+	cookies?: EspnCookies
+): Promise<any> {
 	const url = `${BASE_URL}/seasons/${year}/segments/0/leagues/${leagueId}?view=mSettings&view=mTeam&view=mDraftDetail`;
-	return espnGet(url);
+	return espnGet(url, cookies);
 }
 
 export async function fetchWeeklyMatchups(
 	leagueId: string,
 	year: number,
-	week: number
+	week: number,
+	cookies?: EspnCookies
 ): Promise<any> {
 	const url = `${BASE_URL}/seasons/${year}/segments/0/leagues/${leagueId}?view=mMatchup&view=mMatchupScore&scoringPeriodId=${week}`;
-	return espnGet(url);
+	return espnGet(url, cookies);
 }
 
 // ─── Parsers ─────────────────────────────────────────────────────────────────

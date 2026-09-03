@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { CRON_SECRET, LEAGUE_ID } from '$env/static/private';
 import { backfillLeague, ingestSeasonData, ingestWeeklyData } from '$lib/fantasyDataService';
+import { getEspnCookies } from '$lib/cookieStore';
 
 /**
  * Admin endpoint to trigger historical data backfill.
@@ -27,6 +28,7 @@ export async function GET({ request, url }) {
 	}
 
 	const leagueId = LEAGUE_ID;
+	const cookies = await getEspnCookies().then(c => c ? { swid: c.swid, espn_s2: c.espn_s2 } : undefined);
 	const dryRun = url.searchParams.get('dryRun') === 'true';
 	const weeksOnly = url.searchParams.get('weeksOnly') === 'true';
 	const startYearParam = url.searchParams.get('startYear');
@@ -41,14 +43,14 @@ export async function GET({ request, url }) {
 			// Ingest one specific week
 			const year = parseInt(yearParam);
 			const week = parseInt(weekParam);
-			const result = await ingestWeeklyData(leagueId, year, week);
+			const result = await ingestWeeklyData(leagueId, year, week, 14, cookies);
 			return json({ ok: true, mode: 'single-week', year, week, stored: !!result });
 		}
 
 		if (yearParam && !weekParam) {
 			// Ingest one season doc only
 			const year = parseInt(yearParam);
-			const result = await ingestSeasonData(leagueId, year);
+			const result = await ingestSeasonData(leagueId, year, cookies);
 			return json({ ok: true, mode: 'single-season', year, teams: result.teams.length });
 		}
 
@@ -72,7 +74,7 @@ export async function GET({ request, url }) {
 		}
 
 		// Full backfill
-		const result = await backfillLeague(leagueId, { startYear, weeksOnly, dryRun });
+		const result = await backfillLeague(leagueId, { startYear, weeksOnly, dryRun, cookies });
 		return json({ ok: true, mode: dryRun ? 'dry-run' : 'backfill', ...result });
 	} catch (error) {
 		console.error('Backfill error:', error);

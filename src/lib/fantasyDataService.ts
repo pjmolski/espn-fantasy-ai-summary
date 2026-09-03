@@ -2,6 +2,7 @@ import { MongoClient, ServerApiVersion } from 'mongodb';
 import { runWeeklyESPN, getNFLWeek, getNFLSeason } from '$lib/utils';
 import { MONGODB_URI, DB_NAME, COLLECTION_NAME, CRON_SECRET } from '$env/static/private';
 import { fetchLeagueSeason, fetchWeeklyMatchups, parseSeasonData, parseWeeklyData } from '$lib/espnApi';
+import { getEspnCookies } from '$lib/cookieStore';
 import type { SeasonDoc, WeeklyMatchupDoc } from '$lib/schema';
 
 // ─── MongoDB client ───────────────────────────────────────────────────────────
@@ -180,9 +181,13 @@ export async function callCronUpdateFantasyData(fetch: typeof globalThis.fetch):
 // ─── New ingestion functions (rich player-level data) ────────────────────────
 
 /** Store season-level data (settings, teams, draft picks) for one year. */
-export async function ingestSeasonData(leagueId: string, year: number): Promise<SeasonDoc> {
+export async function ingestSeasonData(
+	leagueId: string,
+	year: number,
+	cookies?: { swid: string; espn_s2: string }
+): Promise<SeasonDoc> {
 	console.log(`  Fetching season data for ${year}...`);
-	const raw = await fetchLeagueSeason(leagueId, year);
+	const raw = await fetchLeagueSeason(leagueId, year, cookies);
 	const parsed = parseSeasonData(raw, leagueId, year);
 	const doc: SeasonDoc = { ...parsed, capturedAt: new Date() };
 
@@ -200,9 +205,10 @@ export async function ingestWeeklyData(
 	leagueId: string,
 	year: number,
 	week: number,
-	regularSeasonWeeks: number = 14
+	regularSeasonWeeks: number = 14,
+	cookies?: { swid: string; espn_s2: string }
 ): Promise<WeeklyMatchupDoc | null> {
-	const raw = await fetchWeeklyMatchups(leagueId, year, week);
+	const raw = await fetchWeeklyMatchups(leagueId, year, week, cookies);
 	const parsed = parseWeeklyData(raw, leagueId, year, week, regularSeasonWeeks);
 
 	// Skip if ESPN returned no matchups for this week (future weeks, off-season, etc.)
@@ -246,14 +252,14 @@ function sleep(ms: number) {
  */
 export async function backfillLeague(
 	leagueId: string,
-	options: { startYear?: number; weeksOnly?: boolean; dryRun?: boolean } = {}
+	options: { startYear?: number; weeksOnly?: boolean; dryRun?: boolean; cookies?: { swid: string; espn_s2: string } } = {}
 ): Promise<{ seasons: number[]; weeksFetched: number; weeksSkipped: number }> {
-	const { startYear, weeksOnly = false, dryRun = false } = options;
+	const { startYear, weeksOnly = false, dryRun = false, cookies } = options;
 
 	// Fetch current season first to discover the full season list
 	const currentYear = getNFLSeason();
 	console.log(`Backfill starting. Current season: ${currentYear}`);
-	const currentRaw = await fetchLeagueSeason(leagueId, currentYear);
+	const currentRaw = await fetchLeagueSeason(leagueId, currentYear, cookies);
 	const previousSeasons: number[] = currentRaw.status?.previousSeasons ?? [];
 	const allSeasons = [...new Set([...previousSeasons, currentYear])].sort();
 	const seasonsToProcess = startYear ? allSeasons.filter((y) => y >= startYear) : allSeasons;
@@ -282,7 +288,7 @@ export async function backfillLeague(
 						.replaceOne({ leagueId, seasonId: year }, seasonDoc, { upsert: true });
 					console.log(`  Season ${year} stored (reused existing fetch)`);
 				} else {
-					seasonDoc = await ingestSeasonData(leagueId, year);
+					seasonDoc = await ingestSeasonData(leagueId, year, cookies);
 				}
 				regularSeasonWeeks = seasonDoc.settings.regularSeasonWeeks;
 			}
@@ -303,7 +309,7 @@ export async function backfillLeague(
 			}
 
 			try {
-				const result = await ingestWeeklyData(leagueId, year, week, regularSeasonWeeks);
+				const result = await ingestWeeklyData(leagueId, year, week, regularSeasonWeeks, cookies);
 				if (result) {
 					weeksFetched++;
 				} else {
@@ -503,10 +509,9 @@ export async function detectPreviewWeek(
 ): Promise<{ seasonId: number; scoringPeriodId: number; isPlayoff: boolean } | null> {
 	try {
 		const currentYear = getNFLSeason();
-		const [raw, db] = await Promise.all([
-			fetchLeagueSeason(leagueId, currentYear),
-			getDb()
-		]);
+		const [cookies, db] = await Promise.all([getEspnCookies(), getDb()]);
+		const cookieArg = cookies ? { swid: cookies.swid, espn_s2: cookies.espn_s2 } : undefined;
+		const raw = await fetchLeagueSeason(leagueId, currentYear, cookieArg);
 		const espnCurrentWeek: number = raw.scoringPeriodId ?? 0;
 		if (!espnCurrentWeek) return null;
 
