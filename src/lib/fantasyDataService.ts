@@ -1,5 +1,5 @@
 import { MongoClient, ServerApiVersion } from 'mongodb';
-import { runWeeklyESPN, getNFLWeek, getNFLSeason } from '$lib/utils';
+import { getNFLWeek, getNFLSeason } from '$lib/utils';
 import { MONGODB_URI, DB_NAME, COLLECTION_NAME, CRON_SECRET } from '$env/static/private';
 import { fetchLeagueSeason, fetchWeeklyMatchups, parseSeasonData, parseWeeklyData } from '$lib/espnApi';
 import { getEspnCookies } from '$lib/cookieStore';
@@ -119,64 +119,8 @@ export async function getAllWeeks(): Promise<WeekEntry[]> {
 	return docs.map((d) => ({ season: d.season ?? 0, week: d.week }));
 }
 
-export async function getRecentSummaries(limit: number = 3): Promise<string> {
-	const db = await getDb();
-	const collection = db.collection(COLLECTION_NAME);
 
-	const docs = await collection
-		.find<WeeklyDataWithId>(
-			{},
-			{ projection: { week: 1, season: 1, 'summary.overallSummary': 1 } }
-		)
-		.sort({ season: -1, week: -1 })
-		.limit(limit)
-		.toArray();
 
-	if (docs.length === 0) return '';
-
-	return docs
-		.map((d) => `Season ${d.season}, Week ${d.week}:\n${d.summary?.overallSummary ?? '(no summary)'}`)
-		.join('\n\n---\n\n');
-}
-
-export async function updateFantasyData(
-	week?: number,
-	season?: number
-): Promise<WeeklyDataWithId | null> {
-	const db = await getDb();
-	const collection = db.collection(COLLECTION_NAME);
-	const resolvedWeek = week ?? getNFLWeek();
-	const resolvedSeason = season ?? getNFLSeason();
-	const priorContext = await getRecentSummaries(3);
-	console.log(`Generating new data for ${resolvedSeason} season, week ${resolvedWeek}`);
-	const weeklyData = await runWeeklyESPN(resolvedWeek, resolvedSeason, priorContext);
-	await collection.replaceOne(
-		{ week: resolvedWeek, season: resolvedSeason },
-		weeklyData,
-		{ upsert: true }
-	);
-	console.log('New data saved to MongoDB');
-	const saved = await collection.findOne<WeeklyDataWithId>({
-		week: resolvedWeek,
-		season: resolvedSeason
-	});
-	return saved ? { ...saved, _id: saved._id.toString() } : null;
-}
-
-export async function callCronUpdateFantasyData(fetch: typeof globalThis.fetch): Promise<void> {
-	const response = await fetch('/api/cron/update-fantasy-data', {
-		method: 'GET',
-		headers: {
-			Authorization: `Bearer ${CRON_SECRET}`
-		}
-	});
-
-	if (!response.ok) {
-		throw new Error('Failed to update fantasy data via cron API');
-	}
-
-	console.log('Fantasy data updated successfully via cron API');
-}
 
 // ─── New ingestion functions (rich player-level data) ────────────────────────
 

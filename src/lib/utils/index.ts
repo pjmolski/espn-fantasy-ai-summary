@@ -1,13 +1,4 @@
-// import { OWNER_DICT, ANTHROPIC_API_KEY, OVERALL_SUMMARY_PROMPT, MATCHUP_SUMMARY_PROMPT } from '$root/config.json'; // use for local, no web deployment
-import {
-	OWNER_DICT,
-	ANTHROPIC_API_KEY,
-	OVERALL_SUMMARY_PROMPT,
-	MATCHUP_SUMMARY_PROMPT,
-	CLAUDE_MODEL,
-	LEAGUE_ID
-} from '$env/static/private'; // using envs for web deployment
-import styleGuide from '$lib/FANTASY_FOOTBALL_RECAP_STYLE_GUIDE.txt?raw';
+import { OWNER_DICT, LEAGUE_ID } from '$env/static/private';
 import fetch from 'node-fetch';
 let OWNER_DICT_PARSED: Record<string, string> = {};
 try { OWNER_DICT_PARSED = JSON.parse(OWNER_DICT || '{}'); } catch { OWNER_DICT_PARSED = {}; }
@@ -379,117 +370,6 @@ async function runEspnWeekly(
 	const [htOwner, htScore] = highestScoringTeamEspn(weeklyDf);
 	return { standingsDf, matchupDf, hpOwner, hpPlayer, hpScore, htOwner, htScore };
 }
-async function generateSummary(week: number, matchupDf: any[], priorContext: string = ''): Promise<Summary> {
-	const matchups = matchupDf.reduce((acc, team) => {
-		const matchup = acc.find((m: Matchup) => m.matchupId === team.matchupId);
-		if (matchup) {
-			matchup.teams.push(team);
-		} else {
-			acc.push({ matchupId: team.matchupId, teams: [team] });
-		}
-		return acc;
-	}, [] as Matchup[]);
-	const overallPrompt =
-		`Week ${week} Fantasy Football Results:\n\n` +
-		matchups
-			.map(
-				(matchup: Matchup) =>
-					`${matchup.teams[0].teamName} (${matchup.teams[0].totalPoints.toFixed(2)}) vs ` +
-					`${matchup.teams[1].teamName} (${matchup.teams[1].totalPoints.toFixed(2)})`
-			)
-			.join('\n');
-	const contextBlock = priorContext
-		? `\n\nPRIOR WEEKS FOR CONTEXT — use for callbacks and season-long narrative only. Do not re-summarize them:\n\n${priorContext}`
-		: '';
-	const overallSummary = await getClaudeSummary(
-		overallPrompt,
-		styleGuide + '\n\n' + OVERALL_SUMMARY_PROMPT + contextBlock
-	);
-	const matchupSummaries = await Promise.all(
-		matchups.map(async (matchup: Matchup) => {
-			const [team1, team2] = matchup.teams;
-			const matchupPrompt =
-				`Matchup: ${team1.teamName} (${team1.totalPoints.toFixed(2)}) vs ${team2.teamName} (${team2.totalPoints.toFixed(2)})\n\n` +
-				`${team1.teamName} top performers:\n` +
-				Object.entries(team1)
-					.filter(([, value]) => typeof value === 'object' && (value as any).points)
-					.map(
-						([key, value]) =>
-							`${key}: ${(value as any).player} (${(value as any).points.toFixed(2)})`
-					)
-					.join('\n') +
-				`\n\n${team2.teamName} top performers:\n` +
-				Object.entries(team2)
-					.filter(([, value]) => typeof value === 'object' && (value as { points: number }).points)
-					.map(
-						([key, value]) =>
-							`${key}: ${(value as { player: string; points: number }).player} (${(value as { points: number }).points.toFixed(2)})`
-					)
-					.join('\n');
-			const summary = await getClaudeSummary(
-				matchupPrompt,
-				styleGuide + '\n\n' + MATCHUP_SUMMARY_PROMPT
-			);
-			return {
-				matchupId: matchup.matchupId,
-				team1: team1.teamName,
-				team2: team2.teamName,
-				summary
-			};
-		})
-	);
-	return { overallSummary, matchupSummaries };
-}
-async function getClaudeSummary(prompt: string, systemMessage: string): Promise<string> {
-	const response = await fetch('https://api.anthropic.com/v1/messages', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			'X-API-Key': ANTHROPIC_API_KEY,
-			'anthropic-version': '2023-06-01'
-		},
-		body: JSON.stringify({
-			model: CLAUDE_MODEL,
-			system: systemMessage,
-			messages: [{ role: 'user', content: prompt }],
-			max_tokens: 500
-		})
-	});
-	const data = await response.json();
-	if (!response.ok) {
-		console.error('API Error:', data);
-		throw new Error(`API request failed: ${data.error?.message || 'Unknown error'}`);
-	}
-	return data.content[0].text;
-}
-async function runWeeklyESPN(week: number, season: number | null = null, priorContext: string = ''): Promise<any> {
-	try {
-		week = week || getNFLWeek();
-		const resolvedSeason = season ?? getNFLSeason();
-		const { standingsDf, matchupDf, hpOwner, hpPlayer, hpScore, htOwner, htScore } =
-			await runEspnWeekly(week, resolvedSeason);
-		const summary = await generateSummary(week, matchupDf, priorContext);
-		return {
-			week,
-			season: resolvedSeason,
-			summary,
-			standings: standingsDf,
-			matchups: matchupDf,
-			highestScoringPlayer: {
-				owner: hpOwner,
-				player: hpPlayer,
-				score: hpScore
-			},
-			highestScoringTeam: {
-				owner: htOwner,
-				score: htScore
-			}
-		};
-	} catch (error) {
-		console.error('Error in runWeeklyESPN:', error);
-		throw error;
-	}
-}
 export {
 	getNFLWeek,
 	getNFLSeason,
@@ -498,6 +378,4 @@ export {
 	loadSchedule,
 	loadWeeklyStats,
 	runEspnWeekly,
-	generateSummary,
-	runWeeklyESPN
 };
