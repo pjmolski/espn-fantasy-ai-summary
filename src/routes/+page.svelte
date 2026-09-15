@@ -41,6 +41,12 @@
 	let standingsHistory: StandingsEntry[] = data.standingsHistory ?? [];
 	$: matchupH2H = data.matchupH2H ?? {};
 	$: teamRecords = data.teamRecords ?? {};
+	function logoInitials(name: string): string {
+		const words = name.trim().split(/\s+/).filter(Boolean);
+		if (words.length === 1) return words[0].slice(0, 2);
+		return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+	}
+
 	$: leagueRecordSorted = (() => {
 		const rec = data.leagueRecord ?? {};
 		// Merge team names/logos from standingsHistory
@@ -706,6 +712,27 @@
 		object-fit: contain;
 		background: transparent;
 	}
+	.logo-init {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 48px;
+		height: 48px;
+		border-radius: 50%;
+		background: rgba(255,255,255,0.12);
+		color: var(--text);
+		font-weight: 700;
+		font-size: 14px;
+		letter-spacing: 0.5px;
+		flex-shrink: 0;
+		align-self: auto;
+		text-transform: uppercase;
+	}
+	.logo-init.sm {
+		width: 28px;
+		height: 28px;
+		font-size: 10px;
+	}
 	.award-band { border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 6px; padding-bottom: 4px; }
 	.award-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 	.award-card-inner { display: flex; gap: 10px; align-items: flex-start; clear: both; }
@@ -979,7 +1006,7 @@
 							<div class="award-label">Brass Nuts</div>
 						</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(bn.teamId)}<img class="award-img" src={teamLogoMap.get(bn.teamId)} alt={bn.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							{#if teamLogoMap.get(bn.teamId)}<img class="award-img" src={teamLogoMap.get(bn.teamId)} alt={bn.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{:else}<span class="logo-init">{logoInitials(bn.teamName)}</span>{/if}
 							<div class="award-body">
 								<div class="award-player">{bn.teamName}</div>
 								<div class="award-meta">League Champion 🏆</div>
@@ -996,7 +1023,7 @@
 							<div class="award-label">Toilet Bowl</div>
 						</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(tb.teamId)}<img class="award-img" src={teamLogoMap.get(tb.teamId)} alt={tb.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							{#if teamLogoMap.get(tb.teamId)}<img class="award-img" src={teamLogoMap.get(tb.teamId)} alt={tb.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{:else}<span class="logo-init">{logoInitials(tb.teamName)}</span>{/if}
 							<div class="award-body">
 								<div class="award-player">{tb.teamName}</div>
 								<div class="award-meta">Chumpionship Winner 🚽</div>
@@ -1107,7 +1134,7 @@
 							<div class="award-label">Super Mushroom</div>
 						</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(a.teamId)}<img class="award-img" src={teamLogoMap.get(a.teamId)} alt={a.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							{#if teamLogoMap.get(a.teamId)}<img class="award-img" src={teamLogoMap.get(a.teamId)} alt={a.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{:else}<span class="logo-init">{logoInitials(a.teamName)}</span>{/if}
 							<div class="award-body">
 								<div class="award-player">{a.teamName}</div>
 								<div class="award-meta">Projected to lose vs {a.opponentName}</div>
@@ -1126,7 +1153,7 @@
 							<div class="award-label">Close Shave</div>
 						</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(cs.teamId)}<img class="award-img" src={teamLogoMap.get(cs.teamId)} alt={cs.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							{#if teamLogoMap.get(cs.teamId)}<img class="award-img" src={teamLogoMap.get(cs.teamId)} alt={cs.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{:else}<span class="logo-init">{logoInitials(cs.teamName)}</span>{/if}
 							<div class="award-body">
 								<div class="award-player">{cs.teamName}</div>
 								<div class="award-meta">Narrowest win this week</div>
@@ -1144,7 +1171,7 @@
 							<div class="award-label">Assassin</div>
 						</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(a.teamId)}<img class="award-img" src={teamLogoMap.get(a.teamId)} alt={a.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							{#if teamLogoMap.get(a.teamId)}<img class="award-img" src={teamLogoMap.get(a.teamId)} alt={a.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{:else}<span class="logo-init">{logoInitials(a.teamName)}</span>{/if}
 							<div class="award-body">
 								<div class="award-player">{a.teamName}</div>
 								<div class="award-meta">Took out a top-3 scorer</div>
@@ -1163,7 +1190,7 @@
 							<div class="award-label">The Gambler</div>
 						</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(ga.teamId)}<img class="award-img" src={teamLogoMap.get(ga.teamId)} alt={ga.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							{#if teamLogoMap.get(ga.teamId)}<img class="award-img" src={teamLogoMap.get(ga.teamId)} alt={ga.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{:else}<span class="logo-init">{logoInitials(ga.teamName)}</span>{/if}
 							<div class="award-body">
 								<div class="award-player">{ga.teamName}</div>
 								<div class="award-meta">Started lower-projected players who delivered</div>
@@ -1182,7 +1209,7 @@
 							<div class="award-label">Wrong Man</div>
 						</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(wm.teamId)}<img class="award-img" src={teamLogoMap.get(wm.teamId)} alt={wm.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							{#if teamLogoMap.get(wm.teamId)}<img class="award-img" src={teamLogoMap.get(wm.teamId)} alt={wm.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{:else}<span class="logo-init">{logoInitials(wm.teamName)}</span>{/if}
 							<div class="award-body">
 								<div class="award-player">{wm.teamName}</div>
 								<div class="award-meta">Started {wm.startedName} ({wm.startedScore.toFixed(1)}) over {wm.benchedName} ({wm.benchedScore.toFixed(1)})</div>
@@ -1201,7 +1228,7 @@
 							<div class="award-label">Lucky Devil</div>
 						</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(ld.teamId)}<img class="award-img" src={teamLogoMap.get(ld.teamId)} alt={ld.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							{#if teamLogoMap.get(ld.teamId)}<img class="award-img" src={teamLogoMap.get(ld.teamId)} alt={ld.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{:else}<span class="logo-init">{logoInitials(ld.teamName)}</span>{/if}
 							<div class="award-body">
 								<div class="award-player">{ld.teamName}</div>
 								<div class="award-meta">Lowest-scoring winner this week</div>
@@ -1220,7 +1247,7 @@
 							<div class="award-label">Mr. Monopoly</div>
 						</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(mm.teamId)}<img class="award-img" src={teamLogoMap.get(mm.teamId)} alt={mm.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							{#if teamLogoMap.get(mm.teamId)}<img class="award-img" src={teamLogoMap.get(mm.teamId)} alt={mm.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{:else}<span class="logo-init">{logoInitials(mm.teamName)}</span>{/if}
 							<div class="award-body">
 								<div class="award-player">{mm.teamName}</div>
 								<div class="award-meta">Took over the season points lead</div>
@@ -1239,7 +1266,7 @@
 							<div class="award-label">Hot Rod</div>
 						</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(hr.teamId)}<img class="award-img" src={teamLogoMap.get(hr.teamId)} alt={hr.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							{#if teamLogoMap.get(hr.teamId)}<img class="award-img" src={teamLogoMap.get(hr.teamId)} alt={hr.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{:else}<span class="logo-init">{logoInitials(hr.teamName)}</span>{/if}
 							<div class="award-body">
 								<div class="award-player">{hr.teamName}</div>
 								<div class="award-meta">Current win streak</div>
@@ -1257,7 +1284,7 @@
 							<div class="award-label">Snow Man</div>
 						</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(sm.teamId)}<img class="award-img" src={teamLogoMap.get(sm.teamId)} alt={sm.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							{#if teamLogoMap.get(sm.teamId)}<img class="award-img" src={teamLogoMap.get(sm.teamId)} alt={sm.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{:else}<span class="logo-init">{logoInitials(sm.teamName)}</span>{/if}
 							<div class="award-body">
 								<div class="award-player">{sm.teamName}</div>
 								<div class="award-meta">Current losing streak</div>
@@ -1275,7 +1302,7 @@
 							<div class="award-label">Galaxy Brain</div>
 						</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(gb.teamId)}<img class="award-img" src={teamLogoMap.get(gb.teamId)} alt={gb.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							{#if teamLogoMap.get(gb.teamId)}<img class="award-img" src={teamLogoMap.get(gb.teamId)} alt={gb.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{:else}<span class="logo-init">{logoInitials(gb.teamName)}</span>{/if}
 							<div class="award-body">
 								<div class="award-player">{gb.teamName}</div>
 								<div class="award-meta">Only team to play their optimal lineup</div>
@@ -1293,7 +1320,7 @@
 							<div class="award-label">The Bad Place</div>
 						</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(bp.teamId)}<img class="award-img" src={teamLogoMap.get(bp.teamId)} alt={bp.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							{#if teamLogoMap.get(bp.teamId)}<img class="award-img" src={teamLogoMap.get(bp.teamId)} alt={bp.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{:else}<span class="logo-init">{logoInitials(bp.teamName)}</span>{/if}
 							<div class="award-body">
 								<div class="award-player">{bp.teamName}</div>
 								<div class="award-meta">Would have won in a universe where both teams started their optimal lineups — their {bp.optimalScore.toFixed(2)} beats {bp.opponentName}'s {bp.opponentOptimalScore.toFixed(2)}</div>
@@ -1311,7 +1338,7 @@
 							<div class="award-label">Can't Have Your Cake</div>
 						</div>
 						<div class="award-card-inner">
-							{#if teamLogoMap.get(ck.teamId)}<img class="award-img" src={teamLogoMap.get(ck.teamId)} alt={ck.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							{#if teamLogoMap.get(ck.teamId)}<img class="award-img" src={teamLogoMap.get(ck.teamId)} alt={ck.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{:else}<span class="logo-init">{logoInitials(ck.teamName)}</span>{/if}
 							<div class="award-body">
 								<div class="award-player">{ck.teamName}</div>
 								<div class="award-meta">Most points left on the bench this week</div>
@@ -1905,7 +1932,7 @@
 								<tr class="lr-row">
 									<td class="lr-rank">{i + 1}</td>
 									<td class="lr-team">
-										{#if (teamLogoMap.get(row.teamId) ?? row.logoUrl)}<img class="lr-logo" src={teamLogoMap.get(row.teamId) ?? row.logoUrl} alt={row.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+										{#if (teamLogoMap.get(row.teamId) ?? row.logoUrl)}<img class="lr-logo" src={teamLogoMap.get(row.teamId) ?? row.logoUrl} alt={row.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{:else}<span class="logo-init sm">{logoInitials(row.teamName)}</span>{/if}
 										<span>{row.teamName}</span>
 									</td>
 									<td class="lr-w">{row.wins}</td>

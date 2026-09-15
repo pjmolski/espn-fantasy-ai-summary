@@ -113,7 +113,8 @@ export function parseSeasonData(
 		name: t.name?.trim() ?? '',
 		abbreviation: t.abbrev ?? '',
 		owners: (t.owners ?? []).map((id: string) => memberMap.get(id) ?? id),
-		logoUrl: t.logo ?? undefined
+		logoUrl: t.logo ?? undefined,
+		logoType: (t.logoType ?? 'VECTOR') as string,
 	}));
 
 	const picks = (raw.draftDetail?.picks ?? []).map((p: any) => ({

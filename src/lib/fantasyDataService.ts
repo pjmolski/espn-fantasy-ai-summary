@@ -133,6 +133,35 @@ export async function ingestSeasonData(
 	console.log(`  Fetching season data for ${year}...`);
 	const raw = await fetchLeagueSeason(leagueId, year, cookies);
 	const parsed = parseSeasonData(raw, leagueId, year);
+
+	// For CUSTOM_UPLOAD logos (mystique-api.fantasy.espn.com), the URLs require OAuth
+	// Bearer auth that isn't available in browser img tags. Fetch them server-side
+	// (no CORS restrictions) using the ESPN cookies and store as base64 data URLs.
+	if (cookies) {
+		const cookieHeader = `SWID=${cookies.swid}; espn_s2=${cookies.espn_s2}`;
+		for (const team of parsed.teams) {
+			if (team.logoType === 'CUSTOM_UPLOAD' && team.logoUrl) {
+				try {
+					const imgRes = await fetch(team.logoUrl, {
+						headers: { Cookie: cookieHeader }
+					});
+					if (imgRes.ok) {
+						const buf = await imgRes.arrayBuffer();
+						const mime = imgRes.headers.get('content-type') ?? 'image/png';
+						team.logoUrl = `data:${mime};base64,${Buffer.from(buf).toString('base64')}`;
+						console.log(`    Team ${team.teamId} logo fetched and stored as base64`);
+					} else {
+						console.warn(`    Team ${team.teamId} CUSTOM_UPLOAD logo returned ${imgRes.status}, clearing URL`);
+						team.logoUrl = undefined;
+					}
+				} catch (e) {
+					console.warn(`    Team ${team.teamId} logo fetch failed: ${e}`);
+					team.logoUrl = undefined;
+				}
+			}
+		}
+	}
+
 	const doc: SeasonDoc = { ...parsed, capturedAt: new Date() };
 
 	const db = await getDb();

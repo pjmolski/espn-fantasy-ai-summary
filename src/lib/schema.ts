@@ -11,6 +11,7 @@ export interface SeasonTeam {
 	abbreviation: string;
 	owners: string[]; // resolved display names from ESPN members array
 	logoUrl?: string;
+	logoType?: string;
 }
 
 export interface DraftPick {
