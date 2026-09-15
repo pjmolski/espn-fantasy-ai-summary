@@ -504,7 +504,10 @@ export function processWeek(
 			s.player.position !== 'D/ST' && s.player.position !== 'K' && s.player.projectedScore > 0
 		);
 		if (eligible.length > 0) {
-			const worst = eligible.reduce((min, s) => s.player.actualScore < min.player.actualScore ? s : min);
+			const worst = eligible.reduce((min, s) => {
+			if (s.player.actualScore !== min.player.actualScore) return s.player.actualScore < min.player.actualScore ? s : min;
+			return s.player.projectedScore > min.player.projectedScore ? s : min; // tiebreaker: highest projection
+		});
 			poopMan = {
 				playerId: worst.player.playerId,
 				playerName: worst.player.fullName,
