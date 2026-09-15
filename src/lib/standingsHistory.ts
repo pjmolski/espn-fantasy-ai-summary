@@ -111,8 +111,11 @@ export function computeStandingsHistory(
 	// After the last regular-season week every team is definitively in or out.
 	// Win-tie teams at the cutoff may have escaped the conservative loop above,
 	// so resolve them now using the actual tiebreaker (cumulative points-for).
-	if (regularDocs.length > 0) {
-		const finalWins = winSnapshot.get(lastRegularWeek)!;
+	// Only run final-week resolution when we have data for the actual last regular-season week.
+	// (winSnapshot only contains weeks that have been stored; during an in-progress season
+	// winSnapshot.get(lastRegularWeek) would be undefined and crash on .get())
+	const finalWins = winSnapshot.get(lastRegularWeek);
+	if (finalWins) {
 		const finalRanked = [...teamIds].sort((a, b) => {
 			const wd = (finalWins.get(b) ?? 0) - (finalWins.get(a) ?? 0);
 			return wd !== 0 ? wd : (pts.get(b) ?? 0) - (pts.get(a) ?? 0);
