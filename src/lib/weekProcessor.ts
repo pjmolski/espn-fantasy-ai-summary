@@ -183,6 +183,13 @@ export interface BadPlaceAward {
 	opponentName: string;
 }
 
+export interface CantHaveYourCakeAward {
+	teamId: number;
+	teamName: string;
+	pointsLeftOnBench: number;
+	actualScore: number;
+}
+
 export interface ProcessedWeek {
 	leagueId: string;
 	seasonId: number;
@@ -206,6 +213,7 @@ export interface ProcessedWeek {
 	snowMan: StreakAward | null;
 	galaxyBrain: GalaxyBrainAward | null;
 	badPlace: BadPlaceAward | null;
+	cantHaveYourCake: CantHaveYourCakeAward | null;
 	brassNuts: ChampionshipAward | null;
 	toiletBowl: ChampionshipAward | null;
 	onVacation: ProcessedTeam[];
@@ -815,6 +823,24 @@ export function processWeek(
 		}
 	}
 
+	// Can't Have Your Cake 🍽️: team who left the most points on the bench
+	let cantHaveYourCake: CantHaveYourCakeAward | null = null;
+	{
+		const allTeams = matchups.flatMap((m) => m.away ? [m.home, m.away] : [m.home]);
+		let best: ProcessedTeam | null = null;
+		for (const t of allTeams) {
+			if (!best || t.pointsLeftOnBench > best.pointsLeftOnBench) best = t;
+		}
+		if (best && best.pointsLeftOnBench > 0) {
+			cantHaveYourCake = {
+				teamId: best.teamId,
+				teamName: best.teamName,
+				pointsLeftOnBench: best.pointsLeftOnBench,
+				actualScore: best.totalPoints,
+			};
+		}
+	}
+
 	return {
 		leagueId: weekDoc.leagueId,
 		seasonId: weekDoc.seasonId,
@@ -837,6 +863,7 @@ export function processWeek(
 		snowMan,
 		galaxyBrain,
 		badPlace,
+		cantHaveYourCake,
 		brassNuts: null,
 		toiletBowl: null,
 		onVacation,

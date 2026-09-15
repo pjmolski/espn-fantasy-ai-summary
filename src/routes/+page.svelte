@@ -217,6 +217,7 @@
 		if (weekData.snowMan) add(weekData.snowMan.teamId, '⛄');
 		if (weekData.galaxyBrain) add(weekData.galaxyBrain.teamId, '🧠');
 		if (weekData.badPlace) add(weekData.badPlace.teamId, '🥀');
+		if (weekData.cantHaveYourCake) add(weekData.cantHaveYourCake.teamId, '🍽️');
 		if (weekData.brassNuts) add(weekData.brassNuts.teamId, '🔩');
 		if (weekData.toiletBowl) add(weekData.toiletBowl.teamId, '🪠');
 		return map;
@@ -1302,6 +1303,24 @@
 					</div>
 				{/if}
 
+				{#if weekData.cantHaveYourCake}
+					{@const ck = weekData.cantHaveYourCake}
+					<div class="award-card bad">
+						<div class="award-band">
+							<div class="award-emoji">🍽️</div>
+							<div class="award-label">Can't Have Your Cake</div>
+						</div>
+						<div class="award-card-inner">
+							{#if teamLogoMap.get(ck.teamId)}<img class="award-img" src={teamLogoMap.get(ck.teamId)} alt={ck.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							<div class="award-body">
+								<div class="award-player">{ck.teamName}</div>
+								<div class="award-meta">Most points left on the bench this week</div>
+								<div class="award-score red">+{ck.pointsLeftOnBench.toFixed(2)} left on bench</div>
+							</div>
+						</div>
+					</div>
+				{/if}
+
 
 			</div>
 
@@ -1322,6 +1341,7 @@
 					<span>💩</span><span><strong>Poop Man</strong> — bottom scorer in starting lineups this week (non-DST, non-K)</span>
 					<span>🧠</span><span><strong>Galaxy Brain</strong> — sole team who played their exact optimal lineup this week</span>
 					<span>🥀</span><span><strong>The Bad Place</strong> — losing team whose optimal lineup would have beaten the opponent's optimal lineup</span>
+					<span>🍽️</span><span><strong>Can't Have Your Cake</strong> — team who left the most points on the bench this week</span>
 					<span>🏎️</span><span><strong>Hot Rod</strong> — current highest win streak (solo leader, ≥ 3 wins)</span>
 					<span>⛄</span><span><strong>Snow Man</strong> — current highest losing streak (solo leader, ≥ 3 losses)</span>
 					<span>🔩</span><span><strong>Brass Nuts</strong> — League Champion (final playoff week)</span>
