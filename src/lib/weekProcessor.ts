@@ -175,6 +175,14 @@ export interface GalaxyBrainAward {
 	score: number;
 }
 
+export interface BadPlaceAward {
+	teamId: number;
+	teamName: string;
+	optimalScore: number;
+	opponentOptimalScore: number;
+	opponentName: string;
+}
+
 export interface ProcessedWeek {
 	leagueId: string;
 	seasonId: number;
@@ -197,6 +205,7 @@ export interface ProcessedWeek {
 	hotRod: StreakAward | null;
 	snowMan: StreakAward | null;
 	galaxyBrain: GalaxyBrainAward | null;
+	badPlace: BadPlaceAward | null;
 	brassNuts: ChampionshipAward | null;
 	toiletBowl: ChampionshipAward | null;
 	onVacation: ProcessedTeam[];
@@ -781,6 +790,31 @@ export function processWeek(
 		};
 	}
 
+	// Bad Place 🥀: a losing team whose optimal lineup would have beaten the opponent's optimal lineup
+	// Tiebreaker: highest optimal score among qualifiers
+	let badPlace: BadPlaceAward | null = null;
+	{
+		const candidates: BadPlaceAward[] = [];
+		for (const m of matchups) {
+			if (!m.away || m.winner === 'undecided' || m.winner === 'tie') continue;
+			const loser  = m.winner === 'home' ? m.away : m.home;
+			const winner = m.winner === 'home' ? m.home : m.away;
+			if (loser.optimalPoints > winner.optimalPoints) {
+				candidates.push({
+					teamId: loser.teamId,
+					teamName: loser.teamName,
+					optimalScore: loser.optimalPoints,
+					opponentOptimalScore: winner.optimalPoints,
+					opponentName: winner.teamName,
+				});
+			}
+		}
+		if (candidates.length > 0) {
+			candidates.sort((a, b) => b.optimalScore - a.optimalScore);
+			badPlace = candidates[0];
+		}
+	}
+
 	return {
 		leagueId: weekDoc.leagueId,
 		seasonId: weekDoc.seasonId,
@@ -802,6 +836,7 @@ export function processWeek(
 		hotRod,
 		snowMan,
 		galaxyBrain,
+		badPlace,
 		brassNuts: null,
 		toiletBowl: null,
 		onVacation,

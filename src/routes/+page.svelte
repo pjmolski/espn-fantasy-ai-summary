@@ -216,6 +216,7 @@
 		if (weekData.hotRod) add(weekData.hotRod.teamId, '🏎️');
 		if (weekData.snowMan) add(weekData.snowMan.teamId, '⛄');
 		if (weekData.galaxyBrain) add(weekData.galaxyBrain.teamId, '🧠');
+		if (weekData.badPlace) add(weekData.badPlace.teamId, '🥀');
 		if (weekData.brassNuts) add(weekData.brassNuts.teamId, '🔩');
 		if (weekData.toiletBowl) add(weekData.toiletBowl.teamId, '🪠');
 		return map;
@@ -1283,7 +1284,23 @@
 					</div>
 				{/if}
 
-
+				{#if weekData.badPlace}
+					{@const bp = weekData.badPlace}
+					<div class="award-card bad">
+						<div class="award-band">
+							<div class="award-emoji">🥀</div>
+							<div class="award-label">The Bad Place</div>
+						</div>
+						<div class="award-card-inner">
+							{#if teamLogoMap.get(bp.teamId)}<img class="award-img" src={teamLogoMap.get(bp.teamId)} alt={bp.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							<div class="award-body">
+								<div class="award-player">{bp.teamName}</div>
+								<div class="award-meta">Would have won in a universe where both teams started their optimal lineups — their {bp.optimalScore.toFixed(2)} beats {bp.opponentName}'s {bp.opponentOptimalScore.toFixed(2)}</div>
+								<div class="award-score red">Optimal: {bp.optimalScore.toFixed(2)} pts</div>
+							</div>
+						</div>
+					</div>
+				{/if}
 
 
 			</div>
@@ -1304,6 +1321,7 @@
 					<span>💪</span><span><strong>Muscle Man</strong> — top scorer in starting lineups this week</span>
 					<span>💩</span><span><strong>Poop Man</strong> — bottom scorer in starting lineups this week (non-DST, non-K)</span>
 					<span>🧠</span><span><strong>Galaxy Brain</strong> — sole team who played their exact optimal lineup this week</span>
+					<span>🥀</span><span><strong>The Bad Place</strong> — losing team whose optimal lineup would have beaten the opponent's optimal lineup</span>
 					<span>🏎️</span><span><strong>Hot Rod</strong> — current highest win streak (solo leader, ≥ 3 wins)</span>
 					<span>⛄</span><span><strong>Snow Man</strong> — current highest losing streak (solo leader, ≥ 3 losses)</span>
 					<span>🔩</span><span><strong>Brass Nuts</strong> — League Champion (final playoff week)</span>
