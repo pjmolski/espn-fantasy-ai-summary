@@ -198,6 +198,7 @@
 		if (weekData.mrMonopoly) add(weekData.mrMonopoly.teamId, '🎩');
 		if (weekData.hotRod) add(weekData.hotRod.teamId, '🏎️');
 		if (weekData.snowMan) add(weekData.snowMan.teamId, '⛄');
+		if (weekData.galaxyBrain) add(weekData.galaxyBrain.teamId, '🧠');
 		if (weekData.brassNuts) add(weekData.brassNuts.teamId, '🔩');
 		if (weekData.toiletBowl) add(weekData.toiletBowl.teamId, '🪠');
 		return map;
@@ -1194,6 +1195,24 @@
 					</div>
 				{/if}
 
+				{#if weekData.galaxyBrain}
+					{@const gb = weekData.galaxyBrain}
+					<div class="award-card good">
+						<div class="award-band">
+							<div class="award-emoji">🧠</div>
+							<div class="award-label">Galaxy Brain</div>
+						</div>
+						<div class="award-card-inner">
+							{#if teamLogoMap.get(gb.teamId)}<img class="award-img" src={teamLogoMap.get(gb.teamId)} alt={gb.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+							<div class="award-body">
+								<div class="award-player">{gb.teamName}</div>
+								<div class="award-meta">Only team to play their optimal lineup</div>
+								<div class="award-score green">{gb.score.toFixed(2)} pts</div>
+							</div>
+						</div>
+					</div>
+				{/if}
+
 
 
 
@@ -1214,6 +1233,7 @@
 					<span>🎩</span><span><strong>Mr. Monopoly</strong> — overtook the cumulative season points lead this week</span>
 					<span>💪</span><span><strong>Muscle Man</strong> — top scorer in starting lineups this week</span>
 					<span>💩</span><span><strong>Poop Man</strong> — bottom scorer in starting lineups this week (non-DST, non-K)</span>
+					<span>🧠</span><span><strong>Galaxy Brain</strong> — sole team who played their exact optimal lineup this week</span>
 					<span>🏎️</span><span><strong>Hot Rod</strong> — current highest win streak (solo leader, ≥ 3 wins)</span>
 					<span>⛄</span><span><strong>Snow Man</strong> — current highest losing streak (solo leader, ≥ 3 losses)</span>
 					<span>🔩</span><span><strong>Brass Nuts</strong> — League Champion (final playoff week)</span>

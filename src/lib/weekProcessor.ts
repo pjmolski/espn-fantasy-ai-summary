@@ -169,6 +169,12 @@ export interface StreakAward {
 	streak: number;
 }
 
+export interface GalaxyBrainAward {
+	teamId: number;
+	teamName: string;
+	score: number;
+}
+
 export interface ProcessedWeek {
 	leagueId: string;
 	seasonId: number;
@@ -190,6 +196,7 @@ export interface ProcessedWeek {
 	mrMonopoly: MrMonopolyAward | null;
 	hotRod: StreakAward | null;
 	snowMan: StreakAward | null;
+	galaxyBrain: GalaxyBrainAward | null;
 	brassNuts: ChampionshipAward | null;
 	toiletBowl: ChampionshipAward | null;
 	onVacation: ProcessedTeam[];
@@ -762,6 +769,18 @@ export function processWeek(
 			snowMan = { teamId: lossTeams[0].teamId, teamName: lossTeams[0].teamName, streak: maxLoss };
 	}
 
+	// Galaxy Brain 🧠: awarded only if exactly one team played their optimal lineup
+	let galaxyBrain: GalaxyBrainAward | null = null;
+	const allProcessedTeams = matchups.flatMap((m) => m.away ? [m.home, m.away] : [m.home]);
+	const optimalTeams = allProcessedTeams.filter((t) => t.pointsLeftOnBench === 0);
+	if (optimalTeams.length === 1) {
+		galaxyBrain = {
+			teamId: optimalTeams[0].teamId,
+			teamName: optimalTeams[0].teamName,
+			score: optimalTeams[0].score,
+		};
+	}
+
 	return {
 		leagueId: weekDoc.leagueId,
 		seasonId: weekDoc.seasonId,
@@ -782,6 +801,7 @@ export function processWeek(
 		mrMonopoly,
 		hotRod,
 		snowMan,
+		galaxyBrain,
 		brassNuts: null,
 		toiletBowl: null,
 		onVacation,
