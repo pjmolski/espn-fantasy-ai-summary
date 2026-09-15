@@ -777,7 +777,7 @@ export function processWeek(
 		galaxyBrain = {
 			teamId: optimalTeams[0].teamId,
 			teamName: optimalTeams[0].teamName,
-			score: optimalTeams[0].score,
+			score: optimalTeams[0].totalPoints,
 		};
 	}
 
