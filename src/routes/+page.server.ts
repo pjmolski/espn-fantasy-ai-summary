@@ -193,6 +193,25 @@ export async function load({ url }) {
 				}
 			}
 
+			// League record from all stored weeks (preview week hasn't been played)
+			const leagueRecord: Record<number, { wins: number; losses: number; ties: number }> = {};
+			for (const doc of weekDocs) {
+				const weekScores: Array<{ teamId: number; score: number }> = [];
+				for (const m of doc.matchups) {
+					weekScores.push({ teamId: m.home.teamId, score: m.home.totalPoints });
+					if (m.away) weekScores.push({ teamId: m.away.teamId, score: m.away.totalPoints });
+				}
+				for (const team of weekScores) {
+					if (!leagueRecord[team.teamId]) leagueRecord[team.teamId] = { wins: 0, losses: 0, ties: 0 };
+					for (const other of weekScores) {
+						if (other.teamId === team.teamId) continue;
+						if (team.score > other.score)      leagueRecord[team.teamId].wins++;
+						else if (team.score < other.score) leagueRecord[team.teamId].losses++;
+						else                               leagueRecord[team.teamId].ties++;
+					}
+				}
+			}
+
 			return {
 				availableWeeks: allWeeks,
 				weekData:       null,
@@ -202,6 +221,7 @@ export async function load({ url }) {
 				standingsHistory,
 				matchupH2H: {},
 				teamRecords,
+				leagueRecord,
 			};
 		}
 

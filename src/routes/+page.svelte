@@ -1882,99 +1882,100 @@
 			{/each}
 			{/if}
 
-			<!-- League-wide record table -->
-			{#if leagueRecordSorted.length > 0 && !data.isPreviewWeek}
-				<h2 class="section-header" onclick={() => leagueRecordOpen = !leagueRecordOpen}>
-					<span>League Record</span>
-					<span class="section-chevron {leagueRecordOpen ? 'open' : ''}"></span>
-				</h2>
-				{#if leagueRecordOpen}
-					<div class="league-record-wrap">
-						<p class="league-record-caption">Each week, every team is compared against all others — not just their head-to-head opponent. W–L adds up to {leagueRecordSorted.length > 0 ? leagueRecordSorted.length - 1 : 0} × weeks played.</p>
-						<table class="league-record-table">
-							<thead>
-								<tr>
-									<th class="lr-rank">#</th>
-									<th class="lr-team">Team</th>
-									<th class="lr-w">W</th>
-									{#if leagueRecordSorted.some(r => r.ties > 0)}<th class="lr-t">T</th>{/if}
-									<th class="lr-l">L</th>
-									<th class="lr-pct">Win%</th>
-								</tr>
-							</thead>
-							<tbody>
-								{#each leagueRecordSorted as row, i}
-									{@const total = row.wins + row.losses + row.ties}
-									{@const pct = total > 0 ? (row.wins + row.ties * 0.5) / total : 0}
-									{@const hasTies = leagueRecordSorted.some(r => r.ties > 0)}
-									<tr class="lr-row">
-										<td class="lr-rank">{i + 1}</td>
-										<td class="lr-team">
-											{#if teamLogoMap.get(row.teamId)}<img class="lr-logo" src={teamLogoMap.get(row.teamId)} alt={row.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
-											<span>{row.teamName}</span>
-										</td>
-										<td class="lr-w">{row.wins}</td>
-										{#if hasTies}<td class="lr-t">{row.ties}</td>{/if}
-										<td class="lr-l">{row.losses}</td>
-										<td class="lr-pct">{(pct * 100).toFixed(1)}%</td>
-									</tr>
-								{/each}
-							</tbody>
-						</table>
-					</div>
-				{/if}
-			{/if}
-
-			<!-- Standings chart (shows last completed week's standings) -->
-			{#if standingsHistory.length > 0 && chartInfo}
-				<h2 class="section-header" onclick={() => standingsOpen = !standingsOpen}>
-					<span>Season Standings</span>
-					<span class="section-chevron {standingsOpen ? 'open' : ''}"></span>
-				</h2>
-				{#if standingsOpen}
-					{@const c = chartInfo}
-					<div class="standings-chart-wrap">
-						<svg viewBox="0 0 {SVG_W} {SVG_H}" class="standings-svg">
-							{#if c.playoffStartWeek !== null}
-								<rect class="chart-playoff-bg" x={c.xFor(c.playoffStartWeek - 0.5)} y={PAD_T} width={SVG_W - PAD_R - c.xFor(c.playoffStartWeek - 0.5)} height={PLOT_H} />
-							{/if}
-							{#each c.gridRanks as rank}
-								<line class="chart-grid-line" x1={PAD_L} y1={c.yFor(rank)} x2={SVG_W - PAD_R} y2={c.yFor(rank)} />
-								<text class="chart-axis-label" x={PAD_L - 6} y={c.yFor(rank) + 3.5} text-anchor="end">{rank}</text>
-							{/each}
-							{#each c.allWeeks as week}
-								{@const isPlayoffWeek = c.playoffStartWeek !== null && week >= c.playoffStartWeek}
-								<line class="{isPlayoffWeek ? 'chart-grid-line-playoff' : 'chart-grid-line'}" x1={c.xFor(week)} y1={PAD_T} x2={c.xFor(week)} y2={PAD_T + PLOT_H} />
-								{#if week > 0}<text class="chart-week-label" x={c.xFor(week)} y={PAD_T + PLOT_H + 14}>{week}</text>{/if}
-							{/each}
-							{#if c.playoffStartWeek !== null}
-								{@const pLabelX = (c.xFor(c.playoffStartWeek) + (SVG_W - PAD_R)) / 2}
-								<text class="chart-playoff-label" x={pLabelX} y={PAD_T - 3}>PLAYOFFS</text>
-							{/if}
-							<line class="chart-grid-line" x1={PAD_L} y1={PAD_T} x2={PAD_L} y2={PAD_T + PLOT_H} />
-							{#each c.teams as team}
-								{#if team.d}<path class="chart-team-line" d={team.d} stroke={team.color}><title>{team.teamName}</title></path>{/if}
-							{/each}
-							{#each c.teams as team}
-								{#if team.clinchX != null && team.clinchY != null}<text class="chart-marker" x={team.clinchX} y={team.clinchY} text-anchor="middle" dominant-baseline="middle">🔒</text>{/if}
-								{#if team.elimX != null && team.elimY != null}<text class="chart-marker" x={team.elimX} y={team.elimY} text-anchor="middle" dominant-baseline="middle">💀</text>{/if}
-							{/each}
-							<text class="chart-axis-label" x={PAD_L + PLOT_W / 2} y={SVG_H} text-anchor="middle">Week</text>
-						</svg>
-						<div class="chart-legend">
-							{#each c.teams as team}
-								<div class="chart-legend-item">
-									<span class="chart-legend-dot" style="background:{team.color}"></span>
-									<span>{team.teamName}</span>
-								</div>
-							{/each}
-						</div>
-					</div>
-				{/if}
-			{/if}
 
 		{:else}
 			<div class="empty">No data found. Run the backfill to populate historical data.</div>
+		{/if}
+
+		<!-- League-wide record table (shown for both recap and preview weeks) -->
+		{#if leagueRecordSorted.length > 0}
+			<h2 class="section-header" onclick={() => leagueRecordOpen = !leagueRecordOpen}>
+				<span>League Record</span>
+				<span class="section-chevron {leagueRecordOpen ? 'open' : ''}"></span>
+			</h2>
+			{#if leagueRecordOpen}
+				<div class="league-record-wrap">
+					<p class="league-record-caption">Each week, every team is compared against all others — not just their head-to-head opponent. W–L adds up to {leagueRecordSorted.length > 0 ? leagueRecordSorted.length - 1 : 0} × weeks played.</p>
+					<table class="league-record-table">
+						<thead>
+							<tr>
+								<th class="lr-rank">#</th>
+								<th class="lr-team">Team</th>
+								<th class="lr-w">W</th>
+								{#if leagueRecordSorted.some(r => r.ties > 0)}<th class="lr-t">T</th>{/if}
+								<th class="lr-l">L</th>
+								<th class="lr-pct">Win%</th>
+							</tr>
+						</thead>
+						<tbody>
+							{#each leagueRecordSorted as row, i}
+								{@const total = row.wins + row.losses + row.ties}
+								{@const pct = total > 0 ? (row.wins + row.ties * 0.5) / total : 0}
+								{@const hasTies = leagueRecordSorted.some(r => r.ties > 0)}
+								<tr class="lr-row">
+									<td class="lr-rank">{i + 1}</td>
+									<td class="lr-team">
+										{#if (teamLogoMap.get(row.teamId) ?? row.logoUrl)}<img class="lr-logo" src={teamLogoMap.get(row.teamId) ?? row.logoUrl} alt={row.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+										<span>{row.teamName}</span>
+									</td>
+									<td class="lr-w">{row.wins}</td>
+									{#if hasTies}<td class="lr-t">{row.ties}</td>{/if}
+									<td class="lr-l">{row.losses}</td>
+									<td class="lr-pct">{(pct * 100).toFixed(1)}%</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			{/if}
+		{/if}
+
+		<!-- Standings chart (shown for both recap and preview weeks) -->
+		{#if standingsHistory.length > 0 && chartInfo}
+			<h2 class="section-header" onclick={() => standingsOpen = !standingsOpen}>
+				<span>Season Standings</span>
+				<span class="section-chevron {standingsOpen ? 'open' : ''}"></span>
+			</h2>
+			{#if standingsOpen}
+				{@const c = chartInfo}
+				<div class="standings-chart-wrap">
+					<svg viewBox="0 0 {SVG_W} {SVG_H}" class="standings-svg">
+						{#if c.playoffStartWeek !== null}
+							<rect class="chart-playoff-bg" x={c.xFor(c.playoffStartWeek - 0.5)} y={PAD_T} width={SVG_W - PAD_R - c.xFor(c.playoffStartWeek - 0.5)} height={PLOT_H} />
+						{/if}
+						{#each c.gridRanks as rank}
+							<line class="chart-grid-line" x1={PAD_L} y1={c.yFor(rank)} x2={SVG_W - PAD_R} y2={c.yFor(rank)} />
+							<text class="chart-axis-label" x={PAD_L - 6} y={c.yFor(rank) + 3.5} text-anchor="end">{rank}</text>
+						{/each}
+						{#each c.allWeeks as week}
+							{@const isPlayoffWeek = c.playoffStartWeek !== null && week >= c.playoffStartWeek}
+							<line class="{isPlayoffWeek ? 'chart-grid-line-playoff' : 'chart-grid-line'}" x1={c.xFor(week)} y1={PAD_T} x2={c.xFor(week)} y2={PAD_T + PLOT_H} />
+							{#if week > 0}<text class="chart-week-label" x={c.xFor(week)} y={PAD_T + PLOT_H + 14}>{week}</text>{/if}
+						{/each}
+						{#if c.playoffStartWeek !== null}
+							{@const pLabelX = (c.xFor(c.playoffStartWeek) + (SVG_W - PAD_R)) / 2}
+							<text class="chart-playoff-label" x={pLabelX} y={PAD_T - 3}>PLAYOFFS</text>
+						{/if}
+						<line class="chart-grid-line" x1={PAD_L} y1={PAD_T} x2={PAD_L} y2={PAD_T + PLOT_H} />
+						{#each c.teams as team}
+							{#if team.d}<path class="chart-team-line" d={team.d} stroke={team.color}><title>{team.teamName}</title></path>{/if}
+						{/each}
+						{#each c.teams as team}
+							{#if team.clinchX != null && team.clinchY != null}<text class="chart-marker" x={team.clinchX} y={team.clinchY} text-anchor="middle" dominant-baseline="middle">🔒</text>{/if}
+							{#if team.elimX != null && team.elimY != null}<text class="chart-marker" x={team.elimX} y={team.elimY} text-anchor="middle" dominant-baseline="middle">💀</text>{/if}
+						{/each}
+						<text class="chart-axis-label" x={PAD_L + PLOT_W / 2} y={SVG_H} text-anchor="middle">Week</text>
+					</svg>
+					<div class="chart-legend">
+						{#each c.teams as team}
+							<div class="chart-legend-item">
+								<span class="chart-legend-dot" style="background:{team.color}"></span>
+								<span>{team.teamName}</span>
+							</div>
+						{/each}
+					</div>
+				</div>
+			{/if}
 		{/if}
 
 
