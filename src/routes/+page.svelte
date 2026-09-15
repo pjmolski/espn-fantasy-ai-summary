@@ -33,6 +33,7 @@
 		standingsHistory: StandingsEntry[];
 		matchupH2H: Record<string, { homeWins: number; awayWins: number; ties: number }>;
 		teamRecords: Record<number, { wins: number; losses: number }>;
+		leagueRecord: Record<number, { wins: number; losses: number; ties: number }>;
 		error?: string;
 	};
 
@@ -40,6 +41,22 @@
 	let standingsHistory: StandingsEntry[] = data.standingsHistory ?? [];
 	$: matchupH2H = data.matchupH2H ?? {};
 	$: teamRecords = data.teamRecords ?? {};
+	$: leagueRecordSorted = (() => {
+		const rec = data.leagueRecord ?? {};
+		// Merge team names/logos from standingsHistory
+		return Object.entries(rec)
+			.map(([id, r]) => {
+				const tid = Number(id);
+				const info = standingsHistory.find(e => e.teamId === tid);
+				return { teamId: tid, teamName: info?.teamName ?? `Team ${tid}`, logoUrl: info?.logoUrl, ...r };
+			})
+			.sort((a, b) => {
+				const aw = a.wins + a.ties * 0.5;
+				const bw = b.wins + b.ties * 0.5;
+				return bw !== aw ? bw - aw : a.losses - b.losses;
+			});
+	})();
+	let leagueRecordOpen = true;
 	$: teamRanks = new Map(standingsHistory.map(e => {
 		const r = [...e.weeklyRanks].reverse().find(wr => wr.week <= selectedWeek);
 		return [e.teamId, r?.rank ?? null] as [number, number | null];
@@ -788,6 +805,59 @@
 	}
 	.legend-grid span:first-child { font-size: 14px; line-height: 1; padding-top: 1px; }
 	.legend-grid strong { color: rgba(255,255,255,0.8); }
+	/* ── League Record table ──────────────────────────────────────────────────── */
+	.league-record-wrap {
+		margin-top: 0.5rem;
+	}
+	.league-record-caption {
+		font-size: 0.78rem;
+		color: var(--text-muted, #888);
+		margin-bottom: 0.75rem;
+	}
+	.league-record-table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.88rem;
+	}
+	.league-record-table thead tr {
+		border-bottom: 1px solid var(--border, #333);
+	}
+	.league-record-table th {
+		padding: 0.35rem 0.5rem;
+		text-align: center;
+		color: var(--text-muted, #888);
+		font-weight: 600;
+		font-size: 0.75rem;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+	.league-record-table th.lr-team { text-align: left; }
+	.lr-row {
+		border-bottom: 1px solid var(--border-subtle, #222);
+	}
+	.lr-row td {
+		padding: 0.45rem 0.5rem;
+		text-align: center;
+	}
+	.lr-row td.lr-team {
+		text-align: left;
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+	}
+	.lr-logo {
+		width: 20px;
+		height: 20px;
+		border-radius: 3px;
+		object-fit: contain;
+		flex-shrink: 0;
+	}
+	.lr-w { color: var(--green, #4ade80); font-weight: 600; }
+	.lr-l { color: var(--text-muted, #888); }
+	.lr-t { color: var(--text-secondary, #aaa); }
+	.lr-pct { color: var(--text-secondary, #aaa); font-size: 0.82rem; }
+	.lr-rank { color: var(--text-muted, #888); font-size: 0.82rem; width: 1.5rem; }
+
 	/* ── Standings chart ──────────────────────────────────────────────────────── */
 	.standings-chart-wrap {
 		margin-bottom: 48px;
@@ -1810,6 +1880,49 @@
 					{/if}
 				</div>
 			{/each}
+			{/if}
+
+			<!-- League-wide record table -->
+			{#if leagueRecordSorted.length > 0 && !data.isPreviewWeek}
+				<h2 class="section-header" onclick={() => leagueRecordOpen = !leagueRecordOpen}>
+					<span>League Record</span>
+					<span class="section-chevron {leagueRecordOpen ? 'open' : ''}"></span>
+				</h2>
+				{#if leagueRecordOpen}
+					<div class="league-record-wrap">
+						<p class="league-record-caption">Each week, every team is compared against all others — not just their head-to-head opponent. W–L adds up to {leagueRecordSorted.length > 0 ? leagueRecordSorted.length - 1 : 0} × weeks played.</p>
+						<table class="league-record-table">
+							<thead>
+								<tr>
+									<th class="lr-rank">#</th>
+									<th class="lr-team">Team</th>
+									<th class="lr-w">W</th>
+									{#if leagueRecordSorted.some(r => r.ties > 0)}<th class="lr-t">T</th>{/if}
+									<th class="lr-l">L</th>
+									<th class="lr-pct">Win%</th>
+								</tr>
+							</thead>
+							<tbody>
+								{#each leagueRecordSorted as row, i}
+									{@const total = row.wins + row.losses + row.ties}
+									{@const pct = total > 0 ? (row.wins + row.ties * 0.5) / total : 0}
+									{@const hasTies = leagueRecordSorted.some(r => r.ties > 0)}
+									<tr class="lr-row">
+										<td class="lr-rank">{i + 1}</td>
+										<td class="lr-team">
+											{#if teamLogoMap.get(row.teamId)}<img class="lr-logo" src={teamLogoMap.get(row.teamId)} alt={row.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{/if}
+											<span>{row.teamName}</span>
+										</td>
+										<td class="lr-w">{row.wins}</td>
+										{#if hasTies}<td class="lr-t">{row.ties}</td>{/if}
+										<td class="lr-l">{row.losses}</td>
+										<td class="lr-pct">{(pct * 100).toFixed(1)}%</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+				{/if}
 			{/if}
 
 			<!-- Standings chart (shows last completed week's standings) -->

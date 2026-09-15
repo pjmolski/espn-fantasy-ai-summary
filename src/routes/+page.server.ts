@@ -249,6 +249,26 @@ export async function load({ url }) {
 			}
 		}
 
+		// ── League-wide record (every team vs. every other team each week) ──────────
+		// After N weeks each team has N*(teamCount-1) games in this record.
+		const leagueRecord: Record<number, { wins: number; losses: number; ties: number }> = {};
+		for (const doc of weekDocs) {
+			const weekScores: Array<{ teamId: number; score: number }> = [];
+			for (const m of doc.matchups) {
+				weekScores.push({ teamId: m.home.teamId, score: m.home.totalPoints });
+				if (m.away) weekScores.push({ teamId: m.away.teamId, score: m.away.totalPoints });
+			}
+			for (const team of weekScores) {
+				if (!leagueRecord[team.teamId]) leagueRecord[team.teamId] = { wins: 0, losses: 0, ties: 0 };
+				for (const other of weekScores) {
+					if (other.teamId === team.teamId) continue;
+					if (team.score > other.score)      leagueRecord[team.teamId].wins++;
+					else if (team.score < other.score) leagueRecord[team.teamId].losses++;
+					else                               leagueRecord[team.teamId].ties++;
+				}
+			}
+		}
+
 		const matchupH2H: Record<string, { homeWins: number; awayWins: number; ties: number }> = {};
 		if (weekData) {
 			for (const m of weekData.matchups) {
@@ -266,7 +286,8 @@ export async function load({ url }) {
 			previewMatchups: [],
 			standingsHistory,
 			matchupH2H,
-			teamRecords
+			teamRecords,
+			leagueRecord,
 		};
 	} catch (error) {
 		console.error('Page load error:', error);
