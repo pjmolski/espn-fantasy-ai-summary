@@ -237,7 +237,7 @@
 			standingsSortDir = standingsSortDir === 'desc' ? 'asc' : 'desc';
 		} else {
 			standingsSortCol = col;
-			standingsSortDir = 'desc';
+			standingsSortDir = col === 'seed' ? 'asc' : 'desc';
 		}
 	}
 
@@ -888,7 +888,7 @@
 	.stud-row:last-child { border-bottom: none; }
 	.stud-rank { font-size: 11px; color: rgba(255,255,255,0.3); width: 24px; text-align: center; flex-shrink: 0; }
 	.stud-rank.medal { font-size: 16px; color: rgba(255,255,255,1); }
-	.stud-img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: rgba(255,255,255,0.06); flex-shrink: 0; }
+	.stud-img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; background: rgba(255,255,255,0.06); flex-shrink: 0; }
 	.stud-img.dst { border-radius: 4px; object-fit: contain; background: transparent; }
 	.stud-info { flex: none; }
 	.stud-name-line { display: flex; align-items: center; gap: 6px; }
