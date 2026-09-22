@@ -321,10 +321,25 @@
 
 	$: teamLogoMap = (() => {
 		const map = new Map<number, string>();
-		if (!weekData) return map;
-		for (const m of weekData.matchups) {
-			if (m.home.logoUrl) map.set(m.home.teamId, m.home.logoUrl);
-			if (m.away?.logoUrl) map.set(m.away.teamId, m.away.logoUrl);
+		// Seed from standingsHistory (always present, covers all teams)
+		for (const e of standingsHistory) {
+			if (e.logoUrl) map.set(e.teamId, e.logoUrl);
+		}
+		// Seed from standingsTable (has logos from seasonDoc)
+		for (const r of (data.standingsTable ?? [])) {
+			if (r.logoUrl) map.set(r.teamId, r.logoUrl);
+		}
+		// Seed from preview matchups
+		for (const pm of (data.previewMatchups ?? [])) {
+			if (pm.home.logoUrl) map.set(pm.home.teamId, pm.home.logoUrl);
+			if (pm.away?.logoUrl) map.set(pm.away.teamId, pm.away.logoUrl);
+		}
+		// Seed from weekData matchups (most specific — overrides above if set)
+		if (weekData) {
+			for (const m of weekData.matchups) {
+				if (m.home.logoUrl) map.set(m.home.teamId, m.home.logoUrl);
+				if (m.away?.logoUrl) map.set(m.away.teamId, m.away.logoUrl);
+			}
 		}
 		return map;
 	})();
