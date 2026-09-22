@@ -272,6 +272,16 @@
 	} else {
 		if (standingsSortCol === 'projectedScore') standingsSortCol = 'weekScore';
 	}
+	$: wkScoreHiId = (() => {
+		const rows = (data.standingsTable ?? []).filter(r => r.weekScore !== undefined);
+		if (!rows.length) return null;
+		return rows.reduce((hi, r) => (r.weekScore! > hi.weekScore!) ? r : hi).teamId;
+	})();
+	$: wkScoreLoId = (() => {
+		const rows = (data.standingsTable ?? []).filter(r => r.weekScore !== undefined);
+		if (!rows.length) return null;
+		return rows.reduce((lo, r) => (r.weekScore! < lo.weekScore!) ? r : lo).teamId;
+	})();
 
 	function displacedFromOptimal(t: ProcessedTeam): ProcessedPlayer[] {
 		const optIds = new Set(t.optimalStarters.map(s => s.playerId));
@@ -1009,6 +1019,8 @@
 	.st-l { color: var(--text-muted, #888); }
 	.st-pct { color: var(--text-secondary, #aaa); font-size: 0.80rem; }
 	.st-wk { font-weight: 600; }
+	.st-wk-hi { color: var(--green, #4ade80); font-weight: 700; }
+	.st-wk-lo { color: #a16207; font-weight: 700; }
 	.st-streak-w { color: var(--green, #4ade80); font-weight: 600; }
 	.st-streak-l { color: var(--red, #f87171); }
 	.st-num { color: var(--text-secondary, #ccc); }
@@ -1093,7 +1105,7 @@
 							{#if data.isPreviewWeek}
 								<td class="st-wk">{row.projectedScore !== undefined ? row.projectedScore.toFixed(2) : '—'}</td>
 							{:else}
-								<td class="st-wk">{row.weekScore !== undefined ? row.weekScore.toFixed(2) : '—'}</td>
+								<td class="st-wk {row.teamId === wkScoreHiId ? 'st-wk-hi' : row.teamId === wkScoreLoId ? 'st-wk-lo' : ''}">{row.weekScore !== undefined ? row.weekScore.toFixed(2) : '—'}</td>
 							{/if}
 							<td class="st-w">{row.w}</td>
 							<td class="st-l">{row.l}</td>
@@ -1838,7 +1850,7 @@
 							{#if data.isPreviewWeek}
 								<td class="st-wk">{row.projectedScore !== undefined ? row.projectedScore.toFixed(2) : '—'}</td>
 							{:else}
-								<td class="st-wk">{row.weekScore !== undefined ? row.weekScore.toFixed(2) : '—'}</td>
+								<td class="st-wk {row.teamId === wkScoreHiId ? 'st-wk-hi' : row.teamId === wkScoreLoId ? 'st-wk-lo' : ''}">{row.weekScore !== undefined ? row.weekScore.toFixed(2) : '—'}</td>
 							{/if}
 							<td class="st-w">{row.w}</td>
 							<td class="st-l">{row.l}</td>
