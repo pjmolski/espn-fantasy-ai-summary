@@ -244,7 +244,7 @@
 
 	$: sortedStandings = (() => {
 		const rows = [...(data.standingsTable ?? [])];
-		const dir = standingsSortDir === 'desc' ? -1 : 1;
+		const dir = standingsSortDir === 'desc' ? 1 : -1;
 		return rows.sort((a, b) => {
 			let av: number | string, bv: number | string;
 			if (standingsSortCol === 'streak') {
