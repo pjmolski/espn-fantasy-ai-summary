@@ -34,6 +34,14 @@
 		matchupH2H: Record<string, { homeWins: number; awayWins: number; ties: number }>;
 		teamRecords: Record<number, { wins: number; losses: number }>;
 		leagueRecord: Record<number, { wins: number; losses: number; ties: number }>;
+		standingsTable: Array<{
+			teamId: number; teamName: string; logoUrl?: string;
+			weekScore?: number; projectedScore?: number;
+			pf: number; pa: number; apf: number; apa: number;
+			w: number; l: number; pct: number;
+			streak: string; lrW: number; lrL: number; lrT: number;
+			hi: number; lo: number; weeksPlayed: number; seed: number;
+		}>;
 		error?: string;
 	};
 
@@ -47,22 +55,7 @@
 		return (words[0][0] + words[words.length - 1][0]).toUpperCase();
 	}
 
-	$: leagueRecordSorted = (() => {
-		const rec = data.leagueRecord ?? {};
-		// Merge team names/logos from standingsHistory
-		return Object.entries(rec)
-			.map(([id, r]) => {
-				const tid = Number(id);
-				const info = standingsHistory.find(e => e.teamId === tid);
-				return { teamId: tid, teamName: info?.teamName ?? `Team ${tid}`, logoUrl: info?.logoUrl, ...r };
-			})
-			.sort((a, b) => {
-				const aw = a.wins + a.ties * 0.5;
-				const bw = b.wins + b.ties * 0.5;
-				return bw !== aw ? bw - aw : a.losses - b.losses;
-			});
-	})();
-	let leagueRecordOpen = true;
+
 	$: teamRanks = new Map(standingsHistory.map(e => {
 		const r = [...e.weeklyRanks].reverse().find(wr => wr.week <= selectedWeek);
 		return [e.teamId, r?.rank ?? null] as [number, number | null];
@@ -233,6 +226,52 @@
 	let honorsOpen = true;
 	let studsOpen = true;
 	let matchupsOpen = true;
+	let standingsTableOpen = true;
+
+	// Standings table sort state
+	type SortCol = 'seed' | 'weekScore' | 'projectedScore' | 'pf' | 'pa' | 'apf' | 'apa' | 'w' | 'l' | 'pct' | 'streak' | 'lrW' | 'hi' | 'lo';
+	let standingsSortCol: SortCol = 'weekScore';
+	let standingsSortDir: 'asc' | 'desc' = 'desc';
+
+	function setStandingsSort(col: SortCol) {
+		if (standingsSortCol === col) {
+			standingsSortDir = standingsSortDir === 'desc' ? 'asc' : 'desc';
+		} else {
+			standingsSortCol = col;
+			standingsSortDir = 'desc';
+		}
+	}
+
+	$: sortedStandings = (() => {
+		const rows = [...(data.standingsTable ?? [])];
+		const dir = standingsSortDir === 'desc' ? -1 : 1;
+		return rows.sort((a, b) => {
+			let av: number | string, bv: number | string;
+			if (standingsSortCol === 'streak') {
+				const parseStreak = (s: string) => {
+					if (s === '\u2014') return 0;
+					const m = s.match(/^([WL])(\d+)$/);
+					if (!m) return 0;
+					return m[1] === 'W' ? parseInt(m[2]) : -parseInt(m[2]);
+				};
+				av = parseStreak(a.streak); bv = parseStreak(b.streak);
+			} else if (standingsSortCol === 'lrW') {
+				const lrPct = (r: typeof a) => (r.lrW + r.lrL + r.lrT) > 0 ? (r.lrW + r.lrT * 0.5) / (r.lrW + r.lrL + r.lrT) : 0;
+				av = lrPct(a); bv = lrPct(b);
+			} else {
+				av = (a as any)[standingsSortCol] ?? 0;
+				bv = (b as any)[standingsSortCol] ?? 0;
+			}
+			if (typeof av === 'number' && typeof bv === 'number') return dir * (bv - av);
+			return 0;
+		});
+	})();
+
+	$: if (data.isPreviewWeek) {
+		if (standingsSortCol === 'weekScore') standingsSortCol = 'projectedScore';
+	} else {
+		if (standingsSortCol === 'projectedScore') standingsSortCol = 'weekScore';
+	}
 
 	function displacedFromOptimal(t: ProcessedTeam): ProcessedPlayer[] {
 		const optIds = new Set(t.optimalStarters.map(s => s.playerId));
@@ -834,46 +873,6 @@
 	}
 	.legend-grid span:first-child { font-size: 14px; line-height: 1; padding-top: 1px; }
 	.legend-grid strong { color: rgba(255,255,255,0.8); }
-	/* ── League Record table ──────────────────────────────────────────────────── */
-	.league-record-wrap {
-		margin-top: 0.5rem;
-	}
-	.league-record-caption {
-		font-size: 0.78rem;
-		color: var(--text-muted, #888);
-		margin-bottom: 0.75rem;
-	}
-	.league-record-table {
-		width: 100%;
-		border-collapse: collapse;
-		font-size: 0.88rem;
-	}
-	.league-record-table thead tr {
-		border-bottom: 1px solid var(--border, #333);
-	}
-	.league-record-table th {
-		padding: 0.35rem 0.5rem;
-		text-align: center;
-		color: var(--text-muted, #888);
-		font-weight: 600;
-		font-size: 0.75rem;
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-	}
-	.league-record-table th.lr-team { text-align: left; }
-	.lr-row {
-		border-bottom: 1px solid var(--border-subtle, #222);
-	}
-	.lr-row td {
-		padding: 0.45rem 0.5rem;
-		text-align: center;
-	}
-	.lr-row td.lr-team {
-		text-align: left;
-		display: flex;
-		align-items: center;
-		gap: 0.4rem;
-	}
 	.lr-logo {
 		width: 20px;
 		height: 20px;
@@ -881,11 +880,6 @@
 		object-fit: contain;
 		flex-shrink: 0;
 	}
-	.lr-w { color: var(--green, #4ade80); font-weight: 600; }
-	.lr-l { color: var(--text-muted, #888); }
-	.lr-t { color: var(--text-secondary, #aaa); }
-	.lr-pct { color: var(--text-secondary, #aaa); font-size: 0.82rem; }
-	.lr-rank { color: var(--text-muted, #888); font-size: 0.82rem; width: 1.5rem; }
 
 	/* ── Standings chart ──────────────────────────────────────────────────────── */
 	.standings-chart-wrap {
@@ -961,6 +955,66 @@
 		letter-spacing: 1px;
 	}
 
+	/* \u2500\u2500 Standings table \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */
+	.standings-wrap {
+		overflow-x: auto;
+		margin-bottom: 1.5rem;
+	}
+	.standings-table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.82rem;
+		white-space: nowrap;
+	}
+	.standings-table thead tr {
+		border-bottom: 1px solid rgba(255,255,255,0.12);
+	}
+	.standings-table th {
+		padding: 0.35rem 0.5rem;
+		color: var(--text-muted, #888);
+		font-weight: 500;
+		font-size: 0.75rem;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		text-align: right;
+		user-select: none;
+	}
+	.standings-table th.st-team { text-align: left; }
+	.st-sortable {
+		cursor: pointer;
+	}
+	.st-sortable:hover { color: var(--text-primary, #fff); }
+	.st-active { color: var(--text-primary, #fff); }
+	.st-chevron { margin-left: 2px; font-size: 0.65rem; }
+	.st-chevron-inactive { opacity: 0.3; }
+
+	.st-row {
+		border-bottom: 1px solid rgba(255,255,255,0.05);
+		transition: background 0.1s;
+	}
+	.st-row:hover { background: rgba(255,255,255,0.04); }
+	.st-row td {
+		padding: 0.3rem 0.5rem;
+		text-align: right;
+	}
+	.st-row td.st-team-cell {
+		text-align: left;
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+	}
+	.st-seed { color: var(--text-muted, #888); font-size: 0.75rem; width: 1.5rem; }
+	.st-name { font-weight: 500; }
+	.st-w { color: var(--green, #4ade80); font-weight: 600; }
+	.st-l { color: var(--text-muted, #888); }
+	.st-pct { color: var(--text-secondary, #aaa); font-size: 0.80rem; }
+	.st-wk { font-weight: 600; }
+	.st-streak-w { color: var(--green, #4ade80); font-weight: 600; }
+	.st-streak-l { color: var(--red, #f87171); }
+	.st-num { color: var(--text-secondary, #ccc); }
+	.st-lr { color: var(--text-secondary, #ccc); }
+	.st-lr-pct { color: var(--text-muted, #888); font-size: 0.75rem; }
+
 </style>
 
 <div class="page">
@@ -990,6 +1044,75 @@
 			<div class="week-label">
 				{weekData.seasonId} · {weekData.isPlayoffWeek ? '🏆 Playoffs · ' : ''}Week {weekData.scoringPeriodId}
 			</div>
+
+		<!-- Standings Table -->
+		{#if sortedStandings.length > 0}
+		<h2 class="section-header" onclick={() => standingsTableOpen = !standingsTableOpen}>
+			<span>Standings</span>
+			<span class="section-chevron {standingsTableOpen ? 'open' : ''}"></span>
+		</h2>
+		{#if standingsTableOpen}
+		<div class="standings-wrap">
+			<table class="standings-table">
+				<thead>
+					<tr>
+						<th class="st-sortable {standingsSortCol === 'seed' ? 'st-active' : ''}" title="Seed" onclick={() => setStandingsSort('seed')}>#							{#if standingsSortCol === 'seed'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						<th class="st-team" title="Team">Team</th>
+						{#if data.isPreviewWeek}
+							<th class="st-sortable {standingsSortCol === 'projectedScore' ? 'st-active' : ''}" title="Projected score" onclick={() => setStandingsSort('projectedScore')}>Proj{#if standingsSortCol === 'projectedScore'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						{:else}
+							<th class="st-sortable {standingsSortCol === 'weekScore' ? 'st-active' : ''}" title="This week's score" onclick={() => setStandingsSort('weekScore')}>Wk{#if standingsSortCol === 'weekScore'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						{/if}
+						<th class="st-sortable {standingsSortCol === 'w' ? 'st-active' : ''}" title="Wins" onclick={() => setStandingsSort('w')}>W{#if standingsSortCol === 'w'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						<th class="st-sortable {standingsSortCol === 'l' ? 'st-active' : ''}" title="Losses" onclick={() => setStandingsSort('l')}>L{#if standingsSortCol === 'l'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						<th class="st-sortable {standingsSortCol === 'pct' ? 'st-active' : ''}" title="Win percentage" onclick={() => setStandingsSort('pct')}>%{#if standingsSortCol === 'pct'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						<th class="st-sortable {standingsSortCol === 'streak' ? 'st-active' : ''}" title="Current streak" onclick={() => setStandingsSort('streak')}>Stk{#if standingsSortCol === 'streak'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						<th class="st-sortable {standingsSortCol === 'pf' ? 'st-active' : ''}" title="Points For (season total)" onclick={() => setStandingsSort('pf')}>PF{#if standingsSortCol === 'pf'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						<th class="st-sortable {standingsSortCol === 'pa' ? 'st-active' : ''}" title="Points Against (season total)" onclick={() => setStandingsSort('pa')}>PA{#if standingsSortCol === 'pa'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						<th class="st-sortable {standingsSortCol === 'apf' ? 'st-active' : ''}" title="Avg Points For per week" onclick={() => setStandingsSort('apf')}>APF{#if standingsSortCol === 'apf'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						<th class="st-sortable {standingsSortCol === 'apa' ? 'st-active' : ''}" title="Avg Points Against per week" onclick={() => setStandingsSort('apa')}>APA{#if standingsSortCol === 'apa'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						<th class="st-sortable {standingsSortCol === 'hi' ? 'st-active' : ''}" title="Best week score" onclick={() => setStandingsSort('hi')}>Hi{#if standingsSortCol === 'hi'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						<th class="st-sortable {standingsSortCol === 'lo' ? 'st-active' : ''}" title="Worst week score" onclick={() => setStandingsSort('lo')}>Lo{#if standingsSortCol === 'lo'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						<th class="st-sortable {standingsSortCol === 'lrW' ? 'st-active' : ''}" title="League Record (all-play)" onclick={() => setStandingsSort('lrW')}>LR{#if standingsSortCol === 'lrW'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each sortedStandings as row}
+						{@const lrTotal = row.lrW + row.lrL + row.lrT}
+						{@const lrPct = lrTotal > 0 ? (row.lrW + row.lrT * 0.5) / lrTotal : 0}
+						<tr class="st-row">
+							<td class="st-seed">{row.seed}</td>
+							<td class="st-team-cell">
+								{#if teamLogoMap.get(row.teamId) ?? row.logoUrl}
+									<img class="lr-logo" src={teamLogoMap.get(row.teamId) ?? row.logoUrl} alt={row.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />
+								{:else}
+									<span class="logo-init sm">{logoInitials(row.teamName)}</span>
+								{/if}
+								<span class="st-name">{row.teamName}</span>
+							</td>
+							{#if data.isPreviewWeek}
+								<td class="st-wk">{row.projectedScore !== undefined ? row.projectedScore.toFixed(2) : '—'}</td>
+							{:else}
+								<td class="st-wk">{row.weekScore !== undefined ? row.weekScore.toFixed(2) : '—'}</td>
+							{/if}
+							<td class="st-w">{row.w}</td>
+							<td class="st-l">{row.l}</td>
+							<td class="st-pct">{(row.pct * 100).toFixed(1)}%</td>
+							<td class="st-streak {row.streak.startsWith('W') ? 'st-streak-w' : row.streak.startsWith('L') ? 'st-streak-l' : ''}">{row.streak}</td>
+							<td class="st-num">{row.pf.toFixed(2)}</td>
+							<td class="st-num">{row.pa.toFixed(2)}</td>
+							<td class="st-num">{row.apf.toFixed(2)}</td>
+							<td class="st-num">{row.apa.toFixed(2)}</td>
+							<td class="st-num">{row.hi.toFixed(2)}</td>
+							<td class="st-num">{row.lo.toFixed(2)}</td>
+							<td class="st-lr">{row.lrW}-{row.lrL}{row.lrT > 0 ? `-${row.lrT}` : ''} <span class="st-lr-pct">({(lrPct * 100).toFixed(0)}%)</span></td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+		{/if}
+		{/if}
 
 			<h2 class="section-header" onclick={() => honorsOpen = !honorsOpen}>
 				<span>Week {weekData.scoringPeriodId} Honors</span>
@@ -1667,6 +1790,75 @@
 				{data.previewWeekId?.seasonId} · ⏳ Week {data.previewWeekId?.scoringPeriodId} Preview
 			</div>
 
+		<!-- Standings Table -->
+		{#if sortedStandings.length > 0}
+		<h2 class="section-header" onclick={() => standingsTableOpen = !standingsTableOpen}>
+			<span>Standings</span>
+			<span class="section-chevron {standingsTableOpen ? 'open' : ''}"></span>
+		</h2>
+		{#if standingsTableOpen}
+		<div class="standings-wrap">
+			<table class="standings-table">
+				<thead>
+					<tr>
+						<th class="st-sortable {standingsSortCol === 'seed' ? 'st-active' : ''}" title="Seed" onclick={() => setStandingsSort('seed')}>#							{#if standingsSortCol === 'seed'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						<th class="st-team" title="Team">Team</th>
+						{#if data.isPreviewWeek}
+							<th class="st-sortable {standingsSortCol === 'projectedScore' ? 'st-active' : ''}" title="Projected score" onclick={() => setStandingsSort('projectedScore')}>Proj{#if standingsSortCol === 'projectedScore'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						{:else}
+							<th class="st-sortable {standingsSortCol === 'weekScore' ? 'st-active' : ''}" title="This week's score" onclick={() => setStandingsSort('weekScore')}>Wk{#if standingsSortCol === 'weekScore'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						{/if}
+						<th class="st-sortable {standingsSortCol === 'w' ? 'st-active' : ''}" title="Wins" onclick={() => setStandingsSort('w')}>W{#if standingsSortCol === 'w'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						<th class="st-sortable {standingsSortCol === 'l' ? 'st-active' : ''}" title="Losses" onclick={() => setStandingsSort('l')}>L{#if standingsSortCol === 'l'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						<th class="st-sortable {standingsSortCol === 'pct' ? 'st-active' : ''}" title="Win percentage" onclick={() => setStandingsSort('pct')}>%{#if standingsSortCol === 'pct'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						<th class="st-sortable {standingsSortCol === 'streak' ? 'st-active' : ''}" title="Current streak" onclick={() => setStandingsSort('streak')}>Stk{#if standingsSortCol === 'streak'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						<th class="st-sortable {standingsSortCol === 'pf' ? 'st-active' : ''}" title="Points For (season total)" onclick={() => setStandingsSort('pf')}>PF{#if standingsSortCol === 'pf'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						<th class="st-sortable {standingsSortCol === 'pa' ? 'st-active' : ''}" title="Points Against (season total)" onclick={() => setStandingsSort('pa')}>PA{#if standingsSortCol === 'pa'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						<th class="st-sortable {standingsSortCol === 'apf' ? 'st-active' : ''}" title="Avg Points For per week" onclick={() => setStandingsSort('apf')}>APF{#if standingsSortCol === 'apf'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						<th class="st-sortable {standingsSortCol === 'apa' ? 'st-active' : ''}" title="Avg Points Against per week" onclick={() => setStandingsSort('apa')}>APA{#if standingsSortCol === 'apa'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						<th class="st-sortable {standingsSortCol === 'hi' ? 'st-active' : ''}" title="Best week score" onclick={() => setStandingsSort('hi')}>Hi{#if standingsSortCol === 'hi'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						<th class="st-sortable {standingsSortCol === 'lo' ? 'st-active' : ''}" title="Worst week score" onclick={() => setStandingsSort('lo')}>Lo{#if standingsSortCol === 'lo'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+						<th class="st-sortable {standingsSortCol === 'lrW' ? 'st-active' : ''}" title="League Record (all-play)" onclick={() => setStandingsSort('lrW')}>LR{#if standingsSortCol === 'lrW'}<span class="st-chevron">{standingsSortDir === 'desc' ? '▼' : '▲'}</span>{:else}<span class="st-chevron st-chevron-inactive">⇕</span>{/if}</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each sortedStandings as row}
+						{@const lrTotal = row.lrW + row.lrL + row.lrT}
+						{@const lrPct = lrTotal > 0 ? (row.lrW + row.lrT * 0.5) / lrTotal : 0}
+						<tr class="st-row">
+							<td class="st-seed">{row.seed}</td>
+							<td class="st-team-cell">
+								{#if teamLogoMap.get(row.teamId) ?? row.logoUrl}
+									<img class="lr-logo" src={teamLogoMap.get(row.teamId) ?? row.logoUrl} alt={row.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />
+								{:else}
+									<span class="logo-init sm">{logoInitials(row.teamName)}</span>
+								{/if}
+								<span class="st-name">{row.teamName}</span>
+							</td>
+							{#if data.isPreviewWeek}
+								<td class="st-wk">{row.projectedScore !== undefined ? row.projectedScore.toFixed(2) : '—'}</td>
+							{:else}
+								<td class="st-wk">{row.weekScore !== undefined ? row.weekScore.toFixed(2) : '—'}</td>
+							{/if}
+							<td class="st-w">{row.w}</td>
+							<td class="st-l">{row.l}</td>
+							<td class="st-pct">{(row.pct * 100).toFixed(1)}%</td>
+							<td class="st-streak {row.streak.startsWith('W') ? 'st-streak-w' : row.streak.startsWith('L') ? 'st-streak-l' : ''}">{row.streak}</td>
+							<td class="st-num">{row.pf.toFixed(2)}</td>
+							<td class="st-num">{row.pa.toFixed(2)}</td>
+							<td class="st-num">{row.apf.toFixed(2)}</td>
+							<td class="st-num">{row.apa.toFixed(2)}</td>
+							<td class="st-num">{row.hi.toFixed(2)}</td>
+							<td class="st-num">{row.lo.toFixed(2)}</td>
+							<td class="st-lr">{row.lrW}-{row.lrL}{row.lrT > 0 ? `-${row.lrT}` : ''} <span class="st-lr-pct">({(lrPct * 100).toFixed(0)}%)</span></td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+		{/if}
+		{/if}
+
 			<h2 class="section-header" onclick={() => matchupsOpen = !matchupsOpen}>
 				<span>Matchups</span>
 				<span class="section-chevron {matchupsOpen ? 'open' : ''}"></span>
@@ -1904,48 +2096,7 @@
 			{/if}
 		{/if}
 
-		<!-- League-wide record table (shown for both recap and preview weeks) -->
-		{#if leagueRecordSorted.length > 0}
-			<h2 class="section-header" onclick={() => leagueRecordOpen = !leagueRecordOpen}>
-				<span>League Record</span>
-				<span class="section-chevron {leagueRecordOpen ? 'open' : ''}"></span>
-			</h2>
-			{#if leagueRecordOpen}
-				<div class="league-record-wrap">
-					<p class="league-record-caption">Each week, every team is compared against all others — not just their head-to-head opponent. W–L adds up to {leagueRecordSorted.length > 0 ? leagueRecordSorted.length - 1 : 0} × weeks played.</p>
-					<table class="league-record-table">
-						<thead>
-							<tr>
-								<th class="lr-rank">#</th>
-								<th class="lr-team">Team</th>
-								<th class="lr-w">W</th>
-								{#if leagueRecordSorted.some(r => r.ties > 0)}<th class="lr-t">T</th>{/if}
-								<th class="lr-l">L</th>
-								<th class="lr-pct">Win%</th>
-							</tr>
-						</thead>
-						<tbody>
-							{#each leagueRecordSorted as row, i}
-								{@const total = row.wins + row.losses + row.ties}
-								{@const pct = total > 0 ? (row.wins + row.ties * 0.5) / total : 0}
-								{@const hasTies = leagueRecordSorted.some(r => r.ties > 0)}
-								<tr class="lr-row">
-									<td class="lr-rank">{i + 1}</td>
-									<td class="lr-team">
-										{#if (teamLogoMap.get(row.teamId) ?? row.logoUrl)}<img class="lr-logo" src={teamLogoMap.get(row.teamId) ?? row.logoUrl} alt={row.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{:else}<span class="logo-init sm">{logoInitials(row.teamName)}</span>{/if}
-										<span>{row.teamName}</span>
-									</td>
-									<td class="lr-w">{row.wins}</td>
-									{#if hasTies}<td class="lr-t">{row.ties}</td>{/if}
-									<td class="lr-l">{row.losses}</td>
-									<td class="lr-pct">{(pct * 100).toFixed(1)}%</td>
-								</tr>
-							{/each}
-						</tbody>
-					</table>
-				</div>
-			{/if}
-		{/if}
+
 
 
 	</main>

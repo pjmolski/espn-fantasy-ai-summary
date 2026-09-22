@@ -51,6 +51,125 @@ function computeOptimalByProjection(
 	return slotted;
 }
 
+interface StandingsRow {
+	teamId: number;
+	teamName: string;
+	logoUrl?: string;
+	weekScore?: number;
+	projectedScore?: number;
+	pf: number;
+	pa: number;
+	apf: number;
+	apa: number;
+	w: number;
+	l: number;
+	pct: number;
+	streak: string;
+	lrW: number;
+	lrL: number;
+	lrT: number;
+	hi: number;
+	lo: number;
+	weeksPlayed: number;
+	seed: number;
+}
+
+function buildStandingsTable(opts: {
+	weekDocs: import('$lib/schema').WeeklyMatchupDoc[];
+	currentScoringPeriodId?: number;
+	teamRecords: Record<number, { wins: number; losses: number }>;
+	leagueRecord: Record<number, { wins: number; losses: number; ties: number }>;
+	teamInfo: Array<{ teamId: number; teamName: string; logoUrl?: string }>;
+	previewProjections?: Map<number, number>;
+}): StandingsRow[] {
+	const { weekDocs, currentScoringPeriodId, teamRecords, leagueRecord, teamInfo, previewProjections } = opts;
+
+	const streaks = computeStreaks(weekDocs);
+
+	const pfMap  = new Map<number, number>();
+	const paMap  = new Map<number, number>();
+	const hiMap  = new Map<number, number>();
+	const loMap  = new Map<number, number>();
+	const wkMap  = new Map<number, number>();
+	const wkScoreMap = new Map<number, number>();
+
+	for (const doc of weekDocs) {
+		for (const m of doc.matchups) {
+			const hScore = m.home.totalPoints;
+			const aScore = m.away?.totalPoints ?? 0;
+
+			pfMap.set(m.home.teamId, (pfMap.get(m.home.teamId) ?? 0) + hScore);
+			paMap.set(m.home.teamId, (paMap.get(m.home.teamId) ?? 0) + aScore);
+			hiMap.set(m.home.teamId, Math.max(hiMap.get(m.home.teamId) ?? 0, hScore));
+			const prevLo = loMap.get(m.home.teamId);
+			loMap.set(m.home.teamId, prevLo === undefined ? hScore : Math.min(prevLo, hScore));
+			wkMap.set(m.home.teamId, (wkMap.get(m.home.teamId) ?? 0) + 1);
+
+			if (m.away) {
+				pfMap.set(m.away.teamId, (pfMap.get(m.away.teamId) ?? 0) + aScore);
+				paMap.set(m.away.teamId, (paMap.get(m.away.teamId) ?? 0) + hScore);
+				hiMap.set(m.away.teamId, Math.max(hiMap.get(m.away.teamId) ?? 0, aScore));
+				const prevLoA = loMap.get(m.away.teamId);
+				loMap.set(m.away.teamId, prevLoA === undefined ? aScore : Math.min(prevLoA, aScore));
+				wkMap.set(m.away.teamId, (wkMap.get(m.away.teamId) ?? 0) + 1);
+			}
+
+			if (currentScoringPeriodId !== undefined && doc.scoringPeriodId === currentScoringPeriodId) {
+				wkScoreMap.set(m.home.teamId, hScore);
+				if (m.away) wkScoreMap.set(m.away.teamId, aScore);
+			}
+		}
+	}
+
+	const allIds = new Set<number>([
+		...teamInfo.map(t => t.teamId),
+		...Object.keys(teamRecords).map(Number),
+		...Object.keys(leagueRecord).map(Number),
+	]);
+
+	const rows: StandingsRow[] = [];
+	for (const teamId of allIds) {
+		const info  = teamInfo.find(t => t.teamId === teamId);
+		const rec   = teamRecords[teamId]  ?? { wins: 0, losses: 0 };
+		const lr    = leagueRecord[teamId] ?? { wins: 0, losses: 0, ties: 0 };
+		const strk  = streaks.get(teamId);
+		const weeks = wkMap.get(teamId) ?? 0;
+		const pf    = pfMap.get(teamId) ?? 0;
+		const pa    = paMap.get(teamId) ?? 0;
+		const hi    = hiMap.get(teamId) ?? 0;
+		const lo    = loMap.get(teamId) ?? 0;
+		const total = rec.wins + rec.losses;
+
+		rows.push({
+			teamId,
+			teamName:       info?.teamName ?? `Team ${teamId}`,
+			logoUrl:        info?.logoUrl,
+			weekScore:      currentScoringPeriodId !== undefined ? (wkScoreMap.get(teamId) ?? 0) : undefined,
+			projectedScore: previewProjections?.get(teamId),
+			pf,
+			pa,
+			apf:    weeks > 0 ? Math.round((pf / weeks) * 100) / 100 : 0,
+			apa:    weeks > 0 ? Math.round((pa / weeks) * 100) / 100 : 0,
+			w:      rec.wins,
+			l:      rec.losses,
+			pct:    total > 0 ? rec.wins / total : 0,
+			streak: strk ? `${strk.type}${strk.count}` : '\u2014',
+			lrW:    lr.wins,
+			lrL:    lr.losses,
+			lrT:    lr.ties,
+			hi,
+			lo,
+			weeksPlayed: weeks,
+			seed: 0,
+		});
+	}
+
+	rows.sort((a, b) => b.w !== a.w ? b.w - a.w : b.pf - a.pf);
+	rows.forEach((r, i) => { r.seed = i + 1; });
+
+	return rows;
+}
+
 export async function load({ url }) {
 	try {
 		const [availableWeeks, previewWeekInfo] = await Promise.all([
@@ -212,6 +331,28 @@ export async function load({ url }) {
 				}
 			}
 
+			const previewProjections = new Map<number, number>(
+				previewMatchups.flatMap(pm => {
+					const arr: [number, number][] = [[pm.home.teamId, pm.home.projectedPoints]];
+					if (pm.away) arr.push([pm.away.teamId, pm.away.projectedPoints]);
+					return arr;
+				})
+			);
+
+			const previewTeamInfo = (seasonDoc?.teams ?? []).map(t => ({
+				teamId: t.teamId,
+				teamName: t.name,
+				logoUrl: t.logoUrl,
+			}));
+
+			const standingsTable = buildStandingsTable({
+				weekDocs,
+				teamRecords,
+				leagueRecord,
+				teamInfo: previewTeamInfo,
+				previewProjections,
+			});
+
 			return {
 				availableWeeks: allWeeks,
 				weekData:       null,
@@ -222,6 +363,7 @@ export async function load({ url }) {
 				matchupH2H: {},
 				teamRecords,
 				leagueRecord,
+				standingsTable,
 			};
 		}
 
@@ -298,6 +440,20 @@ export async function load({ url }) {
 			}
 		}
 
+		const recapTeamInfo = (seasonDoc?.teams ?? []).map(t => ({
+			teamId: t.teamId,
+			teamName: t.name,
+			logoUrl: t.logoUrl,
+		}));
+
+		const standingsTable = buildStandingsTable({
+			weekDocs,
+			currentScoringPeriodId: target.scoringPeriodId,
+			teamRecords,
+			leagueRecord,
+			teamInfo: recapTeamInfo,
+		});
+
 		return {
 			availableWeeks: allWeeks,
 			weekData,
@@ -308,6 +464,7 @@ export async function load({ url }) {
 			matchupH2H,
 			teamRecords,
 			leagueRecord,
+			standingsTable,
 		};
 	} catch (error) {
 		console.error('Page load error:', error);
@@ -320,6 +477,8 @@ export async function load({ url }) {
 			standingsHistory: [],
 			matchupH2H:      {},
 			teamRecords:     {},
+			leagueRecord:    {},
+			standingsTable:  [],
 			error: error instanceof Error ? error.message : 'Failed to load data'
 		};
 	}
