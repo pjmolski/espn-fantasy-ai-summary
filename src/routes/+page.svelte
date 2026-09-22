@@ -283,9 +283,10 @@
 	})();
 
 	// Highlight: highest value = green (st-hi), lowest = red (st-lo), per column
+	// Uses Sets to support ties — all tied values get the same colour.
 	$: statHighlights = (() => {
 		const rows = data.standingsTable ?? [];
-		if (!rows.length) return {} as Record<string, { hi: number | null; lo: number | null }>;
+		if (!rows.length) return {} as Record<string, { hi: Set<number>; lo: Set<number> }>;
 		const cols: Array<{ key: string; val: (r: typeof rows[0]) => number }> = [
 			{ key: 'w',   val: r => r.w },
 			{ key: 'l',   val: r => r.l },
@@ -298,11 +299,15 @@
 			{ key: 'lo',  val: r => r.lo },
 			{ key: 'lr',  val: r => { const t = r.lrW + r.lrL + r.lrT; return t > 0 ? (r.lrW + r.lrT * 0.5) / t : 0; } },
 		];
-		const result: Record<string, { hi: number | null; lo: number | null }> = {};
+		const result: Record<string, { hi: Set<number>; lo: Set<number> }> = {};
 		for (const col of cols) {
-			const best  = rows.reduce((a, b) => col.val(a) >= col.val(b) ? a : b);
-			const worst = rows.reduce((a, b) => col.val(a) <= col.val(b) ? a : b);
-			result[col.key] = { hi: best.teamId, lo: worst.teamId };
+			const vals = rows.map(r => col.val(r));
+			const maxVal = Math.max(...vals);
+			const minVal = Math.min(...vals);
+			result[col.key] = {
+				hi: new Set(rows.filter(r => col.val(r) === maxVal).map(r => r.teamId)),
+				lo: new Set(rows.filter(r => col.val(r) === minVal).map(r => r.teamId)),
+			};
 		}
 		return result;
 	})();
@@ -1059,8 +1064,8 @@
 	.st-wk { font-weight: 600; }
 	.st-wk-hi { color: var(--green, #4ade80); font-weight: 700; }
 	.st-wk-lo { color: #a16207; font-weight: 700; }
-	.st-hi { color: var(--green, #4ade80); font-weight: 700; }
-	.st-lo { color: #ef4444; font-weight: 700; }
+	:global(.st-hi) { color: var(--green, #4ade80); font-weight: 700; }
+	:global(.st-lo) { color: #ef4444; font-weight: 700; }
 	.st-streak-w { color: var(--green, #4ade80); font-weight: 600; }
 	.st-streak-l { color: var(--red, #f87171); }
 	.st-num { color: var(--text-secondary, #ccc); }
@@ -1137,17 +1142,17 @@
 							{:else}
 								<td class="st-wk {row.teamId === wkScoreHiId ? 'st-wk-hi' : row.teamId === wkScoreLoId ? 'st-wk-lo' : ''}">{row.weekScore !== undefined ? row.weekScore.toFixed(2) : '—'}</td>
 							{/if}
-							<td class="st-w {row.teamId === statHighlights['w']?.hi ? 'st-hi' : row.teamId === statHighlights['w']?.lo ? 'st-lo' : ''}">{row.w}</td>
-							<td class="st-l {row.teamId === statHighlights['l']?.hi ? 'st-hi' : row.teamId === statHighlights['l']?.lo ? 'st-lo' : ''}">{row.l}</td>
-							<td class="st-pct {row.teamId === statHighlights['pct']?.hi ? 'st-hi' : row.teamId === statHighlights['pct']?.lo ? 'st-lo' : ''}">{(row.pct * 100).toFixed(1)}%</td>
+							<td class="st-w {statHighlights['w']?.hi.has(row.teamId) ? 'st-hi' : statHighlights['w']?.lo.has(row.teamId) ? 'st-lo' : ''}">{row.w}</td>
+							<td class="st-l {statHighlights['l']?.hi.has(row.teamId) ? 'st-hi' : statHighlights['l']?.lo.has(row.teamId) ? 'st-lo' : ''}">{row.l}</td>
+							<td class="st-pct {statHighlights['pct']?.hi.has(row.teamId) ? 'st-hi' : statHighlights['pct']?.lo.has(row.teamId) ? 'st-lo' : ''}">{(row.pct * 100).toFixed(1)}%</td>
 							<td class="st-streak {row.streak.startsWith('W') ? 'st-streak-w' : row.streak.startsWith('L') ? 'st-streak-l' : ''}">{row.streak}</td>
-							<td class="st-num {row.teamId === statHighlights['pf']?.hi ? 'st-hi' : row.teamId === statHighlights['pf']?.lo ? 'st-lo' : ''}">{row.pf.toFixed(2)}</td>
-							<td class="st-num {row.teamId === statHighlights['pa']?.hi ? 'st-hi' : row.teamId === statHighlights['pa']?.lo ? 'st-lo' : ''}">{row.pa.toFixed(2)}</td>
-							<td class="st-num {row.teamId === statHighlights['apf']?.hi ? 'st-hi' : row.teamId === statHighlights['apf']?.lo ? 'st-lo' : ''}">{row.apf.toFixed(2)}</td>
-							<td class="st-num {row.teamId === statHighlights['apa']?.hi ? 'st-hi' : row.teamId === statHighlights['apa']?.lo ? 'st-lo' : ''}">{row.apa.toFixed(2)}</td>
-							<td class="st-num {row.teamId === statHighlights['hi']?.hi ? 'st-hi' : row.teamId === statHighlights['hi']?.lo ? 'st-lo' : ''}">{row.hi.toFixed(2)}</td>
-							<td class="st-num {row.teamId === statHighlights['lo']?.hi ? 'st-hi' : row.teamId === statHighlights['lo']?.lo ? 'st-lo' : ''}">{row.lo.toFixed(2)}</td>
-							<td class="st-lr {row.teamId === statHighlights['lr']?.hi ? 'st-hi' : row.teamId === statHighlights['lr']?.lo ? 'st-lo' : ''}">{row.lrW}-{row.lrL}{row.lrT > 0 ? `-${row.lrT}` : ''} <span class="st-lr-pct">({(lrPct * 100).toFixed(0)}%)</span></td>
+							<td class="st-num {statHighlights['pf']?.hi.has(row.teamId) ? 'st-hi' : statHighlights['pf']?.lo.has(row.teamId) ? 'st-lo' : ''}">{row.pf.toFixed(2)}</td>
+							<td class="st-num {statHighlights['pa']?.hi.has(row.teamId) ? 'st-hi' : statHighlights['pa']?.lo.has(row.teamId) ? 'st-lo' : ''}">{row.pa.toFixed(2)}</td>
+							<td class="st-num {statHighlights['apf']?.hi.has(row.teamId) ? 'st-hi' : statHighlights['apf']?.lo.has(row.teamId) ? 'st-lo' : ''}">{row.apf.toFixed(2)}</td>
+							<td class="st-num {statHighlights['apa']?.hi.has(row.teamId) ? 'st-hi' : statHighlights['apa']?.lo.has(row.teamId) ? 'st-lo' : ''}">{row.apa.toFixed(2)}</td>
+							<td class="st-num {statHighlights['hi']?.hi.has(row.teamId) ? 'st-hi' : statHighlights['hi']?.lo.has(row.teamId) ? 'st-lo' : ''}">{row.hi.toFixed(2)}</td>
+							<td class="st-num {statHighlights['lo']?.hi.has(row.teamId) ? 'st-hi' : statHighlights['lo']?.lo.has(row.teamId) ? 'st-lo' : ''}">{row.lo.toFixed(2)}</td>
+							<td class="st-lr {statHighlights['lr']?.hi.has(row.teamId) ? 'st-hi' : statHighlights['lr']?.lo.has(row.teamId) ? 'st-lo' : ''}">{row.lrW}-{row.lrL}{row.lrT > 0 ? `-${row.lrT}` : ''} <span class="st-lr-pct">({(lrPct * 100).toFixed(0)}%)</span></td>
 						</tr>
 					{/each}
 				</tbody>
