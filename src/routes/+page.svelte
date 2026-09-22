@@ -1065,7 +1065,7 @@
 	}
 	.st-seed { color: var(--text-muted, #888); font-size: 0.75rem; width: 1.5rem; }
 	.st-name { font-weight: 500; }
-	.st-w { color: var(--green, #4ade80); font-weight: 600; }
+	.st-w { font-weight: 600; }
 	.st-l { color: var(--text-muted, #888); }
 	.st-pct { color: var(--text-secondary, #aaa); font-size: 0.80rem; }
 	.st-wk { font-weight: 600; }
