@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { CRON_SECRET, LEAGUE_ID } from '$env/static/private';
-import { backfillLeague, ingestSeasonData, ingestWeeklyData } from '$lib/fantasyDataService';
+import { backfillLeague, ingestSeasonData, ingestWeeklyData, deleteWeeklyDoc } from '$lib/fantasyDataService';
 import { getEspnCookies } from '$lib/cookieStore';
 
 /**
@@ -9,17 +9,19 @@ import { getEspnCookies } from '$lib/cookieStore';
  * Protected by the same CRON_SECRET used for the weekly update cron.
  *
  * Query params:
- *   startYear  — only process seasons >= this year (default: all)
- *   weeksOnly  — skip season docs, re-fetch only weekly data (default: false)
- *   dryRun     — log plan without writing to DB (default: false)
- *   year       — ingest a single season doc only (skip weekly)
- *   week       — combined with year: ingest one specific week
+ *   startYear    — only process seasons >= this year (default: all)
+ *   weeksOnly    — skip season docs, re-fetch only weekly data (default: false)
+ *   dryRun       — log plan without writing to DB (default: false)
+ *   year         — ingest a single season doc only (skip weekly)
+ *   week         — combined with year: ingest one specific week
+ *   deleteWeek   — combined with year: DELETE a stored week doc (cleanup for partial weeks)
  *
  * Examples:
- *   GET /api/admin/backfill                          → full backfill all seasons
- *   GET /api/admin/backfill?startYear=2022           → 2022 onwards only
- *   GET /api/admin/backfill?year=2023&week=7         → single week re-ingest
- *   GET /api/admin/backfill?dryRun=true              → preview without writes
+ *   GET /api/admin/backfill                               → full backfill all seasons
+ *   GET /api/admin/backfill?startYear=2022                → 2022 onwards only
+ *   GET /api/admin/backfill?year=2023&week=7              → single week re-ingest
+ *   GET /api/admin/backfill?year=2026&deleteWeek=3        → delete bad week 3 doc
+ *   GET /api/admin/backfill?dryRun=true                   → preview without writes
  */
 export async function GET({ request, url }) {
 	const authHeader = request.headers.get('authorization');
@@ -34,11 +36,19 @@ export async function GET({ request, url }) {
 	const startYearParam = url.searchParams.get('startYear');
 	const startYear = startYearParam ? parseInt(startYearParam) : undefined;
 
-	// Single-season or single-week re-ingest
 	const yearParam = url.searchParams.get('year');
 	const weekParam = url.searchParams.get('week');
+	const deleteWeekParam = url.searchParams.get('deleteWeek');
 
 	try {
+		// Delete a specific week doc (cleanup for partial/in-progress weeks stored by mistake)
+		if (yearParam && deleteWeekParam) {
+			const year = parseInt(yearParam);
+			const week = parseInt(deleteWeekParam);
+			const deleted = await deleteWeeklyDoc(leagueId, year, week);
+			return json({ ok: true, mode: 'delete-week', year, week, deleted });
+		}
+
 		if (yearParam && weekParam) {
 			// Ingest one specific week
 			const year = parseInt(yearParam);

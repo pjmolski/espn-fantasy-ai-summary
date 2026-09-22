@@ -1,19 +1,19 @@
 import { json } from '@sveltejs/kit';
 import { CRON_SECRET, LEAGUE_ID } from '$env/static/private';
-import { backfillLeague } from '$lib/fantasyDataService';
+import { ingestSeasonData, ingestWeeklyData, getAvailableWeeks } from '$lib/fantasyDataService';
 import { getNFLSeason } from '$lib/utils';
 import { getEspnCookies } from '$lib/cookieStore';
+import { fetchLeagueSeason } from '$lib/espnApi';
 
 /**
  * Vercel cron endpoint — fires every Tuesday at 11am UTC (after Monday Night Football).
- * Ingests the just-completed week for the current NFL season.
+ * Ingests only COMPLETED weeks (up to espnCurrentWeek - 1).
  *
  * Vercel automatically sends: Authorization: Bearer <CRON_SECRET>
  * Configured in vercel.json → crons → schedule "0 11 * * 2"
  *
- * Both leagues are public — cookies are not required for ESPN data access.
- * getEspnCookies() will return null if SWID/ESPN_S2 are unset, and
- * backfillLeague handles cookies: undefined gracefully.
+ * Key: we stop at espnCurrentWeek - 1 so we never store the currently-in-progress
+ * week with partial/zero scores, which would break preview detection.
  */
 export async function GET({ request }) {
 	const authHeader = request.headers.get('authorization');
@@ -27,26 +27,48 @@ export async function GET({ request }) {
 		? { swid: cookieStore.swid, espn_s2: cookieStore.espn_s2 }
 		: undefined;
 
-	try {
-		const result = await backfillLeague(LEAGUE_ID, {
-			startYear: currentYear,
-			cookies,
-		});
+	// Ask ESPN what week is currently active
+	const raw = await fetchLeagueSeason(LEAGUE_ID, currentYear, cookies);
+	const espnCurrentWeek: number = raw.scoringPeriodId ?? 0;
 
-		console.log(
-			`[cron] Weekly update complete — season ${currentYear}, ` +
-			`${result.weeksFetched} weeks stored, ${result.weeksSkipped} skipped`
-		);
+	// Only ingest weeks that have fully completed — not the one being played right now
+	const lastCompletedWeek = espnCurrentWeek - 1;
 
-		return json({
-			ok: true,
-			season: currentYear,
-			leagueId: LEAGUE_ID,
-			weeksFetched: result.weeksFetched,
-			weeksSkipped: result.weeksSkipped,
-		});
-	} catch (error) {
-		console.error('[cron] Weekly update failed:', error);
-		return json({ error: String(error) }, { status: 500 });
+	if (lastCompletedWeek < 1) {
+		return json({ ok: true, message: 'Season not started yet', espnCurrentWeek });
 	}
+
+	// Find the latest week we already have stored for this season
+	const allWeeks = await getAvailableWeeks(LEAGUE_ID);
+	const seasonWeeks = allWeeks.filter(w => w.seasonId === currentYear);
+	const latestStored = seasonWeeks.length > 0
+		? Math.max(...seasonWeeks.map(w => w.scoringPeriodId))
+		: 0;
+
+	// Refresh season doc (team names, settings)
+	const seasonDoc = await ingestSeasonData(LEAGUE_ID, currentYear, cookies);
+	const regularSeasonWeeks = seasonDoc.settings.regularSeasonWeeks;
+
+	// Ingest any completed weeks we're missing
+	let weeksFetched = 0;
+	let weeksSkipped = 0;
+	for (let week = latestStored + 1; week <= lastCompletedWeek; week++) {
+		const result = await ingestWeeklyData(LEAGUE_ID, currentYear, week, regularSeasonWeeks, cookies);
+		if (result) weeksFetched++; else weeksSkipped++;
+	}
+
+	console.log(
+		`[cron] season ${currentYear}: espnWeek=${espnCurrentWeek}, ` +
+		`stored up to ${latestStored}, ingested ${weeksFetched} new weeks`
+	);
+
+	return json({
+		ok: true,
+		season: currentYear,
+		espnCurrentWeek,
+		lastCompletedWeek,
+		latestStoredBefore: latestStored,
+		weeksFetched,
+		weeksSkipped,
+	});
 }

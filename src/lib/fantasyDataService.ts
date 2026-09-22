@@ -564,3 +564,16 @@ export async function getWeekPerformance(leagueId: string): Promise<{
 
 	return { perf, currentTeams };
 }
+
+/** Delete a single weekly matchup doc. Used to remove partial/in-progress weeks stored by mistake. */
+export async function deleteWeeklyDoc(
+	leagueId: string,
+	seasonId: number,
+	scoringPeriodId: number
+): Promise<number> {
+	const db = await getDb();
+	const result = await db
+		.collection<WeeklyMatchupDoc>(WEEKLY_MATCHUPS_COLLECTION)
+		.deleteOne({ leagueId, seasonId, scoringPeriodId });
+	return result.deletedCount;
+}
