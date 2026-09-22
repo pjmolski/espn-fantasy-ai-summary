@@ -50,11 +50,13 @@ export async function GET({ request, url }) {
 		}
 
 		if (yearParam && weekParam) {
-			// Ingest one specific week
+			// Ingest one specific week — read regularSeasonWeeks from the season doc
 			const year = parseInt(yearParam);
 			const week = parseInt(weekParam);
-			const result = await ingestWeeklyData(leagueId, year, week, 14, cookies);
-			return json({ ok: true, mode: 'single-week', year, week, stored: !!result });
+			const seasonDoc = await ingestSeasonData(leagueId, year, cookies);
+			const regularSeasonWeeks = seasonDoc.settings.regularSeasonWeeks;
+			const result = await ingestWeeklyData(leagueId, year, week, regularSeasonWeeks, cookies);
+			return json({ ok: true, mode: 'single-week', year, week, regularSeasonWeeks, stored: !!result });
 		}
 
 		if (yearParam && !weekParam) {

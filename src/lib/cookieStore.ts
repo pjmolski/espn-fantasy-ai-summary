@@ -102,6 +102,7 @@ export async function setLastSyncTime(): Promise<void> {
 	const db = await getDb();
 	await db.collection(COOKIES_COLLECTION).updateOne(
 		{},
-		{ $set: { lastTradeSync: new Date() } }
+		{ $set: { lastTradeSync: new Date() } },
+		{ upsert: true }
 	);
 }

@@ -28,15 +28,12 @@ export async function syncTrades(): Promise<{ added: number; error?: string }> {
 			if (newEspnS2 && newEspnS2 !== currentEspnS2) {
 				currentEspnS2 = newEspnS2;
 				await setEspnCookies(cookies.swid, currentEspnS2);
-				console.log(`[tradeSync] espn_s2 rotated for season ${season.seasonId}`);
 			}
 
 			const transactions: any[] = Array.isArray(data) ? data : (data?.transactions ?? data?.items ?? []);
 			// Log first few transactions so we can see the actual shape
 			if (transactions.length > 0) {
-				console.log(`[tradeSync] season ${season.seasonId} sample tx:`, JSON.stringify(transactions[0]).slice(0, 500));
 				const types = [...new Set(transactions.map((t: any) => t.type ?? t.transactionType ?? t.bidType ?? 'UNKNOWN'))];
-				console.log(`[tradeSync] season ${season.seasonId} tx types:`, types);
 			}
 
 			const teamNames = new Map<number, string>(
@@ -88,7 +85,6 @@ export async function syncTrades(): Promise<{ added: number; error?: string }> {
 
 			const added = await upsertTrades(trades);
 			totalAdded += added;
-			console.log(`[tradeSync] season ${season.seasonId}: ${transactions.length} txns, ${trades.length} trades, ${added} new`);
 		} catch (e) {
 			console.warn(`[tradeSync] season ${season.seasonId} failed:`, e);
 		}

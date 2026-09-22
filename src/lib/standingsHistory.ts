@@ -279,7 +279,6 @@ export function computeStreaks(
 	docs: WeeklyMatchupDoc[]
 ): Map<number, { type: 'W' | 'L'; count: number }> {
 	const sorted = [...docs]
-		.filter((d) => !d.isPlayoff)
 		.sort((a, b) => a.scoringPeriodId - b.scoringPeriodId);
 
 	const history = new Map<number, Array<'W' | 'L'>>();

@@ -42,10 +42,10 @@ function bm(
 	places: [number, number],
 	label: string
 ): BracketMatchup {
-	const scoreA = (doc && teamA) ? getTeamScore(doc, teamA) : null;
-	const scoreB = (doc && teamB) ? getTeamScore(doc, teamB) : null;
+	const scoreA = (doc && teamA !== null) ? getTeamScore(doc, teamA) : null;
+	const scoreB = (doc && teamB !== null) ? getTeamScore(doc, teamB) : null;
 	let winner: number | null = null;
-	if (teamA && teamB && scoreA !== null && scoreB !== null) {
+	if (teamA !== null && teamB !== null && scoreA !== null && scoreB !== null) {
 		winner = scoreA > scoreB ? teamA : teamB;
 	}
 	return { teamIdA: teamA, teamIdB: teamB, scoreA, scoreB, winner, placesAtStake: places, label };
@@ -58,7 +58,7 @@ function loser(m: BracketMatchup): number | null {
 
 // ─── Seed computation ─────────────────────────────────────────────────────────
 
-export function computePlayoffSeeds(
+function computePlayoffSeeds(
 	regularDocs: WeeklyMatchupDoc[],
 	seasonDoc: SeasonDoc
 ): { seeds: Map<number, number>; teamBySeed: Map<number, number> } {
@@ -166,7 +166,6 @@ export function computePlayoffBracket(
 	const r3 = playoffDocs[2];
 	if (r3 && rounds[1]) {
 		const [mS1, mS2, m5v6, mCS1, mCS2, m11v12] = rounds[1].matchups;
-		const onVac = [mS1, mS2, m5v6, mCS1, mCS2, m11v12]; // collect 5th, 6th, 11th, 12th
 		const vacation: number[] = [];
 		const w5 = m5v6.winner; const l6 = loser(m5v6);
 		const w11 = m11v12.winner; const l12 = loser(m11v12);

@@ -1,18 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { LEAGUE_ID } from '$env/static/private';
-import { getAllSeasons } from '$lib/fantasyDataService';
-import { MongoClient, ServerApiVersion } from 'mongodb';
-import { MONGODB_URI, DB_NAME } from '$env/static/private';
-import type { WeeklyMatchupDoc } from '$lib/schema';
-
-let cachedClient: MongoClient | null = null;
-async function getDb() {
-	if (!cachedClient) {
-		cachedClient = new MongoClient(MONGODB_URI, { serverApi: { version: ServerApiVersion.v1, strict: true, deprecationErrors: true } });
-		await cachedClient.connect();
-	}
-	return cachedClient.db(DB_NAME);
-}
+import { getAllSeasons, getAllMatchupsAllSeasons } from '$lib/fantasyDataService';
 
 export async function GET({ url }) {
 	const team1 = parseInt(url.searchParams.get('team1') ?? '0');
@@ -31,11 +19,7 @@ export async function GET({ url }) {
 		seasonNames.get(seasonId)?.get(teamId) ?? `Team ${teamId}`;
 
 	// Fetch all weekly matchup docs that involve these two teams
-	const db  = await getDb();
-	const all = await db.collection<WeeklyMatchupDoc>('weeklyMatchups')
-		.find({ leagueId: LEAGUE_ID })
-		.sort({ seasonId: -1, scoringPeriodId: -1 })
-		.toArray();
+	const all = await getAllMatchupsAllSeasons(LEAGUE_ID);
 
 	const matchups: {
 		seasonId: number; week: number;
@@ -62,6 +46,9 @@ export async function GET({ url }) {
 			});
 		}
 	}
+
+	// Sort newest first for display
+	matchups.sort((a, b) => b.seasonId - a.seasonId || b.week - a.week);
 
 	return json({ matchups });
 }

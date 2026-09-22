@@ -1,6 +1,6 @@
 import { MongoClient, ServerApiVersion } from 'mongodb';
 import { getNFLWeek, getNFLSeason } from '$lib/utils';
-import { MONGODB_URI, DB_NAME, COLLECTION_NAME, CRON_SECRET } from '$env/static/private';
+import { MONGODB_URI, DB_NAME } from '$env/static/private';
 import { fetchLeagueSeason, fetchWeeklyMatchups, parseSeasonData, parseWeeklyData } from '$lib/espnApi';
 import { getEspnCookies } from '$lib/cookieStore';
 import type { SeasonDoc, WeeklyMatchupDoc } from '$lib/schema';
@@ -30,97 +30,6 @@ async function getDb() {
 // Collection name constants — not sensitive, no need for env vars
 const SEASONS_COLLECTION = 'seasons';
 const WEEKLY_MATCHUPS_COLLECTION = 'weeklyMatchups';
-
-// ─── Legacy types (kept for backwards compatibility) ─────────────────────────
-
-interface WeeklyData {
-	week: number;
-	season: number;
-	summary: {
-		overallSummary: string;
-		matchupSummaries: {
-			team1: string;
-			team2: string;
-			summary: string;
-			matchupId: number;
-		}[];
-	};
-	highestScoringPlayer: {
-		player: string;
-		owner: string;
-		score: number;
-	};
-	highestScoringTeam: {
-		owner: string;
-		score: number;
-	};
-	matchups: {
-		matchupId: number;
-		teamName: string;
-		totalPoints: number;
-		result: 'Win' | 'Loss';
-	}[];
-	standings: {
-		[key: string]: string | number;
-	}[];
-}
-
-interface WeeklyDataWithId extends WeeklyData {
-	_id: string;
-}
-
-export interface WeekEntry {
-	season: number;
-	week: number;
-}
-
-// ─── Legacy read functions (AI summary collection) ───────────────────────────
-
-export async function getLatestFantasyData(): Promise<WeeklyDataWithId | null> {
-	const db = await getDb();
-	const collection = db.collection(COLLECTION_NAME);
-
-	const latestData = await collection
-		.find<WeeklyDataWithId>({})
-		.sort({ season: -1, week: -1 })
-		.limit(1)
-		.toArray();
-
-	if (latestData.length === 0) {
-		console.log('No data found in the weekly-summaries collection');
-		return null;
-	}
-
-	const data = latestData[0];
-	return { ...data, _id: data._id.toString() };
-}
-
-export async function getFantasyDataByWeek(
-	week: number,
-	season: number
-): Promise<WeeklyDataWithId | null> {
-	const db = await getDb();
-	const collection = db.collection(COLLECTION_NAME);
-
-	const data = await collection.findOne<WeeklyDataWithId>({ week, season });
-	if (!data) return null;
-	return { ...data, _id: data._id.toString() };
-}
-
-export async function getAllWeeks(): Promise<WeekEntry[]> {
-	const db = await getDb();
-	const collection = db.collection(COLLECTION_NAME);
-
-	const docs = await collection
-		.find<WeeklyDataWithId>({}, { projection: { week: 1, season: 1 } })
-		.sort({ season: -1, week: -1 })
-		.toArray();
-
-	return docs.map((d) => ({ season: d.season ?? 0, week: d.week }));
-}
-
-
-
 
 // ─── New ingestion functions (rich player-level data) ────────────────────────
 
@@ -205,13 +114,6 @@ export async function ingestWeeklyData(
 	return doc;
 }
 
-const DELAY_MS_BETWEEN_WEEKS = 250;
-const DELAY_MS_BETWEEN_SEASONS = 750;
-
-function sleep(ms: number) {
-	return new Promise((r) => setTimeout(r, ms));
-}
-
 /**
  * Backfill all historical data for a league.
  *
@@ -227,6 +129,9 @@ export async function backfillLeague(
 	leagueId: string,
 	options: { startYear?: number; weeksOnly?: boolean; dryRun?: boolean; cookies?: { swid: string; espn_s2: string } } = {}
 ): Promise<{ seasons: number[]; weeksFetched: number; weeksSkipped: number }> {
+	const DELAY_MS_BETWEEN_WEEKS = 250;
+	const DELAY_MS_BETWEEN_SEASONS = 750;
+	const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 	const { startYear, weeksOnly = false, dryRun = false, cookies } = options;
 
 	// Fetch current season first to discover the full season list
@@ -517,55 +422,6 @@ export async function detectPreviewWeek(
 	}
 }
 
-/** Per-team, per-week historical W/L across all stored seasons. */
-export async function getWeekPerformance(leagueId: string): Promise<{
-	perf: Record<number, Record<number, { wins: number; losses: number }>>;
-	currentTeams: { teamId: number; teamName: string }[];
-}> {
-	const db = await getDb();
-
-	// Find latest stored season for canonical team names
-	const latestSeason = await db
-		.collection<SeasonDoc>(SEASONS_COLLECTION)
-		.findOne({ leagueId }, { sort: { seasonId: -1 }, projection: { seasonId: 1, teams: 1 } });
-
-	const currentTeams: { teamId: number; teamName: string }[] =
-		(latestSeason?.teams ?? []).map((t) => ({ teamId: t.teamId, teamName: t.name }));
-
-	// Pull all matchup docs (all seasons)
-	const allDocs = await db
-		.collection<WeeklyMatchupDoc>(WEEKLY_MATCHUPS_COLLECTION)
-		.find({ leagueId })
-		.project({ scoringPeriodId: 1, matchups: 1 })
-		.toArray();
-
-	const perf: Record<number, Record<number, { wins: number; losses: number }>> = {};
-
-	for (const doc of allDocs) {
-		const week = doc.scoringPeriodId;
-		for (const m of doc.matchups) {
-			if (!m.away) continue; // playoff bye — no result
-			const homeId = m.home.teamId;
-			const awayId = m.away.teamId;
-			perf[homeId] ??= {};
-			perf[awayId] ??= {};
-			perf[homeId][week] ??= { wins: 0, losses: 0 };
-			perf[awayId][week] ??= { wins: 0, losses: 0 };
-			if (m.winner === 'HOME') {
-				perf[homeId][week].wins++;
-				perf[awayId][week].losses++;
-			} else if (m.winner === 'AWAY') {
-				perf[homeId][week].losses++;
-				perf[awayId][week].wins++;
-			}
-			// TIE / UNDECIDED: skip (no W or L)
-		}
-	}
-
-	return { perf, currentTeams };
-}
-
-/** Delete a single weekly matchup doc. Used to remove partial/in-progress weeks stored by mistake. */
 export async function deleteWeeklyDoc(
 	leagueId: string,
 	seasonId: number,

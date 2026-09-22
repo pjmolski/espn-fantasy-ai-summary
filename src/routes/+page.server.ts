@@ -391,7 +391,9 @@ export async function load({ url }) {
 			weeklyRanks: entry.weeklyRanks.filter((r) => r.week <= target.scoringPeriodId)
 		}));
 
-		if (weekData?.isPlayoffWeek) {
+		// Only set brassNuts/toiletBowl on championship week (last playoff round = regularSeasonWeeks + 3)
+		const isChampionshipWeek = seasonDoc && target.scoringPeriodId === seasonDoc.settings.regularSeasonWeeks + 3;
+		if (weekData?.isPlayoffWeek && isChampionshipWeek) {
 			for (const entry of standingsHistory) {
 				const lastRank = entry.weeklyRanks[entry.weeklyRanks.length - 1]?.rank;
 				if (lastRank === 1) weekData.brassNuts  = { teamId: entry.teamId, teamName: entry.teamName };

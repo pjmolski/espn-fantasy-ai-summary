@@ -390,7 +390,7 @@ export function processWeek(
 
 	if (weekDoc.isPlayoff && playoffRound) {
 		matchups = playoffRound.matchups
-			.filter((bm) => bm.teamIdA && bm.teamIdB !== null)
+			.filter((bm) => bm.teamIdB !== null)
 			.map((bm, i) => {
 				const home = teamDataMap.get(bm.teamIdA)!;
 				const away = bm.teamIdB ? teamDataMap.get(bm.teamIdB) : undefined;
@@ -691,7 +691,7 @@ export function processWeek(
 
 	// ── Lucky Devil 🍀: lowest-scoring winner, but only if they scored in bottom half (wouldHaveBeaten < 6)
 	let luckyDevil: LuckyDevilAward | null = null;
-	if (luckiestTeamId !== null && (wouldHaveBeatenMap.get(luckiestTeamId) ?? 0) < 6) {
+	if (luckiestTeamId !== null && (wouldHaveBeatenMap.get(luckiestTeamId) ?? 0) < (totalTeams - 1) / 2) {
 		outer: for (const m of matchups) {
 			for (const t of [m.home, m.away].filter(Boolean) as ProcessedTeam[]) {
 				if (t.teamId === luckiestTeamId) {

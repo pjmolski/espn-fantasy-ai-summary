@@ -1,4 +1,3 @@
-import fetch from 'node-fetch';
 import type {
 	SeasonDoc,
 	WeeklyMatchupDoc,
@@ -198,17 +197,14 @@ export async function fetchTransactions(
 	const commUrl   = `${COMM_BASE}/seasons/${year}/segments/0/leagues/${leagueId}/communication/?view=kona_league_communication`;
 	const commRes   = await fetch(commUrl, { headers: { ...ESPN_HEADERS, Cookie: cookie } });
 	const commText  = await commRes.text();
-	console.log(`[fetchTransactions] ${year} communication status=${commRes.status} body=${commText.slice(0, 500)}`);
 
 	const newEspnS2 = extractCookie(commRes);
 
 	if (commRes.ok && commText.trim().length > 0) {
 		const commData = JSON.parse(commText);
 		// Log top-level keys so we can find where trades live
-		console.log(`[fetchTransactions] ${year} keys:`, Object.keys(commData).join(', '));
 		const txns = commData?.transactions ?? commData?.items ?? commData?.topics ?? commData ?? [];
 		const arr  = Array.isArray(txns) ? txns : [];
-		console.log(`[fetchTransactions] ${year} found ${arr.length} items, types: ${[...new Set(arr.map((t: any) => t.type ?? t.topicType))].join(',') || 'none'}`);
 		return { data: arr, newEspnS2 };
 	}
 
