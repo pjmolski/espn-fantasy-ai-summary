@@ -282,6 +282,31 @@
 		return rows.reduce((lo, r) => (r.weekScore! < lo.weekScore!) ? r : lo).teamId;
 	})();
 
+	// Highlight: highest value = green (st-hi), lowest = red (st-lo), per column
+	$: statHighlights = (() => {
+		const rows = data.standingsTable ?? [];
+		if (!rows.length) return {} as Record<string, { hi: number | null; lo: number | null }>;
+		const cols: Array<{ key: string; val: (r: typeof rows[0]) => number }> = [
+			{ key: 'w',   val: r => r.w },
+			{ key: 'l',   val: r => r.l },
+			{ key: 'pct', val: r => r.pct },
+			{ key: 'pf',  val: r => r.pf },
+			{ key: 'pa',  val: r => r.pa },
+			{ key: 'apf', val: r => r.apf },
+			{ key: 'apa', val: r => r.apa },
+			{ key: 'hi',  val: r => r.hi },
+			{ key: 'lo',  val: r => r.lo },
+			{ key: 'lr',  val: r => { const t = r.lrW + r.lrL + r.lrT; return t > 0 ? (r.lrW + r.lrT * 0.5) / t : 0; } },
+		];
+		const result: Record<string, { hi: number | null; lo: number | null }> = {};
+		for (const col of cols) {
+			const best  = rows.reduce((a, b) => col.val(a) >= col.val(b) ? a : b);
+			const worst = rows.reduce((a, b) => col.val(a) <= col.val(b) ? a : b);
+			result[col.key] = { hi: best.teamId, lo: worst.teamId };
+		}
+		return result;
+	})();
+
 	function displacedFromOptimal(t: ProcessedTeam): ProcessedPlayer[] {
 		const optIds = new Set(t.optimalStarters.map(s => s.playerId));
 		return [...t.starters, ...t.bench].filter(p => !optIds.has(p.playerId) && p.slotName !== 'IR');
@@ -1034,6 +1059,8 @@
 	.st-wk { font-weight: 600; }
 	.st-wk-hi { color: var(--green, #4ade80); font-weight: 700; }
 	.st-wk-lo { color: #a16207; font-weight: 700; }
+	.st-hi { color: var(--green, #4ade80); font-weight: 700; }
+	.st-lo { color: #ef4444; font-weight: 700; }
 	.st-streak-w { color: var(--green, #4ade80); font-weight: 600; }
 	.st-streak-l { color: var(--red, #f87171); }
 	.st-num { color: var(--text-secondary, #ccc); }
@@ -1110,17 +1137,17 @@
 							{:else}
 								<td class="st-wk {row.teamId === wkScoreHiId ? 'st-wk-hi' : row.teamId === wkScoreLoId ? 'st-wk-lo' : ''}">{row.weekScore !== undefined ? row.weekScore.toFixed(2) : '—'}</td>
 							{/if}
-							<td class="st-w">{row.w}</td>
-							<td class="st-l">{row.l}</td>
-							<td class="st-pct">{(row.pct * 100).toFixed(1)}%</td>
+							<td class="st-w {row.teamId === statHighlights['w']?.hi ? 'st-hi' : row.teamId === statHighlights['w']?.lo ? 'st-lo' : ''}">{row.w}</td>
+							<td class="st-l {row.teamId === statHighlights['l']?.hi ? 'st-hi' : row.teamId === statHighlights['l']?.lo ? 'st-lo' : ''}">{row.l}</td>
+							<td class="st-pct {row.teamId === statHighlights['pct']?.hi ? 'st-hi' : row.teamId === statHighlights['pct']?.lo ? 'st-lo' : ''}">{(row.pct * 100).toFixed(1)}%</td>
 							<td class="st-streak {row.streak.startsWith('W') ? 'st-streak-w' : row.streak.startsWith('L') ? 'st-streak-l' : ''}">{row.streak}</td>
-							<td class="st-num">{row.pf.toFixed(2)}</td>
-							<td class="st-num">{row.pa.toFixed(2)}</td>
-							<td class="st-num">{row.apf.toFixed(2)}</td>
-							<td class="st-num">{row.apa.toFixed(2)}</td>
-							<td class="st-num">{row.hi.toFixed(2)}</td>
-							<td class="st-num">{row.lo.toFixed(2)}</td>
-							<td class="st-lr">{row.lrW}-{row.lrL}{row.lrT > 0 ? `-${row.lrT}` : ''} <span class="st-lr-pct">({(lrPct * 100).toFixed(0)}%)</span></td>
+							<td class="st-num {row.teamId === statHighlights['pf']?.hi ? 'st-hi' : row.teamId === statHighlights['pf']?.lo ? 'st-lo' : ''}">{row.pf.toFixed(2)}</td>
+							<td class="st-num {row.teamId === statHighlights['pa']?.hi ? 'st-hi' : row.teamId === statHighlights['pa']?.lo ? 'st-lo' : ''}">{row.pa.toFixed(2)}</td>
+							<td class="st-num {row.teamId === statHighlights['apf']?.hi ? 'st-hi' : row.teamId === statHighlights['apf']?.lo ? 'st-lo' : ''}">{row.apf.toFixed(2)}</td>
+							<td class="st-num {row.teamId === statHighlights['apa']?.hi ? 'st-hi' : row.teamId === statHighlights['apa']?.lo ? 'st-lo' : ''}">{row.apa.toFixed(2)}</td>
+							<td class="st-num {row.teamId === statHighlights['hi']?.hi ? 'st-hi' : row.teamId === statHighlights['hi']?.lo ? 'st-lo' : ''}">{row.hi.toFixed(2)}</td>
+							<td class="st-num {row.teamId === statHighlights['lo']?.hi ? 'st-hi' : row.teamId === statHighlights['lo']?.lo ? 'st-lo' : ''}">{row.lo.toFixed(2)}</td>
+							<td class="st-lr {row.teamId === statHighlights['lr']?.hi ? 'st-hi' : row.teamId === statHighlights['lr']?.lo ? 'st-lo' : ''}">{row.lrW}-{row.lrL}{row.lrT > 0 ? `-${row.lrT}` : ''} <span class="st-lr-pct">({(lrPct * 100).toFixed(0)}%)</span></td>
 						</tr>
 					{/each}
 				</tbody>
