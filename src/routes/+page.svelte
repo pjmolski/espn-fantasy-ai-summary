@@ -1058,17 +1058,6 @@
 		</div>
 	</div>
 
-	<main>
-		{#if data.error}
-			<div class="empty">{data.error}</div>
-
-		{:else if loading}
-			<div class="empty">Loading...</div>
-
-		{:else if weekData}
-			<div class="week-label">
-				{weekData.seasonId} · {weekData.isPlayoffWeek ? '🏆 Playoffs · ' : ''}Week {weekData.scoringPeriodId}
-			</div>
 
 {#snippet standingsTable()}
 		<!-- Standings Table -->
@@ -1141,6 +1130,20 @@
 		{/if}
 
 {/snippet}
+	<main>
+		{#if data.error}
+			<div class="empty">{data.error}</div>
+
+		{:else if loading}
+			<div class="empty">Loading...</div>
+
+		{:else if weekData}
+			<div class="week-label">
+				{weekData.seasonId} · {weekData.isPlayoffWeek ? '🏆 Playoffs · ' : ''}Week {weekData.scoringPeriodId}
+			</div>
+
+{@render standingsTable()}
+
 			<h2 class="section-header" onclick={() => honorsOpen = !honorsOpen}>
 				<span>Week {weekData.scoringPeriodId} Honors</span>
 				<span class="section-chevron {honorsOpen ? 'open' : ''}"></span>
