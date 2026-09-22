@@ -1060,7 +1060,7 @@
 		<!-- Standings Table -->
 		{#if sortedStandings.length > 0}
 		<h2 class="section-header" onclick={() => standingsTableOpen = !standingsTableOpen}>
-			<span>Standings</span>
+			<span>Stats</span>
 			<span class="section-chevron {standingsTableOpen ? 'open' : ''}"></span>
 		</h2>
 		{#if standingsTableOpen}
@@ -1805,7 +1805,7 @@
 		<!-- Standings Table -->
 		{#if sortedStandings.length > 0}
 		<h2 class="section-header" onclick={() => standingsTableOpen = !standingsTableOpen}>
-			<span>Standings</span>
+			<span>Stats</span>
 			<span class="section-chevron {standingsTableOpen ? 'open' : ''}"></span>
 		</h2>
 		{#if standingsTableOpen}
