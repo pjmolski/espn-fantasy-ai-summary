@@ -189,6 +189,14 @@ export interface CantHaveYourCakeAward {
 	pointsLeftOnBench: number;
 	actualScore: number;
 }
+export interface DeadWeightAward {
+	teamId: number;
+	teamName: string;
+	margin: number;           // margin of defeat (positive)
+	negativeTotal: number;    // sum of negative scores (negative number)
+	negativePlayers: Array<{ name: string; score: number; position: string }>;
+	opponentName: string;
+}
 
 export interface ProcessedWeek {
 	leagueId: string;
@@ -214,6 +222,7 @@ export interface ProcessedWeek {
 	galaxyBrain: GalaxyBrainAward | null;
 	badPlace: BadPlaceAward | null;
 	cantHaveYourCake: CantHaveYourCakeAward | null;
+	deadWeight: DeadWeightAward | null;
 	brassNuts: ChampionshipAward | null;
 	toiletBowl: ChampionshipAward | null;
 	onVacation: ProcessedTeam[];
@@ -844,6 +853,35 @@ export function processWeek(
 		}
 	}
 
+	// ── Dead Weight ⚓: loser whose negative-scoring starters cost them the matchup ──
+	let deadWeight: DeadWeightAward | null = null;
+	{
+		const candidates: DeadWeightAward[] = [];
+		for (const m of matchups) {
+			if (!m.away || m.winner === 'undecided' || m.winner === 'tie') continue;
+			const loser  = m.winner === 'home' ? m.away : m.home;
+			const winner = m.winner === 'home' ? m.home : m.away;
+			const margin = Math.round((winner.totalPoints - loser.totalPoints) * 100) / 100;
+			const negPlayers = loser.starters.filter(p => p.actualScore < 0);
+			if (negPlayers.length === 0) continue;
+			const negTotal = Math.round(negPlayers.reduce((s, p) => s + p.actualScore, 0) * 100) / 100;
+			if (Math.abs(negTotal) >= margin) {
+				candidates.push({
+					teamId: loser.teamId,
+					teamName: loser.teamName,
+					margin,
+					negativeTotal: negTotal,
+					negativePlayers: negPlayers.map(p => ({ name: p.fullName, score: p.actualScore, position: p.position })),
+					opponentName: winner.teamName,
+				});
+			}
+		}
+		if (candidates.length > 0) {
+			candidates.sort((a, b) => a.margin - b.margin);
+			deadWeight = candidates[0];
+		}
+	}
+
 	return {
 		leagueId: weekDoc.leagueId,
 		seasonId: weekDoc.seasonId,
@@ -867,6 +905,7 @@ export function processWeek(
 		galaxyBrain,
 		badPlace,
 		cantHaveYourCake,
+		deadWeight,
 		brassNuts: null,
 		toiletBowl: null,
 		onVacation,

@@ -216,6 +216,7 @@
 		if (weekData.galaxyBrain) add(weekData.galaxyBrain.teamId, '🧠');
 		if (weekData.badPlace) add(weekData.badPlace.teamId, '🥀');
 		if (weekData.cantHaveYourCake) add(weekData.cantHaveYourCake.teamId, '🍽️');
+		if (weekData.deadWeight) add(weekData.deadWeight.teamId, '⚓');
 		if (weekData.brassNuts) add(weekData.brassNuts.teamId, '🔩');
 		if (weekData.toiletBowl) add(weekData.toiletBowl.teamId, '🪠');
 		return map;
@@ -1540,6 +1541,24 @@
 					</div>
 				{/if}
 
+				{#if weekData.deadWeight}
+					{@const dw = weekData.deadWeight}
+					<div class="award-card bad">
+						<div class="award-band">
+							<div class="award-emoji">⚓</div>
+							<div class="award-label">Dead Weight</div>
+						</div>
+						<div class="award-card-inner">
+							{#if teamLogoMap.get(dw.teamId)}<img class="award-img" src={teamLogoMap.get(dw.teamId)} alt={dw.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />{:else}<span class="logo-init">{logoInitials(dw.teamName)}</span>{/if}
+							<div class="award-body">
+								<div class="award-player">{dw.teamName}</div>
+								<div class="award-meta">Lost to {dw.opponentName} by {dw.margin.toFixed(2)} pts</div>
+								<div class="award-score red">{dw.negativeTotal.toFixed(2)} from {dw.negativePlayers.map(p => p.name + ' (' + p.score.toFixed(2) + ')').join(', ')}</div>
+							</div>
+						</div>
+					</div>
+				{/if}
+
 
 			</div>
 
@@ -1561,6 +1580,7 @@
 					<span>🧠</span><span><strong>Galaxy Brain</strong> — sole team who played their exact optimal lineup this week</span>
 					<span>🥀</span><span><strong>The Bad Place</strong> — losing team whose optimal lineup would have beaten the opponent's optimal lineup</span>
 					<span>🍽️</span><span><strong>Can't Have Your Cake</strong> — team who left the most points on the bench this week</span>
+					<span>⚓</span><span><strong>Dead Weight</strong> — loser whose negative-scoring starters cost them the matchup (tiebreak: smallest margin)</span>
 					<span>🏎️</span><span><strong>Hot Rod</strong> — current highest win streak (solo leader, ≥ 3 wins)</span>
 					<span>⛄</span><span><strong>Snow Man</strong> — current highest losing streak (solo leader, ≥ 3 losses)</span>
 					<span>🔩</span><span><strong>Brass Nuts</strong> — League Champion (final playoff week)</span>
