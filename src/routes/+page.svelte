@@ -232,14 +232,24 @@
 	$: smRowTotals = (() => {
 		const sm = data.scheduleMatrix;
 		const teams = data.standingsTable ?? [];
-		if (!sm) return { totals: new Map<number,number>(), max: 0, min: 0 };
-		const totals = new Map<number,number>();
+		if (!sm) return { deltas: new Map<number,number>(), max: 0, min: 0 };
+		const deltas = new Map<number,number>();
 		for (const row of teams) {
-			const wins = teams.reduce((s, col) => s + (sm[row.teamId]?.[col.teamId]?.w ?? 0), 0);
-			totals.set(row.teamId, wins);
+			const diagCell = sm[row.teamId]?.[row.teamId];
+			const diagPct  = diagCell ? diagCell.w / (diagCell.w + diagCell.l + diagCell.t || 1) : 0;
+			let better = 0, worse = 0;
+			for (const col of teams) {
+				if (col.teamId === row.teamId) continue;
+				const cell = sm[row.teamId]?.[col.teamId];
+				if (!cell) continue;
+				const cellPct = cell.w / (cell.w + cell.l + cell.t || 1);
+				if (cellPct > diagPct) better++;
+				else if (cellPct < diagPct) worse++;
+			}
+			deltas.set(row.teamId, better - worse);
 		}
-		const vals = [...totals.values()];
-		return { totals, max: Math.max(...vals), min: Math.min(...vals) };
+		const vals = [...deltas.values()];
+		return { deltas, max: Math.max(...vals), min: Math.min(...vals) };
 	})();
 
 	// Standings table sort state
@@ -1239,7 +1249,7 @@
 						{#each smTeams as row}
 							{@const diag = sm[row.teamId]?.[row.teamId]}
 							{@const diagPct = diag ? diag.w / (diag.w + diag.l + diag.t || 1) : 0}
-							{@const rowWins = smRowTotals.totals.get(row.teamId) ?? 0}
+							{@const rowWins = smRowTotals.deltas.get(row.teamId) ?? 0}
 							<tr>
 								<td class="sm-row-header {rowWins === smRowTotals.max ? 'sm-name-best' : rowWins === smRowTotals.min ? 'sm-name-worst' : ''}">{row.teamName}</td>
 								{#each smTeams as col}
