@@ -341,6 +341,51 @@ export async function load() {
 		weekPerf[loserId][wk].lossSeasons.push(yr);
 	}
 
+	// ── Mount Rushmore: top 3 starters by total points per fantasy team ─────────
+	// Uses allDocs (MongoDB / 2019+) only — historical JSON lacks player data.
+	type MrPlayer = { playerId: number; fullName: string; totalPoints: number; seasons: number[] };
+	type MountRushmoreRow = { teamId: number; teamName: string; logoUrl?: string; top3: MrPlayer[] };
+
+	{
+		// intentional block — no-op for scoping clarity
+	}
+
+	const mrMap = new Map<number, Map<number, { fullName: string; pts: number; seasons: Set<number> }>>();
+	for (const t of currentTeams) mrMap.set(t.teamId, new Map());
+
+	for (const doc of allDocs) {
+		for (const matchup of doc.matchups) {
+			for (const side of [matchup.home, matchup.away]) {
+				if (!side?.roster) continue;
+				const teamBucket = mrMap.get(side.teamId);
+				if (!teamBucket) continue;
+				for (const p of side.roster) {
+					if (!p.isStarter) continue;
+					if (!teamBucket.has(p.playerId)) {
+						teamBucket.set(p.playerId, { fullName: p.fullName, pts: 0, seasons: new Set() });
+					}
+					const entry = teamBucket.get(p.playerId)!;
+					entry.pts += p.actualScore;
+					entry.seasons.add(doc.seasonId);
+				}
+			}
+		}
+	}
+
+	const mountRushmore: MountRushmoreRow[] = currentTeams.map(t => {
+		const bucket = mrMap.get(t.teamId) ?? new Map();
+		const top3 = [...bucket.entries()]
+			.map(([playerId, e]) => ({
+				playerId,
+				fullName: e.fullName,
+				totalPoints: Math.round(e.pts * 100) / 100,
+				seasons: [...e.seasons].sort((a, b) => a - b),
+			}))
+			.sort((a, b) => b.totalPoints - a.totalPoints)
+			.slice(0, 3);
+		return { teamId: t.teamId, teamName: t.name, logoUrl: t.logoUrl, top3 };
+	}).sort((a, b) => a.teamName.localeCompare(b.teamName));
+
 	// ── All-time stats table ─────────────────────────────────────────────────
 	type AllTimeStatsRow = {
 		teamId: number; teamName: string; logoUrl?: string;
@@ -497,5 +542,6 @@ export async function load() {
 		barnBurners,
 		weekPerf,
 		allTimeStats,
+		mountRushmore,
 	};
 }

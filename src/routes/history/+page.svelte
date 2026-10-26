@@ -17,6 +17,10 @@
 		blowouts:    { seasonId: number; week: number; winnerName: string; winnerScore: number; winnerLogo?: string; loserName: string; loserScore: number; loserLogo?: string; delta: number; combined: number }[];
 		barnBurners: { seasonId: number; week: number; winnerName: string; winnerScore: number; winnerLogo?: string; loserName: string; loserScore: number; loserLogo?: string; delta: number; combined: number }[];
 		weekPerf: Record<number, Record<number, { wins: number; losses: number; winSeasons: number[]; lossSeasons: number[] }>>;
+		mountRushmore: {
+			teamId: number; teamName: string; logoUrl?: string;
+			top3: { playerId: number; fullName: string; totalPoints: number; seasons: number[] }[];
+		}[];
 		allTimeStats: {
 			teamId: number; teamName: string; logoUrl?: string;
 			w: number; l: number; pct: number;
@@ -29,7 +33,7 @@
 	};
 
 	const { currentTeams, earliestSeason, seasonResults, winniestTeams, chumpiestTeams,
-	        h2hSerialized, tightestRivalries, lopsidedRivalries, blowouts, barnBurners, weekPerf, allTimeStats } = data;
+	        h2hSerialized, tightestRivalries, lopsidedRivalries, blowouts, barnBurners, weekPerf, allTimeStats, mountRushmore } = data;
 
 	let atStatsOpen = false;
 
@@ -537,6 +541,60 @@
 
 
 
+	<!-- ── Mount Rushmore ──────────────────────────────────────────────────── -->
+	<section class="history-section">
+		<h2 class="section-title">🗿 Mount Rushmore</h2>
+		<p class="section-note">Top 3 starters by total fantasy points scored on each team. 2019–present.</p>
+		<div class="mr-wrap">
+			<table class="mr-table">
+				<thead>
+					<tr>
+						<th class="mr-th-team">Team</th>
+						<th class="mr-th-player">#1</th>
+						<th class="mr-th-player">#2</th>
+						<th class="mr-th-player">#3</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each mountRushmore as row}
+						<tr class="mr-row">
+							<td class="mr-team-cell">
+								{#if row.logoUrl}
+									<img class="mr-team-logo" src={row.logoUrl} alt={row.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display='none'} loading="lazy" />
+								{:else}
+									<span class="logo-init sm">{logoInitials(row.teamName)}</span>
+								{/if}
+								<span class="mr-team-name">{row.teamName}</span>
+							</td>
+							{#each [0, 1, 2] as rank}
+								{@const p = row.top3[rank]}
+								{#if p}
+									<td class="mr-player-cell">
+										<img
+											class="mr-player-img"
+											src="https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/{p.playerId}.png&w=80&h=58"
+											alt={p.fullName}
+											onerror={(e) => { (e.currentTarget as HTMLImageElement).style.display='none'; (e.currentTarget.nextElementSibling as HTMLElement|null)?.style.setProperty('display','inline-flex'); }}
+											loading="lazy"
+										/>
+										<span class="logo-init sm mr-player-fallback" style="display:none">{logoInitials(p.fullName)}</span>
+										<div class="mr-player-info">
+											<span class="mr-player-name">{p.fullName}</span>
+											<span class="mr-player-pts">{p.totalPoints.toFixed(1)} pts</span>
+											<span class="mr-player-years">({p.seasons.map(s => `'${String(s).slice(2)}`).join(', ')})</span>
+										</div>
+									</td>
+								{:else}
+									<td class="mr-player-cell mr-empty">—</td>
+								{/if}
+							{/each}
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+	</section>
+
 	<!-- ── All-Time Stats ───────────────────────────────────────────────────── -->
 	<section class="history-section">
 		<h2 class="section-title">📊 All-Time Stats</h2>
@@ -846,5 +904,34 @@
 	:global(.st-hi) { color: #4ade80 !important; font-weight: 700; }
 	:global(.st-lo) { color: #ef4444 !important; font-weight: 700; }
 	.lr-logo { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+
+	/* ── Mount Rushmore ──────────────────────────────────────────── */
+	.mr-wrap { overflow-x: auto; }
+	.mr-table { border-collapse: collapse; width: 100%; }
+	.mr-table thead tr { border-bottom: 1px solid rgba(255,255,255,0.1); }
+	.mr-th-team { padding: 6px 12px; text-align: left; font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 600; min-width: 140px; }
+	.mr-th-player { padding: 6px 12px; text-align: left; font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 600; min-width: 180px; }
+	.mr-row { border-bottom: 1px solid rgba(255,255,255,0.05); }
+	.mr-row:hover { background: rgba(255,255,255,0.03); }
+	.mr-team-cell {
+		padding: 10px 12px; display: flex; align-items: center; gap: 8px;
+		white-space: nowrap; vertical-align: middle;
+	}
+	.mr-team-logo { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+	.mr-team-name { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.85); }
+	.mr-player-cell {
+		padding: 8px 12px; vertical-align: middle;
+		display: flex; align-items: center; gap: 10px;
+	}
+	.mr-player-img {
+		width: 40px; height: 29px; object-fit: cover; border-radius: 4px;
+		background: rgba(255,255,255,0.06); flex-shrink: 0;
+	}
+	.mr-player-fallback { flex-shrink: 0; }
+	.mr-player-info { display: flex; flex-direction: column; gap: 1px; }
+	.mr-player-name { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.85); white-space: nowrap; }
+	.mr-player-pts { font-size: 11px; font-weight: 700; color: #4ade80; }
+	.mr-player-years { font-size: 10px; color: rgba(255,255,255,0.3); }
+	.mr-empty { color: rgba(255,255,255,0.2); font-size: 13px; vertical-align: middle; padding: 8px 12px; }
 
 </style>
