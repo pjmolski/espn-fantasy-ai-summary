@@ -170,6 +170,48 @@ function buildStandingsTable(opts: {
 	return rows;
 }
 
+// Schedule-swap matrix: for each (evalTeam, schedTeam) pair, what would
+// evalTeam's record be playing schedTeam's opponents each week?
+function computeScheduleMatrix(
+	weekDocs: import('$lib/schema').WeeklyMatchupDoc[]
+): Record<number, Record<number, { w: number; l: number; t: number }>> {
+	type WeekInfo = { scores: Map<number, number>; opponents: Map<number, number> };
+	const weeks = new Map<number, WeekInfo>();
+	for (const doc of weekDocs) {
+		if (doc.isPlayoff) continue;
+		const scores = new Map<number, number>();
+		const opponents = new Map<number, number>();
+		for (const m of doc.matchups) {
+			if (!m.away) continue;
+			scores.set(m.home.teamId, m.home.totalPoints);
+			scores.set(m.away.teamId, m.away.totalPoints);
+			opponents.set(m.home.teamId, m.away.teamId);
+			opponents.set(m.away.teamId, m.home.teamId);
+		}
+		if (scores.size > 0) weeks.set(doc.scoringPeriodId, { scores, opponents });
+	}
+	const allIds = [...new Set([...weeks.values()].flatMap(w => [...w.scores.keys()]))];
+	const matrix: Record<number, Record<number, { w: number; l: number; t: number }>> = {};
+	for (const evalId of allIds) {
+		matrix[evalId] = {};
+		for (const schedId of allIds) {
+			let w = 0, l = 0, t = 0;
+			for (const { scores, opponents } of weeks.values()) {
+				const evalScore  = scores.get(evalId);
+				const schedOppId = opponents.get(schedId);
+				if (evalScore === undefined || schedOppId === undefined) continue;
+				const oppScore = scores.get(schedOppId);
+				if (oppScore === undefined) continue;
+				if (evalScore > oppScore)      w++;
+				else if (evalScore < oppScore) l++;
+				else                           t++;
+			}
+			matrix[evalId][schedId] = { w, l, t };
+		}
+	}
+	return matrix;
+}
+
 export async function load({ url }) {
 	try {
 		const [availableWeeks, previewWeekInfo] = await Promise.all([
@@ -352,6 +394,7 @@ export async function load({ url }) {
 				teamInfo: previewTeamInfo,
 				previewProjections,
 			});
+			const scheduleMatrix = computeScheduleMatrix(weekDocs);
 
 			return {
 				availableWeeks: allWeeks,
@@ -364,6 +407,7 @@ export async function load({ url }) {
 				teamRecords,
 				leagueRecord,
 				standingsTable,
+				scheduleMatrix,
 			};
 		}
 
@@ -456,6 +500,7 @@ export async function load({ url }) {
 			teamInfo: recapTeamInfo,
 		});
 
+		const scheduleMatrix = computeScheduleMatrix(weekDocs);
 		return {
 			availableWeeks: allWeeks,
 			weekData,
@@ -467,6 +512,7 @@ export async function load({ url }) {
 			teamRecords,
 			leagueRecord,
 			standingsTable,
+			scheduleMatrix,
 		};
 	} catch (error) {
 		console.error('Page load error:', error);

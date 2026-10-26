@@ -42,6 +42,7 @@
 			streak: string; lrW: number; lrL: number; lrT: number;
 			hi: number; lo: number; weeksPlayed: number; seed: number;
 		}>;
+		scheduleMatrix?: Record<number, Record<number, { w: number; l: number; t: number }>>;
 		error?: string;
 	};
 
@@ -227,6 +228,7 @@
 	let studsOpen = true;
 	let matchupsOpen = true;
 	let standingsTableOpen = true;
+	let scheduleMatrixOpen = false;
 
 	// Standings table sort state
 	type SortCol = 'seed' | 'weekScore' | 'projectedScore' | 'pf' | 'pa' | 'apf' | 'apa' | 'w' | 'l' | 'pct' | 'streak' | 'lrW' | 'hi' | 'lo';
@@ -1080,6 +1082,40 @@
 	.st-lr { color: var(--text-secondary, #ccc); }
 	.st-lr-pct { color: var(--text-muted, #888); font-size: 0.75rem; }
 
+	/* Schedule matrix subsection */
+	.sched-matrix-toggle {
+		width: 100%; display: flex; align-items: center; justify-content: space-between;
+		background: none; border: none; border-top: 1px solid rgba(255,255,255,0.06);
+		color: rgba(255,255,255,0.45); font-size: 12px; font-family: inherit;
+		cursor: pointer; padding: 10px 16px; margin-top: 8px; text-align: left;
+	}
+	.sched-matrix-toggle:hover { color: rgba(255,255,255,0.7); }
+	.sched-matrix-chevron { transition: transform 0.15s; display: inline-block; }
+	.sched-matrix-chevron.open { transform: rotate(180deg); }
+	.sched-matrix-wrap { overflow-x: auto; margin-top: 4px; padding: 0 0 8px; }
+	.sched-matrix-table {
+		border-collapse: collapse; font-size: 11px; white-space: nowrap; width: 100%;
+	}
+	.sched-matrix-table th {
+		padding: 5px 8px; font-weight: 500; color: rgba(255,255,255,0.5);
+		text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08);
+	}
+	.sched-matrix-table th.sm-row-header { text-align: left; min-width: 110px; }
+	.sched-matrix-table td {
+		padding: 4px 8px; text-align: center;
+		border-bottom: 1px solid rgba(255,255,255,0.04);
+		color: rgba(255,255,255,0.7); font-variant-numeric: tabular-nums;
+	}
+	.sched-matrix-table td.sm-row-header {
+		text-align: left; color: rgba(255,255,255,0.55); font-weight: 500;
+		padding-left: 4px;
+	}
+	.sched-matrix-table tr:hover td { background: rgba(255,255,255,0.03); }
+	.sm-diag { color: rgba(255,255,255,0.35) !important; font-style: italic; }
+	.sm-win  { color: var(--green, #4ade80); font-weight: 600; }
+	.sm-loss { color: var(--red, #ef4444); font-weight: 600; }
+	.sm-col-self { background: rgba(255,255,255,0.03); }
+
 </style>
 
 <div class="page">
@@ -1166,6 +1202,44 @@
 				</tbody>
 			</table>
 		</div>
+
+		{#if data.scheduleMatrix}
+			{@const sm = data.scheduleMatrix}
+			{@const smTeams = sortedStandings}
+			<button class="sched-matrix-toggle" onclick={() => scheduleMatrixOpen = !scheduleMatrixOpen}>
+				<span>Schedule Matrix — how would each team fare on another's schedule?</span>
+				<span class="sched-matrix-chevron {scheduleMatrixOpen ? 'open' : ''}">▾</span>
+			</button>
+			{#if scheduleMatrixOpen}
+			<div class="sched-matrix-wrap">
+				<table class="sched-matrix-table">
+					<thead>
+						<tr>
+							<th class="sm-row-header" title="Team being evaluated (rows) vs schedule team (columns)">Team ↓ / Schedule →</th>
+							{#each smTeams as col}
+								<th title={col.teamName}>{col.teamName.length > 10 ? col.teamName.slice(0, 9) + '…' : col.teamName}</th>
+							{/each}
+						</tr>
+					</thead>
+					<tbody>
+						{#each smTeams as row}
+							<tr>
+								<td class="sm-row-header">{row.teamName}</td>
+								{#each smTeams as col}
+									{@const cell = sm[row.teamId]?.[col.teamId]}
+									{@const isDiag = row.teamId === col.teamId}
+									{@const winsMore = cell && cell.w > cell.l}
+									{@const lossMore = cell && cell.l > cell.w}
+									<td class="{isDiag ? 'sm-diag sm-col-self' : winsMore ? 'sm-win' : lossMore ? 'sm-loss' : ''}"
+										title="{row.teamName} on {col.teamName}'s schedule">{#if cell}{cell.w}-{cell.l}{#if cell.t > 0}-{cell.t}{/if}{:else}—{/if}</td>
+								{/each}
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+			{/if}
+		{/if}
 		{/if}
 		{/if}
 
