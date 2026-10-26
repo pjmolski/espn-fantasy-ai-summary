@@ -22,6 +22,7 @@
 			w: number; l: number; pct: number;
 			pf: number; pa: number; apf: number; apa: number;
 			hi: number; lo: number;
+			hiLabel: string; loLabel: string;
 			lrW: number; lrL: number; lrT: number;
 			streak: string; seed: number;
 		}[];
@@ -586,8 +587,8 @@
 							<td class="st-num {atHighlights['pa']?.get(row.teamId) ?? ''}">{row.pa.toFixed(2)}</td>
 							<td class="st-num {atHighlights['apf']?.get(row.teamId) ?? ''}">{row.apf.toFixed(2)}</td>
 							<td class="st-num {atHighlights['apa']?.get(row.teamId) ?? ''}">{row.apa.toFixed(2)}</td>
-							<td class="st-num {atHighlights['hi']?.get(row.teamId) ?? ''}">{row.hi.toFixed(2)}</td>
-							<td class="st-num {atHighlights['lo']?.get(row.teamId) ?? ''}">{row.lo.toFixed(2)}</td>
+							<td class="st-num {atHighlights['hi']?.get(row.teamId) ?? ''}" title={row.hiLabel || undefined}>{row.hi.toFixed(2)}</td>
+							<td class="st-num {atHighlights['lo']?.get(row.teamId) ?? ''}" title={row.loLabel || undefined}>{row.lo.toFixed(2)}</td>
 							<td class="st-lr {atHighlights['lr']?.get(row.teamId) ?? ''}">{row.lrW}-{row.lrL}{row.lrT > 0 ? `-${row.lrT}` : ''} <span class="st-lr-pct">({(lrPct * 100).toFixed(0)}%)</span></td>
 						</tr>
 					{/each}

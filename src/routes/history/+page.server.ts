@@ -101,11 +101,26 @@ export async function load() {
 	}
 
 	// Playoff weeks — use custom bracket results
+	// Also build a week-context map: seasonId-week → 'championship' | 'semifinals' | 'playoff'
+	const playoffContextMap = new Map<string, 'championship' | 'semifinals' | 'playoff'>();
+
 	for (const seasonDoc of allSeasons) {
 		const docs = docsBySeason.get(seasonDoc.seasonId) ?? [];
 		try {
 			const bracket = computePlayoffBracket(docs, seasonDoc);
-			for (const round of bracket.rounds) {
+			// Classify rounds: last = championship, second-to-last = semifinals, rest = playoff
+			const rounds = bracket.rounds;
+			if (rounds.length > 0) {
+				const champWeek = rounds[rounds.length - 1].week;
+				const semiWeek  = rounds.length >= 2 ? rounds[rounds.length - 2].week : null;
+				for (const round of rounds) {
+					const ctx = round.week === champWeek ? 'championship'
+					          : semiWeek !== null && round.week === semiWeek ? 'semifinals'
+					          : 'playoff';
+					playoffContextMap.set(`${seasonDoc.seasonId}-${round.week}`, ctx);
+				}
+			}
+			for (const round of rounds) {
 				for (const matchup of round.matchups) {
 					if (matchup.teamIdB === null || matchup.winner === null ||
 					    matchup.scoreA === null || matchup.scoreB === null) continue;
@@ -332,6 +347,7 @@ export async function load() {
 		w: number; l: number; pct: number;
 		pf: number; pa: number; apf: number; apa: number;
 		hi: number; lo: number;
+		hiLabel: string; loLabel: string;
 		lrW: number; lrL: number; lrT: number;
 		streak: string; seed: number;
 	};
@@ -342,6 +358,10 @@ export async function load() {
 	const atPA  = new Map<number, number>();
 	const atHi  = new Map<number, number>();
 	const atLo  = new Map<number, number>();
+	const atHiSeason = new Map<number, number>();
+	const atHiWeek   = new Map<number, number>();
+	const atLoSeason = new Map<number, number>();
+	const atLoWeek   = new Map<number, number>();
 	const atGames = new Map<number, number>();
 	const atLrW = new Map<number, number>();
 	const atLrL = new Map<number, number>();
@@ -366,9 +386,18 @@ export async function load() {
 			if (!atW.has(myId)) continue; // only track currentTeams
 			atPF.set(myId, (atPF.get(myId) ?? 0) + myScore);
 			atPA.set(myId, (atPA.get(myId) ?? 0) + oppScore);
-			atHi.set(myId, Math.max(atHi.get(myId) ?? 0, myScore));
+			const prevHi = atHi.get(myId) ?? 0;
+			if (myScore > prevHi) {
+				atHi.set(myId, myScore);
+				atHiSeason.set(myId, cm.seasonId);
+				atHiWeek.set(myId, cm.week);
+			}
 			const prevLo = atLo.get(myId) ?? Infinity;
-			atLo.set(myId, Math.min(prevLo, myScore));
+			if (myScore < prevLo) {
+				atLo.set(myId, myScore);
+				atLoSeason.set(myId, cm.seasonId);
+				atLoWeek.set(myId, cm.week);
+			}
 			atGames.set(myId, (atGames.get(myId) ?? 0) + 1);
 			if (cm.winnerId === myId)           atW.set(myId, (atW.get(myId) ?? 0) + 1);
 			else if (cm.winnerId !== 'TIE') atL.set(myId, (atL.get(myId) ?? 0) + 1);
@@ -418,6 +447,15 @@ export async function load() {
 		}
 	}
 
+	function atWeekLabel(seasonId: number | undefined, week: number | undefined): string {
+		if (seasonId === undefined || week === undefined) return '';
+		const ctx = playoffContextMap.get(`${seasonId}-${week}`);
+		if (ctx === 'championship') return `Season ${seasonId} Championship Game`;
+		if (ctx === 'semifinals')   return `Season ${seasonId} Semifinals`;
+		if (ctx === 'playoff')      return `Season ${seasonId} Playoff Week ${week}`;
+		return `Season ${seasonId} Week ${week}`;
+	}
+
 	const allTimeStats: AllTimeStatsRow[] = currentTeams.map(t => {
 		const w  = atW.get(t.teamId) ?? 0;
 		const l  = atL.get(t.teamId) ?? 0;
@@ -434,6 +472,8 @@ export async function load() {
 			apa: g > 0 ? pa / g : 0,
 			hi: atHi.get(t.teamId) ?? 0,
 			lo: lo === undefined || lo === Infinity ? 0 : lo,
+			hiLabel: atWeekLabel(atHiSeason.get(t.teamId), atHiWeek.get(t.teamId)),
+			loLabel: atWeekLabel(atLoSeason.get(t.teamId), atLoWeek.get(t.teamId)),
 			lrW: atLrW.get(t.teamId) ?? 0,
 			lrL: atLrL.get(t.teamId) ?? 0,
 			lrT: atLrT.get(t.teamId) ?? 0,
