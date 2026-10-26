@@ -1223,14 +1223,17 @@
 					</thead>
 					<tbody>
 						{#each smTeams as row}
+							{@const diag = sm[row.teamId]?.[row.teamId]}
+							{@const diagPct = diag ? diag.w / (diag.w + diag.l + diag.t || 1) : 0}
 							<tr>
 								<td class="sm-row-header">{row.teamName}</td>
 								{#each smTeams as col}
 									{@const cell = sm[row.teamId]?.[col.teamId]}
 									{@const isDiag = row.teamId === col.teamId}
-									{@const winsMore = cell && cell.w > cell.l}
-									{@const lossMore = cell && cell.l > cell.w}
-									<td class="{isDiag ? 'sm-diag sm-col-self' : winsMore ? 'sm-win' : lossMore ? 'sm-loss' : ''}"
+									{@const cellPct = cell ? cell.w / (cell.w + cell.l + cell.t || 1) : 0}
+									{@const isBetter = !isDiag && cell && cellPct > diagPct}
+									{@const isWorse  = !isDiag && cell && cellPct < diagPct}
+									<td class="{isDiag ? 'sm-diag sm-col-self' : isBetter ? 'sm-win' : isWorse ? 'sm-loss' : ''}"
 										title="{row.teamName} on {col.teamName}'s schedule">{#if cell}{cell.w}-{cell.l}{#if cell.t > 0}-{cell.t}{/if}{:else}—{/if}</td>
 								{/each}
 							</tr>
