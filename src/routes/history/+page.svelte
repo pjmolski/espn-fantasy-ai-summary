@@ -559,29 +559,33 @@
 					{#each mountRushmore as row}
 						<tr class="mr-row">
 							<td class="mr-team-cell">
-								{#if row.logoUrl}
-									<img class="mr-team-logo" src={row.logoUrl} alt={row.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display='none'} loading="lazy" />
-								{:else}
-									<span class="logo-init sm">{logoInitials(row.teamName)}</span>
-								{/if}
-								<span class="mr-team-name">{row.teamName}</span>
+								<div class="mr-team-inner">
+									{#if row.logoUrl}
+										<img class="mr-team-logo" src={row.logoUrl} alt={row.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display='none'} loading="lazy" />
+									{:else}
+										<span class="logo-init sm">{logoInitials(row.teamName)}</span>
+									{/if}
+									<span class="mr-team-name">{row.teamName}</span>
+								</div>
 							</td>
 							{#each [0, 1, 2] as rank}
 								{@const p = row.top3[rank]}
 								{#if p}
 									<td class="mr-player-cell">
-										<img
-											class="mr-player-img"
-											src="https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/{p.playerId}.png&w=80&h=58"
-											alt={p.fullName}
-											onerror={(e) => { (e.currentTarget as HTMLImageElement).style.display='none'; (e.currentTarget.nextElementSibling as HTMLElement|null)?.style.setProperty('display','inline-flex'); }}
-											loading="lazy"
-										/>
-										<span class="logo-init sm mr-player-fallback" style="display:none">{logoInitials(p.fullName)}</span>
-										<div class="mr-player-info">
-											<span class="mr-player-name">{p.fullName}</span>
-											<span class="mr-player-pts">{p.totalPoints.toFixed(1)} pts</span>
-											<span class="mr-player-years">({p.seasons.map(s => `'${String(s).slice(2)}`).join(', ')})</span>
+										<div class="mr-player-inner">
+											<img
+												class="mr-player-img"
+												src="https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/{p.playerId}.png&w=80&h=58"
+												alt={p.fullName}
+												onerror={(e) => { (e.currentTarget as HTMLImageElement).style.display='none'; (e.currentTarget.nextElementSibling as HTMLElement|null)?.style.setProperty('display','inline-flex'); }}
+												loading="lazy"
+											/>
+											<span class="logo-init sm mr-player-fallback" style="display:none">{logoInitials(p.fullName)}</span>
+											<div class="mr-player-info">
+												<span class="mr-player-name">{p.fullName}</span>
+												<span class="mr-player-pts">{p.totalPoints.toFixed(1)} pts</span>
+												<span class="mr-player-years">({p.seasons.map(s => `'${String(s).slice(2)}`).join(', ')})</span>
+											</div>
 										</div>
 									</td>
 								{:else}
@@ -913,16 +917,12 @@
 	.mr-th-player { padding: 6px 12px; text-align: left; font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 600; min-width: 180px; }
 	.mr-row { border-bottom: 1px solid rgba(255,255,255,0.05); }
 	.mr-row:hover { background: rgba(255,255,255,0.03); }
-	.mr-team-cell {
-		padding: 10px 12px; display: flex; align-items: center; gap: 8px;
-		white-space: nowrap; vertical-align: middle;
-	}
+	.mr-team-cell { padding: 10px 12px; vertical-align: middle; }
+	.mr-team-inner { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
 	.mr-team-logo { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
 	.mr-team-name { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.85); }
-	.mr-player-cell {
-		padding: 8px 12px; vertical-align: middle;
-		display: flex; align-items: center; gap: 10px;
-	}
+	.mr-player-cell { padding: 8px 12px; vertical-align: middle; }
+	.mr-player-inner { display: flex; align-items: center; gap: 10px; }
 	.mr-player-img {
 		width: 40px; height: 29px; object-fit: cover; border-radius: 4px;
 		background: rgba(255,255,255,0.06); flex-shrink: 0;
