@@ -1114,6 +1114,8 @@
 	.sm-diag { color: rgba(255,255,255,0.35) !important; font-style: italic; }
 	.sm-win  { color: var(--green, #4ade80) !important; font-weight: 600; }
 	.sm-loss { color: var(--red, #ef4444) !important; font-weight: 600; }
+	.sm-name-best  { color: var(--green, #4ade80) !important; font-weight: 700; }
+	.sm-name-worst { color: var(--red, #ef4444) !important; font-weight: 700; }
 	.sm-col-self { background: rgba(255,255,255,0.03); }
 
 </style>
@@ -1222,11 +1224,15 @@
 						</tr>
 					</thead>
 					<tbody>
+						{@const rowTotals = smTeams.map(r => ({ teamId: r.teamId, wins: smTeams.reduce((s, c) => s + (sm[r.teamId]?.[c.teamId]?.w ?? 0), 0) }))}
+						{@const maxWins = Math.max(...rowTotals.map(r => r.wins))}
+						{@const minWins = Math.min(...rowTotals.map(r => r.wins))}
 						{#each smTeams as row}
 							{@const diag = sm[row.teamId]?.[row.teamId]}
 							{@const diagPct = diag ? diag.w / (diag.w + diag.l + diag.t || 1) : 0}
+							{@const rowWins = rowTotals.find(r => r.teamId === row.teamId)?.wins ?? 0}
 							<tr>
-								<td class="sm-row-header">{row.teamName}</td>
+								<td class="sm-row-header {rowWins === maxWins ? 'sm-name-best' : rowWins === minWins ? 'sm-name-worst' : ''}">{row.teamName}</td>
 								{#each smTeams as col}
 									{@const cell = sm[row.teamId]?.[col.teamId]}
 									{@const isDiag = row.teamId === col.teamId}
