@@ -186,7 +186,7 @@
 
 	<!-- ── Champions + Chumpions ──────────────────────────────────────────── -->
 	<section class="history-section">
-		<h2 class="section-label">🏆 Season Results</h2>
+		<h2 class="section-label" id="season-results">🏆 Season Results<a class="section-anchor" href="#season-results" title="Link to this section">#</a></h2>
 		<div class="seasons-list">
 			{#each seasonResults as sr}
 				{@const recapHref = sr.historical ? undefined : `/?season=${sr.seasonId}&week=${sr.championshipWeek}`}
@@ -232,7 +232,7 @@
 	<!-- ── Winningest / Chumpiest ─────────────────────────────────────────── -->
 	<div class="two-col">
 		<section class="history-section">
-			<h2 class="section-label">🔩 Most Championships</h2>
+			<h2 class="section-label" id="championships">🔩 Most Championships<a class="section-anchor" href="#championships" title="Link to this section">#</a></h2>
 			<div class="tally-list">
 				{#each winniestTeams as t, i}
 					<div class="tally-row">
@@ -254,7 +254,7 @@
 			</div>
 		</section>
 		<section class="history-section">
-			<h2 class="section-label">🪠 Most Chumpionships</h2>
+			<h2 class="section-label" id="chumpionships">🪠 Most Chumpionships<a class="section-anchor" href="#chumpionships" title="Link to this section">#</a></h2>
 			<div class="tally-list">
 				{#each chumpiestTeams as t, i}
 					<div class="tally-row">
@@ -279,7 +279,7 @@
 
 	<!-- ── H2H Matrix ─────────────────────────────────────────────────────── -->
 	<section class="history-section">
-		<h2 class="section-label">📊 All-Time Head-to-Head</h2>
+		<h2 class="section-label" id="h2h">📊 All-Time Head-to-Head<a class="section-anchor" href="#h2h" title="Link to this section">#</a></h2>
 		<p class="section-note">Click any cell to see the game-by-game history. Record shown from the row team's perspective.</p>
 		<div class="matrix-scroll">
 			<table class="matrix">
@@ -371,7 +371,7 @@
 
 	<!-- ── Heated Rivalries ───────────────────────────────────────────────── -->
 	<section class="history-section">
-		<h2 class="section-label">👯‍♀️ Heated Rivalries</h2>
+		<h2 class="section-label" id="rivalries">👯‍♀️ Heated Rivalries<a class="section-anchor" href="#rivalries" title="Link to this section">#</a></h2>
 		<p class="section-note">Most evenly matched all-time records (min. 3 games).</p>
 		<div class="stat-list">
 			{#each tightestRivalries as r, i}
@@ -394,7 +394,7 @@
 
 	<!-- ── Lopsided Rivalries ─────────────────────────────────────────────── -->
 	<section class="history-section">
-		<h2 class="section-label">🫥 I Don't Think About You At All</h2>
+		<h2 class="section-label" id="lopsided">🫥 I Don't Think About You At All<a class="section-anchor" href="#lopsided" title="Link to this section">#</a></h2>
 		<p class="section-note">Most one-sided all-time records (min. 3 games).</p>
 		<div class="stat-list">
 			{#each lopsidedRivalries as r, i}
@@ -418,7 +418,7 @@
 
 	<!-- ── Biggest Blowouts ───────────────────────────────────────────────── -->
 	<section class="history-section">
-		<h2 class="section-label">👟🐛 Biggest Blowouts</h2>
+		<h2 class="section-label" id="blowouts">👟🐛 Biggest Blowouts<a class="section-anchor" href="#blowouts" title="Link to this section">#</a></h2>
 		<p class="section-note">Historic matchups with the largest margin of victory.</p>
 		<div class="game-list">
 			{#each blowouts as g, i}
@@ -442,7 +442,7 @@
 
 	<!-- ── Barn Burners ───────────────────────────────────────────────────── -->
 	<section class="history-section">
-		<h2 class="section-label">🐄🔥 Barn Burners</h2>
+		<h2 class="section-label" id="barn-burners">🐄🔥 Barn Burners<a class="section-anchor" href="#barn-burners" title="Link to this section">#</a></h2>
 		<p class="section-note">Historic matchups with the highest combined scores.</p>
 		<div class="game-list">
 			{#each barnBurners as g, i}
@@ -466,7 +466,7 @@
 
 	<!-- ── Performance by Week ──────────────────────────────────────────────── -->
 	<section class="history-section">
-		<h2 class="section-title">Performance by Week</h2>
+		<h2 class="section-title" id="perf-by-week">Performance by Week<a class="section-anchor" href="#perf-by-week" title="Link to this section">#</a></h2>
 		<div class="pbw-controls">
 			<select class="pbw-select" bind:value={selectedPerfTeamId}>
 				{#each currentTeams as t}
@@ -547,7 +547,7 @@
 
 	<!-- ── Mount Rushmore ──────────────────────────────────────────────────── -->
 	<section class="history-section">
-		<h2 class="section-title">🗿 Mount Rushmore</h2>
+		<h2 class="section-title" id="mount-rushmore">🗿 Mount Rushmore<a class="section-anchor" href="#mount-rushmore" title="Link to this section">#</a></h2>
 		<p class="section-note">All-time best starter at each position for each team. 2019–present.</p>
 		<div class="mr-grid">
 			{#each mountRushmore as team}
@@ -587,7 +587,7 @@
 
 	<!-- ── All-Time Stats ───────────────────────────────────────────────────── -->
 	<section class="history-section">
-		<h2 class="section-title">📊 All-Time Stats</h2>
+		<h2 class="section-title" id="all-time-stats">📊 All-Time Stats<a class="section-anchor" href="#all-time-stats" title="Link to this section">#</a></h2>
 		<p class="section-note">Aggregated across all league history. Only active matchup weeks — no bye weeks.</p>
 		<button class="at-stats-toggle" onclick={() => atStatsOpen = !atStatsOpen}>
 			<span>{atStatsOpen ? 'Hide table' : 'Show table'}</span>
@@ -853,6 +853,16 @@
 	.pbw-val.pos { fill: #00d26d; }
 	.pbw-val.neg { fill: #e74c3c; }
 	.pbw-nodata { fill: rgba(255,255,255,0.25); cursor: default; font-family: inherit; }
+
+	/* ── Section anchor links ────────────────────────────────────── */
+	.section-anchor {
+		opacity: 0; margin-left: 8px; font-size: 0.65em; font-weight: 400;
+		color: rgba(255,255,255,0.3); text-decoration: none; transition: opacity 0.15s;
+		vertical-align: middle;
+	}
+	h2:hover .section-anchor, .section-anchor:focus { opacity: 1; }
+	.section-anchor:hover { color: rgba(255,255,255,0.7); }
+	h2[id] { scroll-margin-top: 16px; }
 
 	/* ── All-Time Stats table ───────────────────────────────────── */
 	.at-stats-toggle {

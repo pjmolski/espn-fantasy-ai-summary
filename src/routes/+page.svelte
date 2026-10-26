@@ -1140,6 +1140,16 @@
 	.sm-name-worst { color: var(--red, #ef4444) !important; font-weight: 700; }
 	.sm-col-self { background: rgba(255,255,255,0.03); }
 
+
+	/* ── Section anchor links ────────────────────────────────────── */
+	.section-anchor {
+		opacity: 0; margin-left: 8px; font-size: 0.65em; font-weight: 400;
+		color: rgba(255,255,255,0.3); text-decoration: none; transition: opacity 0.15s;
+		vertical-align: middle;
+	}
+	h2:hover .section-anchor, .section-anchor:focus { opacity: 1; }
+	.section-anchor:hover { color: rgba(255,255,255,0.7); }
+	h2[id] { scroll-margin-top: 16px; }
 </style>
 
 <div class="page">
@@ -1162,8 +1172,9 @@
 {#snippet standingsTable()}
 		<!-- Standings Table -->
 		{#if sortedStandings.length > 0}
-		<h2 class="section-header" onclick={() => standingsTableOpen = !standingsTableOpen}>
+		<h2 class="section-header" id="stats" onclick={() => standingsTableOpen = !standingsTableOpen}>
 			<span>Stats</span>
+			<a class="section-anchor" href="#stats" title="Link to this section" onclick={(e) => e.stopPropagation()}>#</a>
 			<span class="section-chevron {standingsTableOpen ? 'open' : ''}"></span>
 		</h2>
 		{#if standingsTableOpen}
@@ -1286,8 +1297,9 @@
 
 {@render standingsTable()}
 
-			<h2 class="section-header" onclick={() => honorsOpen = !honorsOpen}>
+			<h2 class="section-header" id="honors" onclick={() => honorsOpen = !honorsOpen}>
 				<span>Week {weekData.scoringPeriodId} Honors</span>
+				<a class="section-anchor" href="#honors" title="Link to this section" onclick={(e) => e.stopPropagation()}>#</a>
 				<span class="section-chevron {honorsOpen ? 'open' : ''}"></span>
 			</h2>
 
@@ -1693,8 +1705,9 @@
 
 			{#if weekData.topStuds && weekData.topStuds.length > 0}
 			<div class="studs-section">
-				<h2 class="section-header" onclick={() => studsOpen = !studsOpen}>
+				<h2 class="section-header" id="studs" onclick={() => studsOpen = !studsOpen}>
 					<span>Weekly Studs</span>
+					<a class="section-anchor" href="#studs" title="Link to this section" onclick={(e) => e.stopPropagation()}>#</a>
 					<span class="section-chevron {studsOpen ? 'open' : ''}"></span>
 				</h2>
 				{#if studsOpen}
@@ -1719,8 +1732,9 @@
 			</div>
 			{/if}
 
-			<h2 class="section-header" onclick={() => matchupsOpen = !matchupsOpen}>
+			<h2 class="section-header" id="matchups" onclick={() => matchupsOpen = !matchupsOpen}>
 				<span>Matchups</span>
+				<a class="section-anchor" href="#matchups" title="Link to this section" onclick={(e) => e.stopPropagation()}>#</a>
 				<span class="section-chevron {matchupsOpen ? 'open' : ''}"></span>
 			</h2>
 			{#if matchupsOpen}
@@ -1982,8 +1996,9 @@
 			</div>
 
 		{@render standingsTable()}
-			<h2 class="section-header" onclick={() => matchupsOpen = !matchupsOpen}>
+			<h2 class="section-header" id="matchups" onclick={() => matchupsOpen = !matchupsOpen}>
 				<span>Matchups</span>
+				<a class="section-anchor" href="#matchups" title="Link to this section" onclick={(e) => e.stopPropagation()}>#</a>
 				<span class="section-chevron {matchupsOpen ? 'open' : ''}"></span>
 			</h2>
 			{#if matchupsOpen}
@@ -2173,8 +2188,9 @@
 
 		<!-- Standings chart (shown for both recap and preview weeks) -->
 		{#if standingsHistory.length > 0 && chartInfo}
-			<h2 class="section-header" onclick={() => standingsOpen = !standingsOpen}>
+			<h2 class="section-header" id="standings" onclick={() => standingsOpen = !standingsOpen}>
 				<span>Season Standings</span>
+				<a class="section-anchor" href="#standings" title="Link to this section" onclick={(e) => e.stopPropagation()}>#</a>
 				<span class="section-chevron {standingsOpen ? 'open' : ''}"></span>
 			</h2>
 			{#if standingsOpen}
