@@ -1112,8 +1112,8 @@
 	}
 	.sched-matrix-table tr:hover td { background: rgba(255,255,255,0.03); }
 	.sm-diag { color: rgba(255,255,255,0.35) !important; font-style: italic; }
-	.sm-win  { color: var(--green, #4ade80); font-weight: 600; }
-	.sm-loss { color: var(--red, #ef4444); font-weight: 600; }
+	.sm-win  { color: var(--green, #4ade80) !important; font-weight: 600; }
+	.sm-loss { color: var(--red, #ef4444) !important; font-weight: 600; }
 	.sm-col-self { background: rgba(255,255,255,0.03); }
 
 </style>
