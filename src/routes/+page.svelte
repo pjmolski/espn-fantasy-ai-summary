@@ -229,6 +229,18 @@
 	let matchupsOpen = true;
 	let standingsTableOpen = true;
 	let scheduleMatrixOpen = false;
+	$: smRowTotals = (() => {
+		const sm = data.scheduleMatrix;
+		const teams = data.standingsTable ?? [];
+		if (!sm) return { totals: new Map<number,number>(), max: 0, min: 0 };
+		const totals = new Map<number,number>();
+		for (const row of teams) {
+			const wins = teams.reduce((s, col) => s + (sm[row.teamId]?.[col.teamId]?.w ?? 0), 0);
+			totals.set(row.teamId, wins);
+		}
+		const vals = [...totals.values()];
+		return { totals, max: Math.max(...vals), min: Math.min(...vals) };
+	})();
 
 	// Standings table sort state
 	type SortCol = 'seed' | 'weekScore' | 'projectedScore' | 'pf' | 'pa' | 'apf' | 'apa' | 'w' | 'l' | 'pct' | 'streak' | 'lrW' | 'hi' | 'lo';
@@ -1224,15 +1236,12 @@
 						</tr>
 					</thead>
 					<tbody>
-						{@const rowTotals = smTeams.map(r => ({ teamId: r.teamId, wins: smTeams.reduce((s, c) => s + (sm[r.teamId]?.[c.teamId]?.w ?? 0), 0) }))}
-						{@const maxWins = Math.max(...rowTotals.map(r => r.wins))}
-						{@const minWins = Math.min(...rowTotals.map(r => r.wins))}
 						{#each smTeams as row}
 							{@const diag = sm[row.teamId]?.[row.teamId]}
 							{@const diagPct = diag ? diag.w / (diag.w + diag.l + diag.t || 1) : 0}
-							{@const rowWins = rowTotals.find(r => r.teamId === row.teamId)?.wins ?? 0}
+							{@const rowWins = smRowTotals.totals.get(row.teamId) ?? 0}
 							<tr>
-								<td class="sm-row-header {rowWins === maxWins ? 'sm-name-best' : rowWins === minWins ? 'sm-name-worst' : ''}">{row.teamName}</td>
+								<td class="sm-row-header {rowWins === smRowTotals.max ? 'sm-name-best' : rowWins === smRowTotals.min ? 'sm-name-worst' : ''}">{row.teamName}</td>
 								{#each smTeams as col}
 									{@const cell = sm[row.teamId]?.[col.teamId]}
 									{@const isDiag = row.teamId === col.teamId}
