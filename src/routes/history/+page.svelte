@@ -19,7 +19,11 @@
 		weekPerf: Record<number, Record<number, { wins: number; losses: number; winSeasons: number[]; lossSeasons: number[] }>>;
 		mountRushmore: {
 			teamId: number; teamName: string; logoUrl?: string;
-			top3: { playerId: number; fullName: string; totalPoints: number; seasons: number[] }[];
+			lineup: {
+				label: string; playerId: number; fullName: string;
+				totalPoints: number; seasons: number[]; games: number;
+				medal?: '🥇' | '🥈' | '🥉';
+			}[];
 		}[];
 		allTimeStats: {
 			teamId: number; teamName: string; logoUrl?: string;
@@ -544,58 +548,40 @@
 	<!-- ── Mount Rushmore ──────────────────────────────────────────────────── -->
 	<section class="history-section">
 		<h2 class="section-title">🗿 Mount Rushmore</h2>
-		<p class="section-note">Top 3 starters by total fantasy points scored on each team. 2019–present.</p>
-		<div class="mr-wrap">
-			<table class="mr-table">
-				<thead>
-					<tr>
-						<th class="mr-th-team">Team</th>
-						<th class="mr-th-player">#1</th>
-						<th class="mr-th-player">#2</th>
-						<th class="mr-th-player">#3</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each mountRushmore as row}
-						<tr class="mr-row">
-							<td class="mr-team-cell">
-								<div class="mr-team-inner">
-									{#if row.logoUrl}
-										<img class="mr-team-logo" src={row.logoUrl} alt={row.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display='none'} loading="lazy" />
-									{:else}
-										<span class="logo-init sm">{logoInitials(row.teamName)}</span>
-									{/if}
-									<span class="mr-team-name">{row.teamName}</span>
+		<p class="section-note">All-time best starter at each position for each team. 2019–present.</p>
+		<div class="mr-grid">
+			{#each mountRushmore as team}
+				<div class="mr-card">
+					<div class="mr-card-header">
+						{#if team.logoUrl}
+							<img class="mr-card-logo" src={team.logoUrl} alt={team.teamName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display='none'} loading="lazy" />
+						{:else}
+							<span class="logo-init sm">{logoInitials(team.teamName)}</span>
+						{/if}
+						<span class="mr-card-name">{team.teamName}</span>
+					</div>
+					<div class="mr-lineup">
+						{#each team.lineup as slot}
+							<div class="mr-slot">
+								<span class="mr-pos-badge mr-pos-{slot.label.toLowerCase()}">{slot.label}</span>
+								<img
+									class="mr-headshot"
+									src="https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/{slot.playerId}.png&w=80&h=58"
+									alt={slot.fullName}
+									onerror={(e) => { (e.currentTarget as HTMLImageElement).style.display='none'; (e.currentTarget.nextElementSibling as HTMLElement|null)?.style.setProperty('display','inline-flex'); }}
+									loading="lazy"
+								/>
+								<span class="logo-init sm mr-head-fallback" style="display:none">{logoInitials(slot.fullName)}</span>
+								<div class="mr-slot-info">
+									<span class="mr-slot-name">{slot.fullName}{#if slot.medal} {slot.medal}{/if}</span>
+									<span class="mr-slot-pts">{slot.totalPoints.toFixed(1)} pts</span>
+									<span class="mr-slot-years">({slot.games} {slot.games === 1 ? 'game' : 'games'}: {slot.seasons.map(s => `'${String(s).slice(2)}`).join(', ')})</span>
 								</div>
-							</td>
-							{#each [0, 1, 2] as rank}
-								{@const p = row.top3[rank]}
-								{#if p}
-									<td class="mr-player-cell">
-										<div class="mr-player-inner">
-											<img
-												class="mr-player-img"
-												src="https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/{p.playerId}.png&w=80&h=58"
-												alt={p.fullName}
-												onerror={(e) => { (e.currentTarget as HTMLImageElement).style.display='none'; (e.currentTarget.nextElementSibling as HTMLElement|null)?.style.setProperty('display','inline-flex'); }}
-												loading="lazy"
-											/>
-											<span class="logo-init sm mr-player-fallback" style="display:none">{logoInitials(p.fullName)}</span>
-											<div class="mr-player-info">
-												<span class="mr-player-name">{p.fullName}</span>
-												<span class="mr-player-pts">{p.totalPoints.toFixed(1)} pts</span>
-												<span class="mr-player-years">({p.seasons.map(s => `'${String(s).slice(2)}`).join(', ')})</span>
-											</div>
-										</div>
-									</td>
-								{:else}
-									<td class="mr-player-cell mr-empty">—</td>
-								{/if}
-							{/each}
-						</tr>
-					{/each}
-				</tbody>
-			</table>
+							</div>
+						{/each}
+					</div>
+				</div>
+			{/each}
 		</div>
 	</section>
 
@@ -910,28 +896,55 @@
 	.lr-logo { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
 
 	/* ── Mount Rushmore ──────────────────────────────────────────── */
-	.mr-wrap { overflow-x: auto; }
-	.mr-table { border-collapse: collapse; width: 100%; }
-	.mr-table thead tr { border-bottom: 1px solid rgba(255,255,255,0.1); }
-	.mr-th-team { padding: 6px 12px; text-align: left; font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 600; min-width: 140px; }
-	.mr-th-player { padding: 6px 12px; text-align: left; font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 600; min-width: 180px; }
-	.mr-row { border-bottom: 1px solid rgba(255,255,255,0.05); }
-	.mr-row:hover { background: rgba(255,255,255,0.03); }
-	.mr-team-cell { padding: 10px 12px; vertical-align: middle; }
-	.mr-team-inner { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
-	.mr-team-logo { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
-	.mr-team-name { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.85); }
-	.mr-player-cell { padding: 8px 12px; vertical-align: middle; }
-	.mr-player-inner { display: flex; align-items: center; gap: 10px; }
-	.mr-player-img {
-		width: 40px; height: 29px; object-fit: cover; border-radius: 4px;
-		background: rgba(255,255,255,0.06); flex-shrink: 0;
+	.mr-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+		gap: 16px;
 	}
-	.mr-player-fallback { flex-shrink: 0; }
-	.mr-player-info { display: flex; flex-direction: column; gap: 1px; }
-	.mr-player-name { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.85); white-space: nowrap; }
-	.mr-player-pts { font-size: 11px; font-weight: 700; color: #4ade80; }
-	.mr-player-years { font-size: 10px; color: rgba(255,255,255,0.3); }
-	.mr-empty { color: rgba(255,255,255,0.2); font-size: 13px; vertical-align: middle; padding: 8px 12px; }
+	.mr-card {
+		background: rgba(255,255,255,0.03);
+		border: 1px solid rgba(255,255,255,0.08);
+		border-radius: 10px;
+		overflow: hidden;
+	}
+	.mr-card-header {
+		display: flex; align-items: center; gap: 10px;
+		padding: 12px 14px 10px;
+		border-bottom: 1px solid rgba(255,255,255,0.07);
+		background: rgba(255,255,255,0.03);
+	}
+	.mr-card-logo { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+	.mr-card-name { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.9); }
+	.mr-lineup { display: flex; flex-direction: column; }
+	.mr-slot {
+		display: flex; align-items: center; gap: 10px;
+		padding: 7px 12px;
+		border-bottom: 1px solid rgba(255,255,255,0.04);
+	}
+	.mr-slot:last-child { border-bottom: none; }
+	.mr-pos-badge {
+		font-size: 9px; font-weight: 800; letter-spacing: 0.04em;
+		padding: 2px 5px; border-radius: 3px; min-width: 32px; text-align: center;
+		flex-shrink: 0;
+	}
+	.mr-pos-qb  { background: rgba(251,191,36,0.18); color: #fbbf24; }
+	.mr-pos-rb  { background: rgba(74,222,128,0.18); color: #4ade80; }
+	.mr-pos-wr  { background: rgba(96,165,250,0.18); color: #60a5fa; }
+	.mr-pos-te  { background: rgba(251,146,60,0.18); color: #fb923c; }
+	.mr-pos-flx { background: rgba(167,139,250,0.18); color: #a78bfa; }
+	.mr-pos-dst { background: rgba(248,113,113,0.18); color: #f87171; }
+	.mr-pos-k   { background: rgba(156,163,175,0.18); color: #9ca3af; }
+	.mr-headshot {
+		width: 36px; height: 26px; object-fit: cover; border-radius: 4px;
+		background: rgba(255,255,255,0.05); flex-shrink: 0;
+	}
+	.mr-head-fallback { flex-shrink: 0; }
+	.mr-slot-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+	.mr-slot-name {
+		font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.85);
+		white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+	}
+	.mr-slot-pts { font-size: 11px; font-weight: 700; color: #4ade80; }
+	.mr-slot-years { font-size: 10px; color: rgba(255,255,255,0.3); }
 
 </style>

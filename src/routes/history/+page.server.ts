@@ -341,49 +341,89 @@ export async function load() {
 		weekPerf[loserId][wk].lossSeasons.push(yr);
 	}
 
-	// ── Mount Rushmore: top 3 starters by total points per fantasy team ─────────
+	// ── Mount Rushmore: all-time best lineup per fantasy team ──────────────────
 	// Uses allDocs (MongoDB / 2019+) only — historical JSON lacks player data.
-	type MrPlayer = { playerId: number; fullName: string; totalPoints: number; seasons: number[] };
-	type MountRushmoreRow = { teamId: number; teamName: string; logoUrl?: string; top3: MrPlayer[] };
+	// defaultPositionId: 1=QB 2=RB 3=WR 4=TE 5=K 16=D/ST
+	type MrSlot = {
+		label: string; playerId: number; fullName: string;
+		totalPoints: number; seasons: number[]; games: number;
+		medal?: '🥇' | '🥈' | '🥉';
+	};
+	type MountRushmoreRow = { teamId: number; teamName: string; logoUrl?: string; lineup: MrSlot[] };
 
-	{
-		// intentional block — no-op for scoping clarity
-	}
-
-	const mrMap = new Map<number, Map<number, { fullName: string; pts: number; seasons: Set<number> }>>();
-	for (const t of currentTeams) mrMap.set(t.teamId, new Map());
+	const mrMap2 = new Map<number, Map<number, { fullName: string; pts: number; seasons: Set<number>; posId: number; games: number }>>();
+	for (const t of currentTeams) mrMap2.set(t.teamId, new Map());
 
 	for (const doc of allDocs) {
 		for (const matchup of doc.matchups) {
 			for (const side of [matchup.home, matchup.away]) {
 				if (!side?.roster) continue;
-				const teamBucket = mrMap.get(side.teamId);
+				const teamBucket = mrMap2.get(side.teamId);
 				if (!teamBucket) continue;
 				for (const p of side.roster) {
 					if (!p.isStarter) continue;
 					if (!teamBucket.has(p.playerId)) {
-						teamBucket.set(p.playerId, { fullName: p.fullName, pts: 0, seasons: new Set() });
+						teamBucket.set(p.playerId, { fullName: p.fullName, pts: 0, seasons: new Set(), posId: p.defaultPositionId, games: 0 });
 					}
 					const entry = teamBucket.get(p.playerId)!;
 					entry.pts += p.actualScore;
 					entry.seasons.add(doc.seasonId);
+					entry.games++;
 				}
 			}
 		}
 	}
 
 	const mountRushmore: MountRushmoreRow[] = currentTeams.map(t => {
-		const bucket = mrMap.get(t.teamId) ?? new Map();
-		const top3 = [...bucket.entries()]
-			.map(([playerId, e]) => ({
-				playerId,
-				fullName: e.fullName,
-				totalPoints: Math.round(e.pts * 100) / 100,
-				seasons: [...e.seasons].sort((a, b) => a - b),
-			}))
-			.sort((a, b) => b.totalPoints - a.totalPoints)
-			.slice(0, 3);
-		return { teamId: t.teamId, teamName: t.name, logoUrl: t.logoUrl, top3 };
+		const bucket = mrMap2.get(t.teamId) ?? new Map();
+		const all = [...bucket.entries()].map(([playerId, e]) => ({
+			playerId, fullName: e.fullName,
+			totalPoints: Math.round(e.pts * 100) / 100,
+			seasons: [...e.seasons].sort((a, b) => a - b),
+			posId: e.posId, games: e.games,
+		}));
+
+		const byPos = (posId: number) =>
+			all.filter(p => p.posId === posId).sort((a, b) => b.totalPoints - a.totalPoints);
+
+		const qbs  = byPos(1);
+		const rbs  = byPos(2);
+		const wrs  = byPos(3);
+		const tes  = byPos(4);
+		const ks   = byPos(5);
+		const dsts = byPos(16);
+
+		// FLEX: 3rd RB vs 4th WR — whichever scored more
+		const flexRb = rbs[2];
+		const flexWr = wrs[3];
+		const flex = flexRb && flexWr
+			? (flexRb.totalPoints >= flexWr.totalPoints ? flexRb : flexWr)
+			: (flexRb ?? flexWr ?? undefined);
+
+		const slot = (label: string, p: typeof all[0] | undefined): MrSlot | null =>
+			p ? { label, playerId: p.playerId, fullName: p.fullName, totalPoints: p.totalPoints, seasons: p.seasons, games: p.games } : null;
+
+		const lineup: MrSlot[] = [
+			slot('QB',  qbs[0]),
+			slot('RB',  rbs[0]),
+			slot('RB',  rbs[1]),
+			slot('WR',  wrs[0]),
+			slot('WR',  wrs[1]),
+			slot('WR',  wrs[2]),
+			slot('TE',  tes[0]),
+			slot('FLX', flex),
+			slot('DST', dsts[0]),
+			slot('K',   ks[0]),
+		].filter((s): s is MrSlot => s !== null);
+
+		// Assign medals to top 3 scorers across the lineup
+		const ranked = [...lineup].sort((a, b) => b.totalPoints - a.totalPoints);
+		const medals: ['🥇', '🥈', '🥉'] = ['🥇', '🥈', '🥉'];
+		for (let i = 0; i < 3 && i < ranked.length; i++) {
+			ranked[i].medal = medals[i];
+		}
+
+		return { teamId: t.teamId, teamName: t.name, logoUrl: t.logoUrl, lineup };
 	}).sort((a, b) => a.teamName.localeCompare(b.teamName));
 
 	// ── All-time stats table ─────────────────────────────────────────────────
