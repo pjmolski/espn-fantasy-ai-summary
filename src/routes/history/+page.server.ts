@@ -326,6 +326,124 @@ export async function load() {
 		weekPerf[loserId][wk].lossSeasons.push(yr);
 	}
 
+	// ── All-time stats table ─────────────────────────────────────────────────
+	type AllTimeStatsRow = {
+		teamId: number; teamName: string; logoUrl?: string;
+		w: number; l: number; pct: number;
+		pf: number; pa: number; apf: number; apa: number;
+		hi: number; lo: number;
+		lrW: number; lrL: number; lrT: number;
+		streak: string; seed: number;
+	};
+
+	const atW   = new Map<number, number>();
+	const atL   = new Map<number, number>();
+	const atPF  = new Map<number, number>();
+	const atPA  = new Map<number, number>();
+	const atHi  = new Map<number, number>();
+	const atLo  = new Map<number, number>();
+	const atGames = new Map<number, number>();
+	const atLrW = new Map<number, number>();
+	const atLrL = new Map<number, number>();
+	const atLrT = new Map<number, number>();
+
+	for (const t of currentTeams) {
+		atW.set(t.teamId, 0); atL.set(t.teamId, 0);
+		atPF.set(t.teamId, 0); atPA.set(t.teamId, 0);
+		atHi.set(t.teamId, 0); atLo.set(t.teamId, Infinity);
+		atGames.set(t.teamId, 0);
+		atLrW.set(t.teamId, 0); atLrL.set(t.teamId, 0); atLrT.set(t.teamId, 0);
+	}
+
+	// Per-week score map for league record
+	const atWeekScores = new Map<string, Map<number, number>>();
+
+	for (const cm of canonicalMatchups) {
+		for (const [myId, myScore, oppScore] of [
+			[cm.teamAId, cm.teamAScore, cm.teamBScore],
+			[cm.teamBId, cm.teamBScore, cm.teamAScore],
+		] as [number, number, number][]) {
+			if (!atW.has(myId)) continue; // only track currentTeams
+			atPF.set(myId, (atPF.get(myId) ?? 0) + myScore);
+			atPA.set(myId, (atPA.get(myId) ?? 0) + oppScore);
+			atHi.set(myId, Math.max(atHi.get(myId) ?? 0, myScore));
+			const prevLo = atLo.get(myId) ?? Infinity;
+			atLo.set(myId, Math.min(prevLo, myScore));
+			atGames.set(myId, (atGames.get(myId) ?? 0) + 1);
+			if (cm.winnerId === myId)           atW.set(myId, (atW.get(myId) ?? 0) + 1);
+			else if (cm.winnerId !== 'TIE') atL.set(myId, (atL.get(myId) ?? 0) + 1);
+		}
+		// Build per-week score map for LR (include all teams in that week)
+		const wKey = `${cm.seasonId}-${cm.week}`;
+		if (!atWeekScores.has(wKey)) atWeekScores.set(wKey, new Map());
+		const ws = atWeekScores.get(wKey)!;
+		ws.set(cm.teamAId, cm.teamAScore);
+		ws.set(cm.teamBId, cm.teamBScore);
+	}
+
+	// League record (all-play) across all weeks
+	for (const ws of atWeekScores.values()) {
+		const entries = [...ws.entries()];
+		for (const [myId, myScore] of entries) {
+			if (!atLrW.has(myId)) continue;
+			for (const [otherId, otherScore] of entries) {
+				if (otherId === myId) continue;
+				if (myScore > otherScore)      atLrW.set(myId, (atLrW.get(myId) ?? 0) + 1);
+				else if (myScore < otherScore) atLrL.set(myId, (atLrL.get(myId) ?? 0) + 1);
+				else                           atLrT.set(myId, (atLrT.get(myId) ?? 0) + 1);
+			}
+		}
+	}
+
+	// Streak: sort recent-first, accumulate until type changes
+	const atSorted = [...canonicalMatchups].sort((a, b) =>
+		a.seasonId !== b.seasonId ? b.seasonId - a.seasonId : b.week - a.week
+	);
+	const atStreaks = new Map<number, { type: 'W' | 'L'; count: number }>();
+	const atStreakDone = new Set<number>();
+	for (const cm of atSorted) {
+		for (const [myId, result] of [
+			[cm.teamAId, cm.winnerId === cm.teamAId ? 'W' : cm.winnerId === 'TIE' ? null : 'L'],
+			[cm.teamBId, cm.winnerId === cm.teamBId ? 'W' : cm.winnerId === 'TIE' ? null : 'L'],
+		] as [number, 'W' | 'L' | null][]) {
+			if (result === null || !atW.has(myId) || atStreakDone.has(myId)) continue;
+			const cur = atStreaks.get(myId);
+			if (!cur) {
+				atStreaks.set(myId, { type: result, count: 1 });
+			} else if (cur.type === result) {
+				cur.count++;
+			} else {
+				atStreakDone.add(myId);
+			}
+		}
+	}
+
+	const allTimeStats: AllTimeStatsRow[] = currentTeams.map(t => {
+		const w  = atW.get(t.teamId) ?? 0;
+		const l  = atL.get(t.teamId) ?? 0;
+		const pf = atPF.get(t.teamId) ?? 0;
+		const pa = atPA.get(t.teamId) ?? 0;
+		const g  = atGames.get(t.teamId) ?? 0;
+		const lo = atLo.get(t.teamId);
+		const strk = atStreaks.get(t.teamId);
+		return {
+			teamId: t.teamId, teamName: t.name, logoUrl: t.logoUrl,
+			w, l, pct: (w + l) > 0 ? w / (w + l) : 0,
+			pf, pa,
+			apf: g > 0 ? pf / g : 0,
+			apa: g > 0 ? pa / g : 0,
+			hi: atHi.get(t.teamId) ?? 0,
+			lo: lo === undefined || lo === Infinity ? 0 : lo,
+			lrW: atLrW.get(t.teamId) ?? 0,
+			lrL: atLrL.get(t.teamId) ?? 0,
+			lrT: atLrT.get(t.teamId) ?? 0,
+			streak: strk ? `${strk.type}${strk.count}` : '—',
+			seed: 0,
+		};
+	});
+	allTimeStats.sort((a, b) => b.w !== a.w ? b.w - a.w : b.pf - a.pf);
+	allTimeStats.forEach((r, i) => { r.seed = i + 1; });
+
 	return {
 		currentTeams,
 		earliestSeason,
@@ -338,5 +456,6 @@ export async function load() {
 		blowouts,
 		barnBurners,
 		weekPerf,
+		allTimeStats,
 	};
 }
