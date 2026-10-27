@@ -198,6 +198,18 @@ export interface DeadWeightAward {
 	opponentName: string;
 }
 
+export interface TakeALoadOffAward {
+	playerId: number;
+	playerName: string;
+	position: string;
+	score: number;
+	teamId: number;
+	teamName: string;
+	teamScore: number;
+	opponentScore: number;
+	margin: number; // how much the team would have won by even without this player
+}
+
 export interface ProcessedWeek {
 	leagueId: string;
 	seasonId: number;
@@ -223,6 +235,7 @@ export interface ProcessedWeek {
 	badPlace: BadPlaceAward | null;
 	cantHaveYourCake: CantHaveYourCakeAward | null;
 	deadWeight: DeadWeightAward | null;
+	takeALoadOff: TakeALoadOffAward | null;
 	brassNuts: ChampionshipAward | null;
 	toiletBowl: ChampionshipAward | null;
 	onVacation: ProcessedTeam[];
@@ -882,6 +895,38 @@ export function processWeek(
 		}
 	}
 
+	// ── Take A Load Off 🪑: highest-scoring starter whose team won without needing them ──
+	let takeALoadOff: TakeALoadOffAward | null = null;
+	{
+		let best: TakeALoadOffAward | null = null;
+		for (const m of matchups) {
+			if (!m.away || m.winner === 'undecided' || m.winner === 'tie') continue;
+			const winner = m.winner === 'home' ? m.home : m.away;
+			const loser  = m.winner === 'home' ? m.away  : m.home;
+			for (const p of winner.starters) {
+				const scoreWithout = Math.round((winner.totalPoints - p.actualScore) * 100) / 100;
+				if (scoreWithout > loser.totalPoints) {
+					// Team wins even without this player
+					const margin = Math.round((scoreWithout - loser.totalPoints) * 100) / 100;
+					if (!best || p.actualScore > best.score) {
+						best = {
+							playerId: p.playerId,
+							playerName: p.fullName,
+							position: p.position,
+							score: p.actualScore,
+							teamId: winner.teamId,
+							teamName: winner.teamName,
+							teamScore: winner.totalPoints,
+							opponentScore: loser.totalPoints,
+							margin,
+						};
+					}
+				}
+			}
+		}
+		takeALoadOff = best;
+	}
+
 	return {
 		leagueId: weekDoc.leagueId,
 		seasonId: weekDoc.seasonId,
@@ -906,6 +951,7 @@ export function processWeek(
 		badPlace,
 		cantHaveYourCake,
 		deadWeight,
+		takeALoadOff,
 		brassNuts: null,
 		toiletBowl: null,
 		onVacation,

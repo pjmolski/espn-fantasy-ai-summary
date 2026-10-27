@@ -218,6 +218,7 @@
 		if (weekData.badPlace) add(weekData.badPlace.teamId, '🥀');
 		if (weekData.cantHaveYourCake) add(weekData.cantHaveYourCake.teamId, '🍽️');
 		if (weekData.deadWeight) add(weekData.deadWeight.teamId, '⚓');
+		if (weekData.takeALoadOff) add(weekData.takeALoadOff.teamId, '🪑');
 		if (weekData.brassNuts) add(weekData.brassNuts.teamId, '🔩');
 		if (weekData.toiletBowl) add(weekData.toiletBowl.teamId, '🪠');
 		return map;
@@ -1668,6 +1669,24 @@
 								<div class="award-player">{dw.teamName}</div>
 								<div class="award-meta">Lost to {dw.opponentName} by {dw.margin.toFixed(2)} pts</div>
 								<div class="award-score red">{dw.negativeTotal.toFixed(2)} from {dw.negativePlayers.map(p => p.name + ' (' + p.score.toFixed(2) + ')').join(', ')}</div>
+							</div>
+						</div>
+					</div>
+				{/if}
+
+				{#if weekData.takeALoadOff}
+					{@const tl = weekData.takeALoadOff}
+					<div class="award-card good">
+						<div class="award-band">
+							<div class="award-emoji">🪑</div>
+							<div class="award-label">Take A Load Off</div>
+						</div>
+						<div class="award-card-inner">
+							<img class="award-img" src={playerImgUrl(tl.playerId, tl.position, '')} alt={tl.playerName} onerror={(e) => (e.currentTarget as HTMLImageElement).style.display="none"} loading="lazy" />
+							<div class="award-body">
+								<div class="award-player">{tl.playerName}</div>
+								<div class="award-meta">{tl.teamName} won by {tl.margin.toFixed(2)} pts even without them</div>
+								<div class="award-score green">+{tl.score.toFixed(2)} pts · could have sat</div>
 							</div>
 						</div>
 					</div>
